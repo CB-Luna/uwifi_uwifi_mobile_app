@@ -1,0 +1,43 @@
+{
+  "Color with Values": {
+    "prefix": "colorwv",
+    "body": [
+      "${1:Colors.black}.withValues(alpha: ${2:0.5})"
+    ],
+    "description": "Color with alpha using withValues instead of withOpacity"
+  },
+  
+  "Color from RGBO": {
+    "prefix": "colorgbo",
+    "body": [
+      "Color.fromRGBO(${1:red}, ${2:green}, ${3:blue}, ${4:opacity})"
+    ],
+    "description": "Create color from RGBO values"
+  },
+  
+  "Color with Alpha": {
+    "prefix": "coloralpha",
+    "body": [
+      "${1:Colors.black}.withAlpha(${2:128})"
+    ],
+    "description": "Color with alpha value (0-255)"
+  },
+  
+  "Transparent Color": {
+    "prefix": "colortrans",
+    "body": [
+      "Colors.transparent"
+    ],
+    "description": "Transparent color constant"
+  },
+  
+  "Color with Opacity - AVOID": {
+    "prefix": "coloropacity",
+    "body": [
+      "// ❌ AVOID: Use .withValues(alpha: ${2:0.5}) instead",
+      "// ${1:Colors.black}.withOpacity(${2:0.5})",
+      "${1:Colors.black}.withValues(alpha: ${2:0.5})"
+    ],
+    "description": "Shows the correct way instead of withOpacity"
+  }
+}

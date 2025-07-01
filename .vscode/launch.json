@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "name": "Flutter (lib/features/videos/presentation/widgets/smart_video_progress_indicator.dart)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/features/videos/presentation/widgets/smart_video_progress_indicator.dart"
+        }
+    ]
+}
