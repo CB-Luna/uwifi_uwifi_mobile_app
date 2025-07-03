@@ -1,10 +1,21 @@
 {
     "configurations": [
         {
-            "name": "Flutter (lib/features/videos/presentation/widgets/smart_video_progress_indicator.dart)",
-            "type": "dart",
+            "name": "uwifi_uwifi_mobile_app",
             "request": "launch",
-            "program": "lib/features/videos/presentation/widgets/smart_video_progress_indicator.dart"
+            "type": "dart"
+        },
+        {
+            "name": "uwifi_uwifi_mobile_app (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "uwifi_uwifi_mobile_app (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
         }
     ]
 }
