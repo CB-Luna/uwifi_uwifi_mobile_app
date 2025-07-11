@@ -1,7 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class WalletPage extends StatelessWidget {
+import '../../../../../core/utils/app_logger.dart';
+import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../../auth/presentation/bloc/auth_state.dart';
+import '../../bloc/wallet_bloc.dart';
+import '../../bloc/wallet_event.dart';
+import '../../bloc/wallet_state.dart';
+import 'user_circle.dart';
+
+class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
+
+  @override
+  State<WalletPage> createState() => _WalletPageState();
+}
+
+class _WalletPageState extends State<WalletPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargar usuarios afiliados después de que el widget se haya construido
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAffiliatedUsers();
+    });
+  }
+
+  void _loadAffiliatedUsers() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+
+      // Verificar si el usuario tiene customerId
+      if (user.customerId != null) {
+        AppLogger.navInfo(
+          'Cargando usuarios afiliados para customerId: ${user.customerId}',
+        );
+        context.read<WalletBloc>().add(
+          GetAffiliatedUsersEvent(customerId: user.customerId.toString()),
+        );
+      } else {
+        AppLogger.navError('Error: El usuario no tiene customerId asignado');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,13 +169,43 @@ class WalletPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            const Row(
-              children: [
-                _UserCircle(initials: 'FB', color: Colors.green),
-                _UserCircle(initials: 'AC'),
-                _UserCircle(initials: 'EB'),
-                _UserCircle(initials: 'EH'),
-              ],
+            BlocBuilder<WalletBloc, WalletState>(
+              builder: (context, state) {
+                if (state is WalletLoading) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                } else if (state is WalletLoaded) {
+                  final users = state.affiliatedUsers;
+                  if (users.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text('No hay usuarios afiliados'),
+                    );
+                  }
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: users
+                          .map((user) => UserCircle.fromAffiliatedUser(user))
+                          .toList(),
+                    ),
+                  );
+                } else if (state is WalletError) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      'Error: ${state.message}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  );
+                } else {
+                  return const Row(children: [UserCircle(initials: '...')]);
+                }
+              },
             ),
             const SizedBox(height: 24),
             Row(
@@ -181,26 +253,4 @@ class WalletPage extends StatelessWidget {
   }
 }
 
-class _UserCircle extends StatelessWidget {
-  final String initials;
-  final Color? color;
-  const _UserCircle({required this.initials, this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: CircleAvatar(
-        radius: 22,
-        backgroundColor: color ?? Colors.grey.shade300,
-        child: Text(
-          initials,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}
+// El widget UserCircle se ha movido a un archivo separado

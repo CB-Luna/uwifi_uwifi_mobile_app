@@ -74,15 +74,40 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final user = supabaseClient.auth.currentUser;
       if (user == null) return null;
-
-      return UserModel(
-        id: user.id,
-        email: user.email!,
-        name: user.userMetadata?['name'] as String?,
-        profileImageUrl: user.userMetadata?['avatar_url'] as String?,
-        createdAt: DateTime.parse(user.createdAt),
-        updatedAt: DateTime.parse(user.updatedAt ?? user.createdAt),
-      );
+      
+      // Obtener los datos adicionales del cliente desde la tabla customer
+      try {
+        final customerData = await supabaseClient
+            .from('customer')
+            .select('customer_id, customer_afiliate_id, shared_link_id')
+            .eq('auth_id', user.id)
+            .single();
+        
+        print('Customer data retrieved for current user: $customerData');
+        
+        return UserModel(
+          id: user.id,
+          email: user.email!,
+          name: user.userMetadata?['name'] as String?,
+          profileImageUrl: user.userMetadata?['avatar_url'] as String?,
+          createdAt: DateTime.parse(user.createdAt),
+          updatedAt: DateTime.parse(user.updatedAt ?? user.createdAt),
+          customerId: customerData['customer_id'] as int?,
+          customerAfiliateId: customerData['customer_afiliate_id'] as int?,
+          sharedLinkId: customerData['shared_link_id'] as String?,
+        );
+      } catch (customerError) {
+        print('Error retrieving customer data: $customerError');
+        // Si no podemos obtener los datos del cliente, devolvemos el usuario básico
+        return UserModel(
+          id: user.id,
+          email: user.email!,
+          name: user.userMetadata?['name'] as String?,
+          profileImageUrl: user.userMetadata?['avatar_url'] as String?,
+          createdAt: DateTime.parse(user.createdAt),
+          updatedAt: DateTime.parse(user.updatedAt ?? user.createdAt),
+        );
+      }
     } catch (e) {
       throw Exception('Failed to get current user: $e');
     }

@@ -61,6 +61,14 @@ import 'features/home/domain/usecases/get_current_billing_period.dart';
 import 'features/home/domain/usecases/get_customer_balance.dart';
 import 'features/home/presentation/bloc/billing_bloc.dart';
 
+// Wallet feature imports
+import 'features/profile/data/datasources/wallet_remote_data_source.dart';
+import 'features/profile/data/datasources/wallet_remote_data_source_impl.dart';
+import 'features/profile/data/repositories/wallet_repository_impl.dart';
+import 'features/profile/domain/repositories/wallet_repository.dart';
+import 'features/profile/domain/usecases/get_affiliated_users.dart';
+import 'features/profile/presentation/bloc/wallet_bloc.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> init() async {
@@ -205,6 +213,30 @@ Future<void> init() async {
   // Data sources
   getIt.registerLazySingleton<BillingRemoteDataSource>(
     () => BillingRemoteDataSourceImpl(supabaseClient: getIt()),
+  );
+  
+  //! Features - Wallet
+  // Bloc
+  getIt.registerFactory(
+    () => WalletBloc(
+      getAffiliatedUsers: getIt(),
+    ),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetAffiliatedUsers(getIt()));
+
+  // Repository
+  getIt.registerLazySingleton<WalletRepository>(
+    () => WalletRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
+  // Data sources
+  getIt.registerLazySingleton<WalletRemoteDataSource>(
+    () => WalletRemoteDataSourceImpl(supabaseClient: getIt()),
   );
 
   // Use cases

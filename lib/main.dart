@@ -15,6 +15,7 @@ import 'features/videos/presentation/bloc/genres_event.dart';
 import 'features/videos/presentation/bloc/video_explorer_bloc.dart';
 import 'features/invite/presentation/bloc/invite_bloc.dart';
 import 'features/profile/presentation/widgets/uwifistore/cart_provider.dart';
+import 'features/profile/presentation/bloc/wallet_bloc.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -71,6 +72,13 @@ class MyApp extends StatelessWidget {
           create: (context) {
             AppLogger.authInfo('Creating global InviteBloc instance');
             return di.getIt<InviteBloc>();
+          },
+        ),
+        // ✅ Agregar WalletBloc a nivel global para el feature de wallet
+        BlocProvider<WalletBloc>(
+          create: (context) {
+            AppLogger.navInfo('Creating global WalletBloc instance');
+            return di.getIt<WalletBloc>();
           },
         ),
       ],
