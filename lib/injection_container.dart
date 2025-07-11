@@ -52,6 +52,15 @@ import 'features/invite/domain/usecases/share_referral_link.dart';
 import 'features/invite/domain/usecases/generate_qr_code.dart';
 import 'features/invite/presentation/bloc/invite_bloc.dart';
 
+// Billing feature imports
+import 'features/home/data/datasources/billing_remote_data_source.dart';
+import 'features/home/data/datasources/billing_remote_data_source_impl.dart';
+import 'features/home/data/repositories/billing_repository_impl.dart';
+import 'features/home/domain/repositories/billing_repository.dart';
+import 'features/home/domain/usecases/get_current_billing_period.dart';
+import 'features/home/domain/usecases/get_customer_balance.dart';
+import 'features/home/presentation/bloc/billing_bloc.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> init() async {
@@ -170,6 +179,32 @@ Future<void> init() async {
 
   getIt.registerLazySingleton<InviteLocalDataSource>(
     () => InviteLocalDataSourceImpl(),
+  );
+
+  //! Features - Billing
+  // Bloc
+  getIt.registerFactory(
+    () => BillingBloc(
+      getCurrentBillingPeriod: getIt(),
+      getCustomerBalance: getIt(),
+    ),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetCurrentBillingPeriod(getIt()));
+  getIt.registerLazySingleton(() => GetCustomerBalance(getIt()));
+
+  // Repository
+  getIt.registerLazySingleton<BillingRepository>(
+    () => BillingRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
+  // Data sources
+  getIt.registerLazySingleton<BillingRemoteDataSource>(
+    () => BillingRemoteDataSourceImpl(supabaseClient: getIt()),
   );
 
   // Use cases

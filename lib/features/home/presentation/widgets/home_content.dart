@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../injection_container.dart' as di;
+import '../../presentation/bloc/billing_bloc.dart';
 import 'connection/connection_card.dart';
-import 'subscription/subscription_card.dart';
 import 'services/service_carousel.dart';
+import 'subscription/subscription_card.dart';
 
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
@@ -10,27 +14,30 @@ class HomeContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      child: const SafeArea(
+      child: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(vertical: 16.0),
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Sección de conexión WiFi
-              ConnectionCard(),
+              const ConnectionCard(),
 
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Sección de suscripción
-              SubscriptionCard(),
+              BlocProvider<BillingBloc>(
+                create: (_) => di.getIt<BillingBloc>(),
+                child: const SubscriptionCard(),
+              ),
 
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
 
               // Carrusel de servicios (Free Service y Referral)
-              ServiceCarousel(),
+              const ServiceCarousel(),
 
               // Espacio para la barra de navegación
-              SizedBox(height: 80),
+              const SizedBox(height: 80),
             ],
           ),
         ),

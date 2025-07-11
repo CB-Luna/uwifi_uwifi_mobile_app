@@ -1,8 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../presentation/bloc/billing_bloc.dart';
+import '../../../presentation/bloc/billing_event.dart';
+import '../../../presentation/bloc/billing_state.dart';
+import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../../auth/presentation/bloc/auth_state.dart';
 import 'plan_details_page.dart';
+import 'package:intl/intl.dart';
 
-class SubscriptionCard extends StatelessWidget {
+class SubscriptionCard extends StatefulWidget {
   const SubscriptionCard({super.key});
+
+  @override
+  State<SubscriptionCard> createState() => _SubscriptionCardState();
+}
+
+class _SubscriptionCardState extends State<SubscriptionCard> {
+  @override
+  void initState() {
+    super.initState();
+    _loadBillingPeriod();
+  }
+
+  void _loadBillingPeriod() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+      
+      // Verificar si el usuario tiene customerId
+      if (user.customerId != null) {
+        print('Cargando período de facturación para customerId: ${user.customerId}');
+        context.read<BillingBloc>().add(
+              GetBillingPeriodEvent(customerId: user.customerId.toString()),
+            );
+      } else {
+        print('Error: El usuario no tiene customerId asignado');
+        // Podríamos mostrar un mensaje de error o intentar otra estrategia
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,27 +143,52 @@ class SubscriptionCard extends StatelessWidget {
                     color: Colors.grey.shade600,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Due Date: Jun 05',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                  BlocBuilder<BillingBloc, BillingState>(
+                    builder: (context, state) {
+                      if (state is BillingLoaded) {
+                        // Formatear la fecha para mostrarla en formato MMM dd
+                        final dueDate = state.billingPeriod.dueDate;
+                        final formattedDate = _formatDate(dueDate);
+                        return Text(
+                          'Due Date: $formattedDate',
+                          style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                        );
+                      }
+                      return Text(
+                        'Due Date: Loading...',
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                      );
+                    },
                   ),
                 ],
               ),
 
               // Monto a pagar
-              Row(
-                children: [
-                  Icon(
-                    Icons.monetization_on_outlined,
-                    size: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Amount Due: \$38',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
-                  ),
-                ],
+              BlocBuilder<BillingBloc, BillingState>(
+                builder: (context, state) {
+                  String amountText = 'Amount Due: --';
+                  
+                  if (state is BillingLoaded && state.balance != null) {
+                    // Formatear el balance como moneda
+                    final formatter = NumberFormat.currency(symbol: '\$');
+                    amountText = 'Amount Due: ${formatter.format(state.balance)}';
+                  }
+                  
+                  return Row(
+                    children: [
+                      Icon(
+                        Icons.monetization_on_outlined,
+                        size: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        amountText,
+                        style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -182,5 +243,18 @@ class SubscriptionCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // Método para formatear la fecha en formato MMM dd
+  String _formatDate(String dateString) {
+    try {
+      // Intentar parsear la fecha en formato ISO
+      final date = DateTime.parse(dateString);
+      final formatter = DateFormat('MMM dd');
+      return formatter.format(date);
+    } catch (e) {
+      // Si hay un error al parsear, devolver la fecha original
+      return dateString;
+    }
   }
 }

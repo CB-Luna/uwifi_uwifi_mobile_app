@@ -19,6 +19,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
+      // 1. Autenticar al usuario con Supabase Auth
       final response = await supabaseClient.auth.signInWithPassword(
         email: email,
         password: password,
@@ -29,6 +30,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final user = response.user!;
+      
+      // 2. Obtener los datos adicionales del cliente desde la tabla customer
+      final customerData = await supabaseClient
+          .from('customer')
+          .select('customer_id, customer_afiliate_id, shared_link_id')
+          .eq('auth_id', user.id)
+          .single();
+      
+      print('Customer data: $customerData'); // Log para depuración
+      
+      // 3. Crear y devolver el modelo de usuario con todos los datos
       return UserModel(
         id: user.id,
         email: user.email!,
@@ -36,10 +48,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         profileImageUrl: user.userMetadata?['avatar_url'] as String?,
         createdAt: DateTime.parse(user.createdAt),
         updatedAt: DateTime.parse(user.updatedAt ?? user.createdAt),
+        customerId: customerData['customer_id'] as int?,
+        customerAfiliateId: customerData['customer_afiliate_id'] as int?,
+        sharedLinkId: customerData['shared_link_id'] as String?,
       );
     } on AuthException catch (e) {
       throw Exception('Authentication failed: ${e.message}');
     } catch (e) {
+      print('Error in login: $e'); // Log para depuración
       throw Exception('Login failed: $e');
     }
   }
