@@ -19,6 +19,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
+  flutter_card_swiper: ^7.0.2
   formz: ^0.7.0
   get_it: ^8.0.0
   internet_connection_checker: ^3.0.1

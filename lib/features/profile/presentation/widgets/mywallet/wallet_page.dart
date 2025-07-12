@@ -4,9 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/utils/app_logger.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../auth/presentation/bloc/auth_state.dart';
+import '../../bloc/payment_bloc.dart';
+import '../../bloc/payment_event.dart';
+import '../../bloc/payment_state.dart';
 import '../../bloc/wallet_bloc.dart';
 import '../../bloc/wallet_event.dart';
 import '../../bloc/wallet_state.dart';
+import 'credit_card_swiper.dart';
 import 'user_circle.dart';
 
 class WalletPage extends StatefulWidget {
@@ -20,9 +24,10 @@ class _WalletPageState extends State<WalletPage> {
   @override
   void initState() {
     super.initState();
-    // Cargar usuarios afiliados después de que el widget se haya construido
+    // Cargar usuarios afiliados y tarjetas después de que el widget se haya construido
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadAffiliatedUsers();
+      _loadCreditCards();
     });
   }
 
@@ -38,6 +43,25 @@ class _WalletPageState extends State<WalletPage> {
         );
         context.read<WalletBloc>().add(
           GetAffiliatedUsersEvent(customerId: user.customerId.toString()),
+        );
+      } else {
+        AppLogger.navError('Error: El usuario no tiene customerId asignado');
+      }
+    }
+  }
+
+  void _loadCreditCards() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+
+      // Verificar si el usuario tiene customerId
+      if (user.customerId != null) {
+        AppLogger.navInfo(
+          'Cargando tarjetas para customerId: ${user.customerId}',
+        );
+        context.read<PaymentBloc>().add(
+          GetCreditCardsEvent(user.customerId.toString()),
         );
       } else {
         AppLogger.navError('Error: El usuario no tiene customerId asignado');
@@ -211,7 +235,7 @@ class _WalletPageState extends State<WalletPage> {
             Row(
               children: [
                 const Text(
-                  'My Payment Methods',
+                  'ethods',
                   style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
                 ),
                 const Spacer(),
@@ -234,16 +258,72 @@ class _WalletPageState extends State<WalletPage> {
               ],
             ),
             const SizedBox(height: 16),
-            Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  'assets/images/profile/CreditCardUI.png',
-                  width: double.infinity,
-                  height: 180,
-                  fit: BoxFit.cover,
-                ),
-              ),
+            BlocBuilder<PaymentBloc, PaymentState>(
+              builder: (context, state) {
+                if (state is PaymentLoading) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                } else if (state is PaymentLoaded) {
+                  final cards = state.creditCards;
+                  if (cards.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Center(
+                        child: Text(
+                          'No tienes tarjetas registradas',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      ),
+                    );
+                  }
+                  return SizedBox(
+                    height: 380,
+                    child: CreditCardSwiper(cards: cards),
+                  );
+                } else if (state is PaymentError) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.red,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Error: ${state.message}',
+                            style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton(
+                            onPressed: _loadCreditCards,
+                            child: const Text('Reintentar'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  return Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        'assets/images/profile/CreditCardUI.png',
+                        width: double.infinity,
+                        height: 180,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 32),
           ],
