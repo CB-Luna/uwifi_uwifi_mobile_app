@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/utils/app_logger.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../profile/presentation/bloc/wallet_bloc.dart';
+import '../../../../profile/presentation/bloc/wallet_event.dart';
+import '../../../../profile/presentation/bloc/wallet_state.dart';
 import '../../../domain/entities/transaction.dart';
 import '../../bloc/transaction_bloc.dart';
 import '../../bloc/transaction_event.dart';
@@ -17,12 +20,19 @@ class PlanDetailsPage extends StatefulWidget {
 }
 
 class _PlanDetailsPageState extends State<PlanDetailsPage> {
+  // Estado para controlar el orden de las transacciones
+  bool _newestFirst = true;
+
+  // Variable para controlar la expansión de la sección de usuarios
+  bool _isUserGroupExpanded = false;
+
   @override
   void initState() {
     super.initState();
     // Cargar el historial de transacciones después de que el widget se haya construido
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTransactionHistory();
+      _loadAffiliatedUsers();
     });
   }
 
@@ -43,6 +53,81 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
         AppLogger.navError('Error: El usuario no tiene customerId asignado');
       }
     }
+  }
+
+  void _loadAffiliatedUsers() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+
+      // Verificar si el usuario tiene customerId
+      if (user.customerId != null) {
+        AppLogger.navInfo(
+          'Cargando usuarios afiliados para customerId: ${user.customerId}',
+        );
+        context.read<WalletBloc>().add(
+          GetAffiliatedUsersEvent(customerId: user.customerId.toString()),
+        );
+      } else {
+        AppLogger.navError('Error: El usuario no tiene customerId asignado');
+      }
+    }
+  }
+
+  // Método para mostrar las opciones de ordenamiento
+  void _showSortOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      // Ajustar la altura del BottomSheet para que aparezca más arriba
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.4,
+      ),
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Sort Transactions',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.arrow_downward),
+              title: const Text('Newest first'),
+              trailing: _newestFirst
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+              onTap: () {
+                setState(() {
+                  _newestFirst = true;
+                });
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.arrow_upward),
+              title: const Text('Oldest first'),
+              trailing: !_newestFirst
+                  ? const Icon(Icons.check, color: Colors.green)
+                  : null,
+              onTap: () {
+                setState(() {
+                  _newestFirst = false;
+                });
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -156,33 +241,42 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                         ),
                       ),
                       const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.sort, size: 18, color: Colors.black45),
-                            SizedBox(width: 4),
-                            Text(
-                              'newest',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
+                      GestureDetector(
+                        onTap: () {
+                          _showSortOptions(context);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.sort,
+                                size: 18,
+                                color: Colors.black45,
                               ),
-                            ),
-                            Icon(
-                              Icons.keyboard_arrow_down,
-                              size: 18,
-                              color: Colors.black45,
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Text(
+                                _newestFirst ? 'newest' : 'oldest',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.keyboard_arrow_down,
+                                size: 18,
+                                color: Colors.black45,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -206,11 +300,28 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                             child: Center(
                               child: Text(
                                 'No hay transacciones disponibles',
-                                style: TextStyle(fontSize: 16, color: Colors.grey),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           );
                         }
+                        // Ordenar las transacciones según la preferencia del usuario
+                        final sortedTransactions = List<Transaction>.from(
+                          transactions,
+                        );
+                        if (_newestFirst) {
+                          sortedTransactions.sort(
+                            (a, b) => b.createdAt.compareTo(a.createdAt),
+                          );
+                        } else {
+                          sortedTransactions.sort(
+                            (a, b) => a.createdAt.compareTo(b.createdAt),
+                          );
+                        }
+
                         return ConstrainedBox(
                           constraints: const BoxConstraints(
                             maxHeight: 320,
@@ -218,8 +329,9 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                           child: ListView.builder(
                             shrinkWrap: true,
                             physics: const ClampingScrollPhysics(),
-                            itemCount: transactions.length,
-                            itemBuilder: (context, i) => _transactionItem(transactions[i]),
+                            itemCount: sortedTransactions.length,
+                            itemBuilder: (context, i) =>
+                                _transactionItem(sortedTransactions[i]),
                           ),
                         );
                       } else if (state is TransactionError) {
@@ -259,46 +371,105 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
             const SizedBox(height: 24),
             // My user group
             Container(
+              margin: const EdgeInsets.only(top: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey[600]!),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.groups, size: 20, color: Colors.black54),
-                      SizedBox(width: 8),
-                      Text(
-                        'My user group',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isUserGroupExpanded = !_isUserGroupExpanded;
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        const Icon(Icons.people, size: 20),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'My user group',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      Spacer(),
-                      Icon(Icons.keyboard_arrow_up, color: Colors.black45),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxHeight: 120,
-                    ), // Más compacto
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: const ClampingScrollPhysics(),
-                      itemCount: _users.length > 3 ? 3 : _users.length,
-                      itemBuilder: (context, i) => _userItem(
-                        _users[i]['name'],
-                        _users[i]['initials'],
-                        isMain: _users[i]['isMain'] ?? false,
-                      ),
+                        const Spacer(),
+                        Icon(
+                          _isUserGroupExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.grey,
+                        ),
+                      ],
                     ),
                   ),
+                  if (_isUserGroupExpanded)
+                    BlocBuilder<WalletBloc, WalletState>(
+                      builder: (context, state) {
+                        if (state is WalletLoading) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        } else if (state is WalletLoaded) {
+                          final users = state.affiliatedUsers;
+                          if (users.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              child: Center(
+                                child: Text(
+                                  'No hay usuarios afiliados',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            );
+                          }
+
+                          return Column(
+                            children: [
+                              // Mostrar los usuarios afiliados
+                              ...users.map(
+                                (user) => _userItem(
+                                  user.customerName,
+                                  user.initials,
+                                  isAffiliate: user.isAffiliate,
+                                ),
+                              ),
+                            ],
+                          );
+                        } else if (state is WalletError) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Center(
+                              child: Text(
+                                'Error: ${state.message}',
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              child: Text('Cargando usuarios...'),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                 ],
               ),
             ),
@@ -312,18 +483,19 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
     // Determinar el icono y color según el tipo de transacción
     IconData icon;
     Color iconColor;
-    
+
     if (transaction.transactionType.toLowerCase() == 'payment') {
       icon = Icons.payment;
       iconColor = Colors.blue;
-    } else if (transaction.transactionType.toLowerCase() == 'recurring charge') {
+    } else if (transaction.transactionType.toLowerCase() ==
+        'recurring charge') {
       icon = Icons.attach_money;
       iconColor = Colors.green;
     } else {
       icon = Icons.receipt;
       iconColor = Colors.orange;
     }
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -333,14 +505,10 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
             height: 36,
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: iconColor.withOpacity(0.3)),
+              border: Border.all(color: iconColor.withValues(alpha: 0.3)),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 22,
-            ),
+            child: Icon(icon, color: iconColor, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -374,7 +542,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
     );
   }
 
-  Widget _userItem(String name, String initials, {bool isMain = false}) {
+  Widget _userItem(String name, String initials, {bool isAffiliate = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -396,24 +564,10 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
               style: const TextStyle(fontSize: 15, color: Colors.black87),
             ),
           ),
-          if (isMain) const Icon(Icons.star, color: Colors.amber, size: 20),
+          if (!isAffiliate)
+            const Icon(Icons.star, color: Colors.amber, size: 20),
         ],
       ),
     );
   }
 }
-
-// Lista de usuarios de ejemplo
-
-const List<Map<String, dynamic>> _users = [
-  {'name': 'Frank Befera', 'initials': 'FB', 'isMain': true},
-  {'name': 'Alex Castillo', 'initials': 'AC'},
-  {'name': 'Edna Bañaga', 'initials': 'EB'},
-  {'name': 'Edna Halaga', 'initials': 'EH'},
-  {'name': 'Maria Lopez', 'initials': 'ML'},
-  {'name': 'John Doe', 'initials': 'JD'},
-  {'name': 'Jane Smith', 'initials': 'JS'},
-  {'name': 'Carlos Perez', 'initials': 'CP'},
-  {'name': 'Ana Torres', 'initials': 'AT'},
-  {'name': 'Luis Gomez', 'initials': 'LG'},
-];

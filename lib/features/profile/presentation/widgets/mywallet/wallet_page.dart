@@ -235,7 +235,7 @@ class _WalletPageState extends State<WalletPage> {
             Row(
               children: [
                 const Text(
-                  'ethods',
+                  'Payment Methods',
                   style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
                 ),
                 const Spacer(),
