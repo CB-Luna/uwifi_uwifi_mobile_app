@@ -1,7 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class PlanDetailsPage extends StatelessWidget {
+import '../../../../../core/utils/app_logger.dart';
+import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../../auth/presentation/bloc/auth_state.dart';
+import '../../../domain/entities/transaction.dart';
+import '../../bloc/transaction_bloc.dart';
+import '../../bloc/transaction_event.dart';
+import '../../bloc/transaction_state.dart';
+
+class PlanDetailsPage extends StatefulWidget {
   const PlanDetailsPage({super.key});
+
+  @override
+  State<PlanDetailsPage> createState() => _PlanDetailsPageState();
+}
+
+class _PlanDetailsPageState extends State<PlanDetailsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargar el historial de transacciones después de que el widget se haya construido
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTransactionHistory();
+    });
+  }
+
+  void _loadTransactionHistory() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+
+      // Verificar si el usuario tiene customerId
+      if (user.customerId != null) {
+        AppLogger.navInfo(
+          'Cargando historial de transacciones para customerId: ${user.customerId}',
+        );
+        context.read<TransactionBloc>().add(
+          GetTransactionHistoryEvent(user.customerId.toString()),
+        );
+      } else {
+        AppLogger.navError('Error: El usuario no tiene customerId asignado');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,21 +189,69 @@ class PlanDetailsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   // Lista de transacciones (scroll interno, máximo 5 visibles)
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxHeight: 320,
-                    ), // 5 * aprox 64px
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: const ClampingScrollPhysics(),
-                      itemCount: _transactions.length,
-                      itemBuilder: (context, i) => _transactionItem(
-                        _transactions[i]['date'],
-                        _transactions[i]['type'],
-                        _transactions[i]['id'],
-                        _transactions[i]['amount'],
-                      ),
-                    ),
+                  BlocBuilder<TransactionBloc, TransactionState>(
+                    builder: (context, state) {
+                      if (state is TransactionLoading) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      } else if (state is TransactionLoaded) {
+                        final transactions = state.transactions;
+                        if (transactions.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: Center(
+                              child: Text(
+                                'No hay transacciones disponibles',
+                                style: TextStyle(fontSize: 16, color: Colors.grey),
+                              ),
+                            ),
+                          );
+                        }
+                        return ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxHeight: 320,
+                          ), // 5 * aprox 64px
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            physics: const ClampingScrollPhysics(),
+                            itemCount: transactions.length,
+                            itemBuilder: (context, i) => _transactionItem(transactions[i]),
+                          ),
+                        );
+                      } else if (state is TransactionError) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red,
+                                  size: 48,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Error: ${state.message}',
+                                  style: const TextStyle(color: Colors.red),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                ElevatedButton(
+                                  onPressed: _loadTransactionHistory,
+                                  child: const Text('Reintentar'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
                   ),
                 ],
               ),
@@ -218,7 +308,22 @@ class PlanDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _transactionItem(String date, String type, String id, double amount) {
+  Widget _transactionItem(Transaction transaction) {
+    // Determinar el icono y color según el tipo de transacción
+    IconData icon;
+    Color iconColor;
+    
+    if (transaction.transactionType.toLowerCase() == 'payment') {
+      icon = Icons.payment;
+      iconColor = Colors.blue;
+    } else if (transaction.transactionType.toLowerCase() == 'recurring charge') {
+      icon = Icons.attach_money;
+      iconColor = Colors.green;
+    } else {
+      icon = Icons.receipt;
+      iconColor = Colors.orange;
+    }
+    
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -228,12 +333,12 @@ class PlanDetailsPage extends StatelessWidget {
             height: 36,
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+              border: Border.all(color: iconColor.withOpacity(0.3)),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: const Icon(
-              Icons.attach_money,
-              color: Colors.green,
+            child: Icon(
+              icon,
+              color: iconColor,
               size: 22,
             ),
           ),
@@ -243,25 +348,25 @@ class PlanDetailsPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  type,
+                  transaction.transactionType,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),
                 ),
                 Text(
-                  'Transaction ID: $id',
+                  'Transaction ID: ${transaction.transactionId}',
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
                 Text(
-                  date,
+                  transaction.formattedDate,
                   style: const TextStyle(color: Colors.black54, fontSize: 12),
                 ),
               ],
             ),
           ),
           Text(
-            '\$${amount.toStringAsFixed(1)}',
+            '\$${transaction.amount.toStringAsFixed(2)}',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ],
@@ -298,29 +403,8 @@ class PlanDetailsPage extends StatelessWidget {
   }
 }
 
-// Listas mock para transacciones y usuarios fuera de la clase
-const List<Map<String, dynamic>> _transactions = [
-  {
-    'date': '2025/06/08',
-    'type': 'Recurring Charge',
-    'id': '1565',
-    'amount': 38.0,
-  },
-  {
-    'date': '2025/05/08',
-    'type': 'Recurring Charge',
-    'id': '1375',
-    'amount': 38.0,
-  },
-  {'date': '2025/04/25', 'type': 'Payment', 'id': '1258', 'amount': 0.0},
-  {'date': '2025/04/25', 'type': 'Payment', 'id': '1257', 'amount': 0.0},
-  {'date': '2025/03/25', 'type': 'Payment', 'id': '1200', 'amount': 0.0},
-  {'date': '2025/02/25', 'type': 'Payment', 'id': '1199', 'amount': 0.0},
-  {'date': '2025/01/25', 'type': 'Payment', 'id': '1198', 'amount': 0.0},
-  {'date': '2024/12/25', 'type': 'Payment', 'id': '1197', 'amount': 0.0},
-  {'date': '2024/11/25', 'type': 'Payment', 'id': '1196', 'amount': 0.0},
-  {'date': '2024/10/25', 'type': 'Payment', 'id': '1195', 'amount': 0.0},
-];
+// Lista de usuarios de ejemplo
+
 const List<Map<String, dynamic>> _users = [
   {'name': 'Frank Befera', 'initials': 'FB', 'isMain': true},
   {'name': 'Alex Castillo', 'initials': 'AC'},

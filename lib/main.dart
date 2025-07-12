@@ -17,6 +17,7 @@ import 'features/invite/presentation/bloc/invite_bloc.dart';
 import 'features/profile/presentation/widgets/uwifistore/cart_provider.dart';
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
 import 'features/profile/presentation/bloc/payment_bloc.dart';
+import 'features/home/presentation/bloc/transaction_bloc.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -81,6 +82,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<PaymentBloc>(
           create: (_) => di.getIt<PaymentBloc>(),
+        ),
+        BlocProvider<TransactionBloc>(
+          create: (_) => di.getIt<TransactionBloc>(),
         ),
       ],
       child: ChangeNotifierProvider(

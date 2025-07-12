@@ -73,6 +73,14 @@ import 'features/profile/domain/repositories/wallet_repository.dart';
 import 'features/profile/domain/usecases/get_affiliated_users.dart';
 import 'features/profile/domain/usecases/get_credit_cards.dart';
 import 'features/profile/presentation/bloc/payment_bloc.dart';
+
+// Transaction imports
+import 'features/home/data/datasources/transaction_remote_data_source.dart';
+import 'features/home/data/datasources/transaction_remote_data_source_impl.dart';
+import 'features/home/data/repositories/transaction_repository_impl.dart';
+import 'features/home/domain/repositories/transaction_repository.dart';
+import 'features/home/domain/usecases/get_transaction_history.dart';
+import 'features/home/presentation/bloc/transaction_bloc.dart';
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -236,9 +244,17 @@ Future<void> init() async {
     ),
   );
 
+  // Transaction
+  getIt.registerFactory(
+    () => TransactionBloc(
+      getTransactionHistory: getIt(),
+    ),
+  );
+
   // Use cases
   getIt.registerLazySingleton(() => GetAffiliatedUsers(getIt()));
   getIt.registerLazySingleton(() => GetCreditCards(getIt()));
+  getIt.registerLazySingleton(() => GetTransactionHistory(getIt()));
 
   // Repository
   getIt.registerLazySingleton<WalletRepository>(
@@ -255,9 +271,22 @@ Future<void> init() async {
     ),
   );
 
+  getIt.registerLazySingleton<TransactionRepository>(
+    () => TransactionRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
   // Data sources
   getIt.registerLazySingleton<WalletRemoteDataSource>(
     () => WalletRemoteDataSourceImpl(
+      supabaseClient: getIt(),
+    ),
+  );
+
+  getIt.registerLazySingleton<TransactionRemoteDataSource>(
+    () => TransactionRemoteDataSourceImpl(
       supabaseClient: getIt(),
     ),
   );
