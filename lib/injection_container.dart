@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -83,6 +84,13 @@ import 'features/home/data/repositories/transaction_repository_impl.dart';
 import 'features/home/domain/repositories/transaction_repository.dart';
 import 'features/home/domain/usecases/get_transaction_history.dart';
 import 'features/home/presentation/bloc/transaction_bloc.dart';
+
+// Data Usage imports
+import 'features/home/data/datasources/gateway_remote_data_source.dart';
+import 'features/home/data/repositories/gateway_repository_impl.dart';
+import 'features/home/domain/repositories/gateway_repository.dart';
+import 'features/home/domain/usecases/get_data_usage.dart';
+import 'features/home/presentation/bloc/data_usage_bloc.dart';
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -305,6 +313,32 @@ Future<void> init() async {
     ),
   );
 
+  //! Features - Data Usage
+  // Bloc
+  getIt.registerFactory(
+    () => DataUsageBloc(
+      getDataUsage: getIt(),
+    ),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetDataUsage(getIt()));
+
+  // Repository
+  getIt.registerLazySingleton<GatewayRepository>(
+    () => GatewayRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
+  // Data sources
+  getIt.registerLazySingleton<GatewayRemoteDataSource>(
+    () => GatewayRemoteDataSourceImpl(
+      client: getIt(),
+    ),
+  );
+
   // Auth Use Cases
   getIt.registerLazySingleton(() => LoginUser(getIt()));
   getIt.registerLazySingleton(() => LogoutUser(getIt()));
@@ -341,6 +375,9 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => InternetConnectionChecker.createInstance());
 
   getIt.registerLazySingleton(() => LocalAuthentication());
+  
+  // Registrar http.Client para las llamadas HTTP
+  getIt.registerLazySingleton(() => http.Client());
 
   // Supabase client will be registered after initialization
 }

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
-import 'wifi_settings_page.dart';
-import 'data_usage_donut_chart.dart';
-import 'data_usage_bar_chart.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uwifiapp/core/utils/app_logger.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
+
+import '../../bloc/data_usage_bloc.dart';
+import '../../bloc/data_usage_event.dart';
 import 'connected_devices_card.dart';
+import 'data_usage_bar_chart.dart';
+import 'data_usage_donut_chart.dart';
+import 'wifi_settings_page.dart';
 
 class ConnectionDetailsPage extends StatefulWidget {
   const ConnectionDetailsPage({super.key});
@@ -13,6 +20,28 @@ class ConnectionDetailsPage extends StatefulWidget {
 
 class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
   bool showLast3Months = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+
+      // Verificar si el usuario tiene customerId
+      if (user.customerId != null) {
+        AppLogger.navInfo(
+          'Cargando usuarios afiliados para customerId: ${user.customerId}',
+        );
+        // Cargar los datos de uso al iniciar la página
+        context.read<DataUsageBloc>().add(
+          GetDataUsageEvent(customerId: user.customerId.toString()),
+        );
+      } else {
+        AppLogger.navError('Error: El usuario no tiene customerId asignado');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +169,12 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.refresh, size: 18),
-                        onPressed: () {},
+                        onPressed: () {
+                          // Recargar los datos de uso
+                          context.read<DataUsageBloc>().add(
+                            const GetDataUsageEvent(customerId: 'customer_id'),
+                          );
+                        },
                       ),
                       IconButton(
                         icon: const Icon(Icons.info_outline, size: 18),
