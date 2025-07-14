@@ -38,7 +38,9 @@ import 'features/auth/domain/services/biometric_auth_service.dart';
 import 'features/auth/domain/usecases/get_current_user.dart';
 import 'features/auth/domain/usecases/login_user.dart';
 import 'features/auth/domain/usecases/logout_user.dart';
+import 'features/auth/domain/usecases/reset_password.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/reset_password_bloc.dart';
 
 // Invite feature imports
 import 'features/invite/data/datasources/invite_local_data_source.dart';
@@ -160,13 +162,19 @@ Future<void> init() async {
   // Services
   getIt.registerLazySingleton(() => BiometricAuthService(localAuth: getIt()));
 
-  // Bloc
-  getIt.registerLazySingleton(
+  // Auth BLoCs
+  getIt.registerFactory(
     () => AuthBloc(
       loginUser: getIt(),
       logoutUser: getIt(),
       getCurrentUser: getIt(),
       biometricAuthService: getIt(),
+    ),
+  );
+  
+  getIt.registerFactory(
+    () => ResetPasswordBloc(
+      resetPassword: getIt(),
     ),
   );
 
@@ -297,10 +305,11 @@ Future<void> init() async {
     ),
   );
 
-  // Use cases
+  // Auth Use Cases
   getIt.registerLazySingleton(() => LoginUser(getIt()));
   getIt.registerLazySingleton(() => LogoutUser(getIt()));
   getIt.registerLazySingleton(() => GetCurrentUser(getIt()));
+  getIt.registerLazySingleton(() => ResetPassword(getIt()));
 
   // Repository
   getIt.registerLazySingleton<AuthRepository>(

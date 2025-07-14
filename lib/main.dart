@@ -8,16 +8,17 @@ import 'core/router/app_router.dart';
 import 'core/utils/app_logger.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
+import 'features/auth/presentation/bloc/reset_password_bloc.dart';
 import 'features/auth/presentation/widgets/auth_wrapper_widget.dart';
-import 'features/videos/presentation/bloc/videos_bloc.dart';
+import 'features/home/presentation/bloc/transaction_bloc.dart';
+import 'features/invite/presentation/bloc/invite_bloc.dart';
+import 'features/profile/presentation/bloc/payment_bloc.dart';
+import 'features/profile/presentation/bloc/wallet_bloc.dart';
+import 'features/profile/presentation/widgets/uwifistore/cart_provider.dart';
 import 'features/videos/presentation/bloc/genres_bloc.dart';
 import 'features/videos/presentation/bloc/genres_event.dart';
 import 'features/videos/presentation/bloc/video_explorer_bloc.dart';
-import 'features/invite/presentation/bloc/invite_bloc.dart';
-import 'features/profile/presentation/widgets/uwifistore/cart_provider.dart';
-import 'features/profile/presentation/bloc/wallet_bloc.dart';
-import 'features/profile/presentation/bloc/payment_bloc.dart';
-import 'features/home/presentation/bloc/transaction_bloc.dart';
+import 'features/videos/presentation/bloc/videos_bloc.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -77,14 +78,13 @@ class MyApp extends StatelessWidget {
           },
         ),
         // ✅ Agregar WalletBloc a nivel global para el feature de wallet
-        BlocProvider<WalletBloc>(
-          create: (_) => di.getIt<WalletBloc>(),
-        ),
-        BlocProvider<PaymentBloc>(
-          create: (_) => di.getIt<PaymentBloc>(),
-        ),
+        BlocProvider<WalletBloc>(create: (_) => di.getIt<WalletBloc>()),
+        BlocProvider<PaymentBloc>(create: (_) => di.getIt<PaymentBloc>()),
         BlocProvider<TransactionBloc>(
           create: (_) => di.getIt<TransactionBloc>(),
+        ),
+        BlocProvider<ResetPasswordBloc>(
+          create: (_) => di.getIt<ResetPasswordBloc>(),
         ),
       ],
       child: ChangeNotifierProvider(

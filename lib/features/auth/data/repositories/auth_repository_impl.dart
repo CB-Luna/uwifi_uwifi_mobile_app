@@ -76,4 +76,18 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Left(ServerFailure());
     }
   }
+  
+  @override
+  Future<Either<Failure, void>> resetPassword(String email) async {
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.resetPassword(email);
+        return const Right(null);
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure('No hay conexión a internet'));
+    }
+  }
 }

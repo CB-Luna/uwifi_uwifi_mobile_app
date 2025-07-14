@@ -1,4 +1,7 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
@@ -6,6 +9,7 @@ abstract class AuthRemoteDataSource {
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
   Future<bool> isUserLoggedIn();
+  Future<void> resetPassword(String email);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -119,6 +123,34 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return supabaseClient.auth.currentUser != null;
     } catch (e) {
       return false;
+    }
+  }
+  
+  @override
+  Future<void> resetPassword(String email) async {
+    try {
+      AppLogger.navInfo('Solicitando restablecimiento de contraseña para: $email');
+      
+      // URL del endpoint para restablecer contraseña
+      const url = 'https://u-n8n.virtalus.cbluna-dev.com/webhook/uwifi_customer_reset_password';
+      
+      // Realizar la solicitud HTTP POST
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+      
+      // Verificar la respuesta
+      if (response.statusCode != 200) {
+        AppLogger.navError('Error al restablecer contraseña: ${response.body}');
+        throw Exception('Error al restablecer contraseña: ${response.statusCode}');
+      }
+      
+      AppLogger.navInfo('Solicitud de restablecimiento de contraseña enviada con éxito');
+    } catch (e) {
+      AppLogger.navError('Error en resetPassword: $e');
+      throw Exception('Error al restablecer contraseña: $e');
     }
   }
 }
