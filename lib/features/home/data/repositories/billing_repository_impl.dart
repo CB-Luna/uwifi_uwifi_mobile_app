@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/billing_period.dart';
@@ -20,8 +21,8 @@ class BillingRepositoryImpl implements BillingRepository {
   ) async {
     if (await networkInfo.isConnected) {
       try {
-        final remoteBillingPeriod =
-            await remoteDataSource.getCurrentBillingPeriod(customerId);
+        final remoteBillingPeriod = await remoteDataSource
+            .getCurrentBillingPeriod(customerId);
         return remoteBillingPeriod.fold(
           (failure) => Left(failure),
           (billingPeriodModel) => Right(billingPeriodModel),
@@ -30,10 +31,10 @@ class BillingRepositoryImpl implements BillingRepository {
         return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure('No hay conexión a internet'));
+      return const Left(NetworkFailure());
     }
   }
-  
+
   @override
   Future<Either<Failure, double>> getCustomerBalance(String customerId) async {
     if (await networkInfo.isConnected) {
@@ -43,7 +44,7 @@ class BillingRepositoryImpl implements BillingRepository {
         return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure('No hay conexión a internet'));
+      return const Left(NetworkFailure());
     }
   }
 }

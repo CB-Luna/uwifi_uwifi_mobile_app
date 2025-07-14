@@ -253,7 +253,17 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                   ),
                   const SizedBox(height: 16),
                   showLast3Months
-                      ? const DataUsageBarChart()
+                      ? BlocBuilder<AuthBloc, AuthState>(
+                          builder: (context, state) {
+                            if (state is AuthAuthenticated && state.user.customerId != null) {
+                              // Usar el TrafficBloc global que ya está disponible
+                              return DataUsageBarChart(
+                                customerId: state.user.customerId.toString(),
+                              );
+                            }
+                            return const Center(child: Text('No se pudo obtener el ID del cliente'));
+                          },
+                        )
                       : const DataUsageDonutChart(),
                 ],
               ),

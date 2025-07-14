@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/utils/app_logger.dart';
 import '../models/user_model.dart';
 
@@ -34,16 +36,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       final user = response.user!;
-      
+
       // 2. Obtener los datos adicionales del cliente desde la tabla customer
       final customerData = await supabaseClient
           .from('customer')
           .select('customer_id, customer_afiliate_id, shared_link_id')
           .eq('auth_id', user.id)
           .single();
-      
-      print('Customer data: $customerData'); // Log para depuración
-      
+
+      AppLogger.navInfo('Customer data: $customerData'); // Log para depuración
+
       // 3. Crear y devolver el modelo de usuario con todos los datos
       return UserModel(
         id: user.id,
@@ -59,7 +61,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on AuthException catch (e) {
       throw Exception('Authentication failed: ${e.message}');
     } catch (e) {
-      print('Error in login: $e'); // Log para depuración
+      AppLogger.navInfo('Error in login: $e'); // Log para depuración
       throw Exception('Login failed: $e');
     }
   }
@@ -78,7 +80,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final user = supabaseClient.auth.currentUser;
       if (user == null) return null;
-      
+
       // Obtener los datos adicionales del cliente desde la tabla customer
       try {
         final customerData = await supabaseClient
@@ -86,9 +88,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             .select('customer_id, customer_afiliate_id, shared_link_id')
             .eq('auth_id', user.id)
             .single();
-        
-        print('Customer data retrieved for current user: $customerData');
-        
+
+        AppLogger.navInfo(
+          'Customer data retrieved for current user: $customerData',
+        );
+
         return UserModel(
           id: user.id,
           email: user.email!,
@@ -101,7 +105,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           sharedLinkId: customerData['shared_link_id'] as String?,
         );
       } catch (customerError) {
-        print('Error retrieving customer data: $customerError');
+        AppLogger.navInfo('Error retrieving customer data: $customerError');
         // Si no podemos obtener los datos del cliente, devolvemos el usuario básico
         return UserModel(
           id: user.id,
@@ -125,29 +129,36 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return false;
     }
   }
-  
+
   @override
   Future<void> resetPassword(String email) async {
     try {
-      AppLogger.navInfo('Solicitando restablecimiento de contraseña para: $email');
-      
+      AppLogger.navInfo(
+        'Solicitando restablecimiento de contraseña para: $email',
+      );
+
       // URL del endpoint para restablecer contraseña
-      const url = 'https://u-n8n.virtalus.cbluna-dev.com/webhook/uwifi_customer_reset_password';
-      
+      const url =
+          'https://u-n8n.virtalus.cbluna-dev.com/webhook/uwifi_customer_reset_password';
+
       // Realizar la solicitud HTTP POST
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
-      
+
       // Verificar la respuesta
       if (response.statusCode != 200) {
         AppLogger.navError('Error al restablecer contraseña: ${response.body}');
-        throw Exception('Error al restablecer contraseña: ${response.statusCode}');
+        throw Exception(
+          'Error al restablecer contraseña: ${response.statusCode}',
+        );
       }
-      
-      AppLogger.navInfo('Solicitud de restablecimiento de contraseña enviada con éxito');
+
+      AppLogger.navInfo(
+        'Solicitud de restablecimiento de contraseña enviada con éxito',
+      );
     } catch (e) {
       AppLogger.navError('Error en resetPassword: $e');
       throw Exception('Error al restablecer contraseña: $e');

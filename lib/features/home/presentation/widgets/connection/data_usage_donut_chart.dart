@@ -26,39 +26,42 @@ class DonutChartPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width, size.height) / 2;
     const startAngle = -pi / 2; // Comenzar desde arriba (90 grados)
-    
+
     // Grosor del anillo
     const strokeWidth = 25.0;
-    
+
     // Crear un rectángulo para contener el círculo
-    final rect = Rect.fromCircle(center: center, radius: radius - strokeWidth / 2);
-    
+    final rect = Rect.fromCircle(
+      center: center,
+      radius: radius - strokeWidth / 2,
+    );
+
     // Dibujar el arco de descarga (verde)
     final downloadPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
       ..color = downloadColor;
-    
+
     // Dibujar el arco de subida (morado)
     final uploadPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
       ..color = uploadColor;
-    
+
     // Calcular ángulos
     final downloadSweepAngle = 2 * pi * downloadPercentage;
     final uploadSweepAngle = 2 * pi * uploadPercentage;
-    
+
     // Dibujar arcos
     canvas.drawArc(rect, startAngle, downloadSweepAngle, false, downloadPaint);
     canvas.drawArc(
-      rect, 
-      startAngle + downloadSweepAngle, 
-      uploadSweepAngle, 
-      false, 
-      uploadPaint
+      rect,
+      startAngle + downloadSweepAngle,
+      uploadSweepAngle,
+      false,
+      uploadPaint,
     );
   }
 
@@ -74,23 +77,23 @@ class DataUsageDonutChart extends StatelessWidget {
     return BlocBuilder<DataUsageBloc, DataUsageState>(
       builder: (context, state) {
         if (state is DataUsageLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         } else if (state is DataUsageLoaded) {
           // Convertir bytes a GB para mostrar
           final downloadGB = state.dataUsage.monthlyRx / (1024 * 1024 * 1024);
           final uploadGB = state.dataUsage.monthlyTx / (1024 * 1024 * 1024);
           final totalGB = state.dataUsage.monthlyTotal / (1024 * 1024 * 1024);
-          
+
           // Calcular porcentajes
-          final downloadPercentage = state.dataUsage.monthlyRx / state.dataUsage.monthlyTotal;
-          final uploadPercentage = state.dataUsage.monthlyTx / state.dataUsage.monthlyTotal;
-          
+          final downloadPercentage =
+              state.dataUsage.monthlyRx / state.dataUsage.monthlyTotal;
+          final uploadPercentage =
+              state.dataUsage.monthlyTx / state.dataUsage.monthlyTotal;
+
           // Colores para el gráfico
           const downloadColor = Color(0xFF4CAF50); // Verde
-          const uploadColor = Color(0xFF9C27B0);   // Morado
-          
+          const uploadColor = Color(0xFF9C27B0); // Morado
+
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -98,7 +101,7 @@ class DataUsageDonutChart extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   spreadRadius: 1,
                   blurRadius: 5,
                   offset: const Offset(0, 2),

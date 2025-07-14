@@ -63,7 +63,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
     // Esperar 2 segundos y volver a intentar cargar los datos
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        print('Reintentando cargar período de facturación...');
+        AppLogger.navInfo('Reintentando cargar período de facturación...');
         _loadBillingPeriod();
       }
     });

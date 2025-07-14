@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/user.dart';
@@ -76,7 +77,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Left(ServerFailure());
     }
   }
-  
+
   @override
   Future<Either<Failure, void>> resetPassword(String email) async {
     if (await networkInfo.isConnected) {
@@ -87,7 +88,7 @@ class AuthRepositoryImpl implements AuthRepository {
         return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure('No hay conexión a internet'));
+      return const Left(NetworkFailure());
     }
   }
 }

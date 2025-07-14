@@ -22,9 +22,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
     if (await networkInfo.isConnected) {
       return remoteDataSource.getCreditCards(customerId);
     } else {
-      return const Left(
-        NetworkFailure('No hay conexión a internet'),
-      );
+      return const Left(NetworkFailure());
     }
   }
 }

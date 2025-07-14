@@ -87,10 +87,17 @@ import 'features/home/presentation/bloc/transaction_bloc.dart';
 
 // Data Usage imports
 import 'features/home/data/datasources/gateway_remote_data_source.dart';
+import 'features/home/data/datasources/traffic_remote_data_source.dart';
+import 'features/home/data/datasources/traffic_remote_data_source_impl.dart';
 import 'features/home/data/repositories/gateway_repository_impl.dart';
+import 'features/home/data/repositories/traffic_repository_impl.dart';
 import 'features/home/domain/repositories/gateway_repository.dart';
-import 'features/home/domain/usecases/get_data_usage.dart';
+import 'features/home/domain/repositories/traffic_repository.dart';
 import 'features/home/presentation/bloc/data_usage_bloc.dart';
+import 'features/home/presentation/bloc/traffic_bloc.dart';
+import 'features/home/domain/usecases/get_data_usage.dart';
+import 'features/home/domain/usecases/get_traffic_information.dart';
+
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -314,19 +321,33 @@ Future<void> init() async {
   );
 
   //! Features - Data Usage
-  // Bloc
+  // Blocs
   getIt.registerFactory(
     () => DataUsageBloc(
       getDataUsage: getIt(),
     ),
   );
+  
+  getIt.registerFactory(
+    () => TrafficBloc(
+      getTrafficInformation: getIt(),
+    ),
+  );
 
   // Use cases
   getIt.registerLazySingleton(() => GetDataUsage(getIt()));
+  getIt.registerLazySingleton(() => GetTrafficInformation(getIt()));
 
-  // Repository
+  // Repositories
   getIt.registerLazySingleton<GatewayRepository>(
     () => GatewayRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+  
+  getIt.registerLazySingleton<TrafficRepository>(
+    () => TrafficRepositoryImpl(
       remoteDataSource: getIt(),
       networkInfo: getIt(),
     ),
@@ -336,6 +357,12 @@ Future<void> init() async {
   getIt.registerLazySingleton<GatewayRemoteDataSource>(
     () => GatewayRemoteDataSourceImpl(
       client: getIt(),
+    ),
+  );
+  
+  getIt.registerLazySingleton<TrafficRemoteDataSource>(
+    () => TrafficRemoteDataSourceImpl(
+      supabaseClient: getIt(),
     ),
   );
 

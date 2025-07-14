@@ -22,7 +22,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
     if (await networkInfo.isConnected) {
       return remoteDataSource.getTransactionHistory(customerId);
     } else {
-      return const Left(NetworkFailure('No hay conexión a internet'));
+      return const Left(NetworkFailure());
     }
   }
 }

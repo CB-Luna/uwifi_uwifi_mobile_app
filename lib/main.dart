@@ -11,6 +11,7 @@ import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/reset_password_bloc.dart';
 import 'features/auth/presentation/widgets/auth_wrapper_widget.dart';
 import 'features/home/presentation/bloc/data_usage_bloc.dart';
+import 'features/home/presentation/bloc/traffic_bloc.dart';
 import 'features/home/presentation/bloc/transaction_bloc.dart';
 import 'features/invite/presentation/bloc/invite_bloc.dart';
 import 'features/profile/presentation/bloc/payment_bloc.dart';
@@ -90,6 +91,10 @@ class MyApp extends StatelessWidget {
         // Añadir DataUsageBloc para el feature de uso de datos
         BlocProvider<DataUsageBloc>(
           create: (_) => di.getIt<DataUsageBloc>(),
+        ),
+        // Añadir TrafficBloc para el feature de uso de datos en gráfico de barras
+        BlocProvider<TrafficBloc>(
+          create: (_) => di.getIt<TrafficBloc>(),
         ),
       ],
       child: ChangeNotifierProvider(

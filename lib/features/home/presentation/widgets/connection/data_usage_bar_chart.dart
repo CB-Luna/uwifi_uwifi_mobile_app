@@ -1,72 +1,337 @@
-import 'package:flutter/material.dart';
+import 'dart:math';
 
-class DataUsageBarChart extends StatelessWidget {
-  const DataUsageBarChart({super.key});
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:uwifiapp/core/utils/app_logger.dart';
+
+import '../../bloc/traffic_bloc.dart';
+import '../../bloc/traffic_event.dart';
+import '../../bloc/traffic_state.dart';
+
+class DataUsageBarChart extends StatefulWidget {
+  final String customerId;
+
+  const DataUsageBarChart({required this.customerId, super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // UI mockeada, puedes reemplazar con una gráfica real (ej: fl_chart)
-    return Column(
-      children: [
-        const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Text('Download', style: TextStyle(color: Colors.green)),
-            Text('Upload', style: TextStyle(color: Colors.purple)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _bar('Mar', 0.6, 0.1, '82.0 GB', '5.6 GB'),
-            _bar('Apr', 1.0, 0.07, '125.4 GB', '3.9 GB'),
-            _bar('May', 0.08, 0.03, '10.6 GB', '1.6 GB'),
-          ],
-        ),
-      ],
+  State<DataUsageBarChart> createState() => _DataUsageBarChartState();
+}
+
+class _DataUsageBarChartState extends State<DataUsageBarChart> {
+  @override
+  void initState() {
+    super.initState();
+    _loadTrafficData();
+  }
+
+  void _loadTrafficData() {
+    // Calcular fechas para los últimos 3 meses
+    final now = DateTime.now();
+    final endDate = DateFormat('yyyy-MM-dd').format(now);
+
+    // Fecha de inicio: 3 meses atrás
+    final startDate = DateFormat(
+      'yyyy-MM-dd',
+    ).format(DateTime(now.year, now.month - 2, now.day));
+
+    // Usar el TrafficBloc global
+    final bloc = context.read<TrafficBloc>();
+    bloc.add(
+      GetTrafficInformationEvent(
+        customerId: widget.customerId,
+        startDate: startDate,
+        endDate: endDate,
+      ),
     );
   }
 
-  static Widget _bar(
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TrafficBloc, TrafficState>(
+      builder: (context, state) {
+        if (state is TrafficLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is TrafficLoaded) {
+          final trafficData = state.trafficData;
+
+          // Log para depuración
+          AppLogger.navInfo(
+            '[DEBUG] 🔍 DataUsageBarChart: Datos recibidos: ${trafficData.length} registros',
+          );
+          for (final data in trafficData) {
+            AppLogger.navInfo(
+              '[DEBUG] 🔍 DataUsageBarChart: Mes: ${data.month}, Download: ${data.downloadGB} GB, Upload: ${data.uploadGB} GB',
+            );
+          }
+
+          // Si no hay datos, mostrar mensaje más informativo
+          if (trafficData.isEmpty) {
+            AppLogger.navInfo(
+              '[DEBUG] ⚠️ DataUsageBarChart: No hay datos de tráfico disponibles',
+            );
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.info_outline, size: 48, color: Colors.blue),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No hay datos de tráfico disponibles',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'No se encontraron registros de uso de datos para los últimos 3 meses',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadTrafficData,
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Encontrar el valor máximo para normalizar las barras
+          double maxDownload = 0;
+          double maxUpload = 0;
+
+          for (final data in trafficData) {
+            if (data.downloadGB > maxDownload) maxDownload = data.downloadGB;
+            if (data.uploadGB > maxUpload) maxUpload = data.uploadGB;
+          }
+
+          // Usar el máximo entre download y upload para normalizar
+          final maxValue = maxDownload > maxUpload ? maxDownload : maxUpload;
+
+          // Calcular totales para mostrar en la leyenda
+          double totalDownload = 0;
+          double totalUpload = 0;
+          for (final data in trafficData) {
+            totalDownload += data.downloadGB;
+            totalUpload += data.uploadGB;
+          }
+
+          AppLogger.navInfo(
+            '[DEBUG] 📈 DataUsageBarChart: Totales - Download: ${totalDownload.toStringAsFixed(2)} GB, Upload: ${totalUpload.toStringAsFixed(2)} GB',
+          );
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Download info
+                    Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Download',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Upload info
+                    Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: const BoxDecoration(
+                            color: Colors.purple,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Upload',
+                          style: TextStyle(
+                            color: Colors.purple,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: trafficData.map((data) {
+                  // Normalizar valores para la visualización
+                  final downloadRatio = maxValue > 0
+                      ? data.downloadGB / maxValue
+                      : 0.0;
+                  final uploadRatio = maxValue > 0
+                      ? data.uploadGB / maxValue
+                      : 0.0;
+
+                  // Log para depuración de ratios
+                  AppLogger.navInfo(
+                    '[DEBUG] 📊 Bar para ${data.month}: downloadRatio=$downloadRatio, uploadRatio=$uploadRatio, maxValue=$maxValue',
+                  );
+
+                  // Formatear texto para mostrar GB con 1 decimal
+                  final downloadText =
+                      '${data.downloadGB.toStringAsFixed(1)} GB';
+                  final uploadText = '${data.uploadGB.toStringAsFixed(1)} GB';
+
+                  return _bar(
+                    data.month,
+                    downloadRatio,
+                    uploadRatio,
+                    downloadText,
+                    uploadText,
+                  );
+                }).toList(),
+              ),
+            ],
+          );
+        } else if (state is TrafficError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const SizedBox(height: 16),
+                Text('Error: ${state.message}'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadTrafficData,
+                  child: const Text('Reintentar'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.info_outline, size: 48, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'No hay datos disponibles',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _bar(
     String month,
     double download,
     double upload,
     String dText,
     String uText,
   ) {
+    // Log para depuración de las alturas de las barras
+    AppLogger.navInfo(
+      '[DEBUG] 📏 Altura de barras para $month: download=${80 * download}, upload=${80 * upload}',
+    );
+
+    // Altura mínima para barras muy pequeñas pero no cero
+    final double minHeight = 10.0;
+    final double maxHeight = 120.0; // Altura máxima para las barras
+    final double downloadHeight = download > 0
+        ? max(min(80 * download, maxHeight), minHeight)
+        : 0;
+    final double uploadHeight = upload > 0
+        ? max(min(80 * upload, maxHeight), minHeight)
+        : 0;
+
     return Column(
       children: [
+        // Etiquetas encima de las barras (como en la imagen 2)
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            // Etiqueta de descarga
             Container(
-              width: 18,
-              height: 80 * download,
-              color: Colors.green,
-              alignment: Alignment.bottomCenter,
+              width: 45,
+              alignment: Alignment.center,
               child: Text(
                 dText,
-                style: const TextStyle(fontSize: 10, color: Colors.white),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: 10),
+            // Etiqueta de subida
             Container(
-              width: 10,
-              height: 80 * upload,
-              color: Colors.purple,
-              alignment: Alignment.bottomCenter,
+              width: 45,
+              alignment: Alignment.center,
               child: Text(
                 uText,
-                style: const TextStyle(fontSize: 8, color: Colors.white),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.purple,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
           ],
         ),
         const SizedBox(height: 4),
-        Text(month, style: const TextStyle(fontSize: 12)),
+        // Barras
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Barra de descarga
+            Container(
+              width: 30,
+              height: downloadHeight,
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(width: 10),
+            // Barra de subida
+            Container(
+              width: 30,
+              height: uploadHeight,
+              decoration: BoxDecoration(
+                color: Colors.purple,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Mes
+        Text(
+          month,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        ),
       ],
     );
   }
