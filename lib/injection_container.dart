@@ -98,6 +98,14 @@ import 'features/home/presentation/bloc/traffic_bloc.dart';
 import 'features/home/domain/usecases/get_data_usage.dart';
 import 'features/home/domain/usecases/get_traffic_information.dart';
 
+// Service
+import 'features/home/data/datasources/service_remote_data_source.dart';
+import 'features/home/data/datasources/service_remote_data_source_impl.dart';
+import 'features/home/data/repositories/service_repository_impl.dart';
+import 'features/home/domain/repositories/service_repository.dart';
+import 'features/home/domain/usecases/get_customer_active_services.dart';
+import 'features/home/presentation/bloc/service_bloc.dart';
+
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -362,6 +370,32 @@ Future<void> init() async {
   
   getIt.registerLazySingleton<TrafficRemoteDataSource>(
     () => TrafficRemoteDataSourceImpl(
+      supabaseClient: getIt(),
+    ),
+  );
+
+  //! Features - Service
+  // Bloc
+  getIt.registerFactory(
+    () => ServiceBloc(
+      getCustomerActiveServices: getIt(),
+    ),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetCustomerActiveServices(getIt()));
+
+  // Repository
+  getIt.registerLazySingleton<ServiceRepository>(
+    () => ServiceRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
+  // Data sources
+  getIt.registerLazySingleton<ServiceRemoteDataSource>(
+    () => ServiceRemoteDataSourceImpl(
       supabaseClient: getIt(),
     ),
   );

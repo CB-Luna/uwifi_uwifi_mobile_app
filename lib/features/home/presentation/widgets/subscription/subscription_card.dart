@@ -8,6 +8,9 @@ import '../../../../auth/presentation/bloc/auth_state.dart';
 import '../../../presentation/bloc/billing_bloc.dart';
 import '../../../presentation/bloc/billing_event.dart';
 import '../../../presentation/bloc/billing_state.dart';
+import '../../../presentation/bloc/service_bloc.dart';
+import '../../../presentation/bloc/service_event.dart';
+import '../../../presentation/bloc/service_state.dart';
 import 'plan_details_page.dart';
 
 class SubscriptionCard extends StatefulWidget {
@@ -26,6 +29,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
     // Intentar cargar datos después de que el widget se haya construido
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadBillingPeriod();
+      _loadCustomerActiveServices();
     });
   }
 
@@ -59,12 +63,35 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
     }
   }
 
+  void _loadCustomerActiveServices() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+
+      // Verificar si el usuario tiene customerId
+      if (user.customerId != null) {
+        AppLogger.navInfo(
+          'Cargando servicios activos para customerId: ${user.customerId}',
+        );
+        context.read<ServiceBloc>().add(
+          GetCustomerActiveServicesEvent(
+            customerId: user.customerId.toString(),
+          ),
+        );
+      } else {
+        AppLogger.navInfo('Error: El usuario no tiene customerId asignado');
+        // El reintento se maneja en _scheduleRetry()
+      }
+    }
+  }
+
   void _scheduleRetry() {
     // Esperar 2 segundos y volver a intentar cargar los datos
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        AppLogger.navInfo('Reintentando cargar período de facturación...');
+        AppLogger.navInfo('Reintentando cargar datos...');
         _loadBillingPeriod();
+        _loadCustomerActiveServices();
       }
     });
   }
@@ -77,6 +104,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
         if (state is AuthAuthenticated && state.user.customerId != null) {
           // Si el usuario se autentica después de que el widget ya está construido
           _loadBillingPeriod();
+          _loadCustomerActiveServices();
         }
       },
       child: Container(
@@ -117,24 +145,94 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'U-wifi Internet',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      'Recurring Charge',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                BlocBuilder<ServiceBloc, ServiceState>(
+                  builder: (context, state) {
+                    if (state is ServiceLoading) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Loading Service...',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            'Please wait',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else if (state is ServiceLoaded &&
+                        state.services.isNotEmpty) {
+                      final service =
+                          state.services.first; // Tomamos el primer servicio
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            service.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            service.type,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else if (state is ServiceError) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Error al cargar servicio',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            state.message,
+                            style: TextStyle(
+                              color: Colors.red.shade600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      // Estado inicial o sin servicios
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'U-wifi Internet',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Text(
+                            'Recurring Charge',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  },
                 ),
                 const Spacer(),
                 Container(

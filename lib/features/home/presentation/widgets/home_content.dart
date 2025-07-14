@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uwifiapp/injection_container.dart' as di;
 
-import '../../../../injection_container.dart' as di;
 import '../../presentation/bloc/billing_bloc.dart';
+import '../../presentation/bloc/service_bloc.dart';
 import 'connection/connection_card.dart';
 import 'services/service_carousel.dart';
 import 'subscription/subscription_card.dart';
@@ -26,8 +27,15 @@ class HomeContent extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Sección de suscripción
-              BlocProvider<BillingBloc>(
-                create: (_) => di.getIt<BillingBloc>(),
+              MultiBlocProvider(
+                providers: [
+                  BlocProvider<BillingBloc>(
+                    create: (_) => di.getIt<BillingBloc>(),
+                  ),
+                  BlocProvider<ServiceBloc>(
+                    create: (_) => di.getIt<ServiceBloc>(),
+                  ),
+                ],
                 child: const SubscriptionCard(),
               ),
 
