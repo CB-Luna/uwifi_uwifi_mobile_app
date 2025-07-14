@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:uwifiapp/core/utils/app_logger.dart';
+import 'package:uwifiapp/features/home/presentation/bloc/transaction_bloc.dart';
+import 'package:uwifiapp/injection_container.dart' as di;
 
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../auth/presentation/bloc/auth_state.dart';
@@ -355,7 +357,20 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const PlanDetailsPage(),
+                          builder: (context) => MultiBlocProvider(
+                            providers: [
+                              BlocProvider<BillingBloc>(
+                                create: (_) => di.getIt<BillingBloc>(),
+                              ),
+                              BlocProvider<ServiceBloc>(
+                                create: (_) => di.getIt<ServiceBloc>(),
+                              ),
+                              BlocProvider<TransactionBloc>(
+                                create: (_) => di.getIt<TransactionBloc>(),
+                              ),
+                            ],
+                            child: const PlanDetailsPage(),
+                          ),
                         ),
                       );
                     },

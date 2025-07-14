@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../core/utils/app_logger.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
@@ -8,6 +9,12 @@ import '../../../../profile/presentation/bloc/wallet_bloc.dart';
 import '../../../../profile/presentation/bloc/wallet_event.dart';
 import '../../../../profile/presentation/bloc/wallet_state.dart';
 import '../../../domain/entities/transaction.dart';
+import '../../bloc/billing_bloc.dart';
+import '../../bloc/billing_event.dart';
+import '../../bloc/billing_state.dart';
+import '../../bloc/service_bloc.dart';
+import '../../bloc/service_event.dart';
+import '../../bloc/service_state.dart';
 import '../../bloc/transaction_bloc.dart';
 import '../../bloc/transaction_event.dart';
 import '../../bloc/transaction_state.dart';
@@ -29,10 +36,12 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
   @override
   void initState() {
     super.initState();
-    // Cargar el historial de transacciones después de que el widget se haya construido
+    // Cargar datos después de que el widget se haya construido
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTransactionHistory();
       _loadAffiliatedUsers();
+      _loadBillingPeriod();
+      _loadCustomerActiveServices();
     });
   }
 
@@ -52,6 +61,58 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
       } else {
         AppLogger.navError('Error: El usuario no tiene customerId asignado');
       }
+    }
+  }
+
+  void _loadBillingPeriod() {
+    try {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthAuthenticated) {
+        final user = authState.user;
+
+        // Verificar si el usuario tiene customerId
+        if (user.customerId != null) {
+          AppLogger.navInfo(
+            'Cargando período de facturación para customerId: ${user.customerId}',
+          );
+
+          // Intentar acceder a BillingBloc
+          context.read<BillingBloc>().add(
+            GetBillingPeriodEvent(customerId: user.customerId.toString()),
+          );
+        } else {
+          AppLogger.navError('Error: El usuario no tiene customerId asignado');
+        }
+      }
+    } catch (e) {
+      AppLogger.navError('Error al cargar período de facturación: $e');
+    }
+  }
+
+  void _loadCustomerActiveServices() {
+    try {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthAuthenticated) {
+        final user = authState.user;
+
+        // Verificar si el usuario tiene customerId
+        if (user.customerId != null) {
+          AppLogger.navInfo(
+            'Cargando servicios activos para customerId: ${user.customerId}',
+          );
+
+          // Intentar acceder a ServiceBloc
+          context.read<ServiceBloc>().add(
+            GetCustomerActiveServicesEvent(
+              customerId: user.customerId.toString(),
+            ),
+          );
+        } else {
+          AppLogger.navError('Error: El usuario no tiene customerId asignado');
+        }
+      }
+    } catch (e) {
+      AppLogger.navError('Error al cargar servicios activos: $e');
     }
   }
 
@@ -174,27 +235,132 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                     height: 48,
                   ),
                   const SizedBox(width: 16),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'U-Wifi Internet',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          'Recurring Charge',
-                          style: TextStyle(color: Colors.grey, fontSize: 14),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Due date: Apr 23',
-                          style: TextStyle(color: Colors.black54, fontSize: 13),
-                        ),
-                      ],
+                  Expanded(
+                    child: Builder(
+                      builder: (context) {
+                        try {
+                          return BlocBuilder<ServiceBloc, ServiceState>(
+                            builder: (context, serviceState) {
+                              try {
+                                return BlocBuilder<BillingBloc, BillingState>(
+                                  builder: (context, billingState) {
+                                    // Obtener el nombre y tipo del servicio
+                                    String serviceName = 'U-Wifi Internet';
+                                    String serviceType = 'Recurring Charge';
+
+                                    if (serviceState is ServiceLoaded &&
+                                        serviceState.services.isNotEmpty) {
+                                      final service =
+                                          serviceState.services.first;
+                                      serviceName = service.name;
+                                      serviceType = service.type;
+                                    }
+
+                                    // Obtener la fecha de vencimiento
+                                    String dueDate = 'Due date: --';
+
+                                    if (billingState is BillingLoaded) {
+                                      final endDate =
+                                          billingState.billingPeriod.dueDate;
+                                      final formattedDate = DateFormat(
+                                        'MMM dd',
+                                      ).format(DateTime.parse(endDate));
+                                      dueDate = 'Due date: $formattedDate';
+                                    }
+
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          serviceName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          serviceType,
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          dueDate,
+                                          style: const TextStyle(
+                                            color: Colors.black54,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              } catch (e) {
+                                AppLogger.navError('Error en BillingBloc: $e');
+                                return const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'U-Wifi Internet',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Recurring Charge',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'Due date: --',
+                                      style: TextStyle(
+                                        color: Colors.black54,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }
+                            },
+                          );
+                        } catch (e) {
+                          AppLogger.navError('Error en ServiceBloc: $e');
+                          return const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'U-Wifi Internet',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Text(
+                                'Recurring Charge',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Due date: --',
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
                     ),
                   ),
                   Container(
