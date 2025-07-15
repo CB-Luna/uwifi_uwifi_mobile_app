@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
@@ -15,6 +16,20 @@ class WifiSettingsPage extends StatefulWidget {
 }
 
 class _WifiSettingsPageState extends State<WifiSettingsPage> {
+  // Controladores para los campos de texto en los diálogos
+  final TextEditingController _newSsidController = TextEditingController();
+  final TextEditingController _confirmSsidController = TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  
+  @override
+  void dispose() {
+    _newSsidController.dispose();
+    _confirmSsidController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
   @override
   void initState() {
     super.initState();
@@ -143,6 +158,176 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
     );
   }
 
+  // Método para copiar al portapapeles
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Copied to clipboard')),
+    );
+  }
+
+  // Diálogo para editar el nombre de la red
+  void _showEditNetworkNameDialog(BuildContext context, String title, String currentName) {
+    _newSsidController.text = currentName;
+    _confirmSsidController.text = '';
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Edit $title Network Name'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('$title', style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _newSsidController,
+              decoration: const InputDecoration(
+                labelText: 'New SSID',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _confirmSsidController,
+              decoration: const InputDecoration(
+                labelText: 'Confirm SSID',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_newSsidController.text == _confirmSsidController.text) {
+                // Aquí implementaremos la llamada a la API para actualizar el nombre
+                // Por ahora solo cerramos el diálogo
+                Navigator.of(dialogContext).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Network name updated successfully')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('SSID confirmation does not match')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: const Text('Save Changes'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Diálogo para editar la contraseña
+  void _showEditPasswordDialog(BuildContext context, String title, String currentPassword) {
+    _newPasswordController.text = '';
+    _confirmPasswordController.text = '';
+    
+    // Obtener el nombre de la red actual antes de abrir el diálogo
+    String networkName = title == '2.4 GHz' ? 'Loading...' : 'Loading...';
+    
+    // Obtener el estado actual del bloc fuera del builder del diálogo
+    final state = context.read<ConnectionBloc>().state;
+    if (state is connection_state.ConnectionLoaded) {
+      networkName = title == '2.4 GHz' ? 
+                   state.gatewayInfo.wifi24GName : 
+                   state.gatewayInfo.wifi5GName;
+    } else if (state is connection_state.ConnectionLoading && state.previousInfo != null) {
+      networkName = title == '2.4 GHz' ? 
+                   state.previousInfo!.wifi24GName : 
+                   state.previousInfo!.wifi5GName;
+    }
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Edit $title Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('$title', style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('Network Name', style: TextStyle(color: Colors.grey.shade600)),
+            Text(networkName, style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _newPasswordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'New password',
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.visibility_off),
+                  onPressed: () {
+                    // Implementaremos la visibilidad de la contraseña más adelante
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _confirmPasswordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: 'Confirm Password',
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.visibility_off),
+                  onPressed: () {
+                    // Implementaremos la visibilidad de la contraseña más adelante
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_newPasswordController.text == _confirmPasswordController.text) {
+                // Aquí implementaremos la llamada a la API para actualizar la contraseña
+                // Por ahora solo cerramos el diálogo
+                Navigator.of(dialogContext).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Password updated successfully')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Password confirmation does not match')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: const Text('Save Changes'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _wifiCard(
     BuildContext context, {
     required String title,
@@ -211,11 +396,15 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  _copyToClipboard(context, networkName);
+                },
                 icon: const Icon(Icons.copy, size: 18),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  _showEditNetworkNameDialog(context, title, networkName);
+                },
                 icon: const Icon(Icons.edit, size: 18),
               ),
             ],
@@ -231,15 +420,21 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
                 ),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Implementaremos la visibilidad de la contraseña más adelante
+                },
                 icon: const Icon(Icons.visibility_off, size: 18),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  _copyToClipboard(context, password);
+                },
                 icon: const Icon(Icons.copy, size: 18),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  _showEditPasswordDialog(context, title, password);
+                },
                 icon: const Icon(Icons.edit, size: 18),
               ),
             ],
