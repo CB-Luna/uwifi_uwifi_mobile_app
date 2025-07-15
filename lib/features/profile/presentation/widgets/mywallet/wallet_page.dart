@@ -21,6 +21,41 @@ class WalletPage extends StatefulWidget {
 }
 
 class _WalletPageState extends State<WalletPage> {
+  // Método para construir los círculos de puntos
+  Widget _buildPointCircle(String value, bool isActive, Color color) {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isActive ? color : Colors.grey.shade600,
+        border: Border.all(
+          color: isActive ? Colors.teal.shade200 : Colors.grey.shade400,
+          width: 4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isActive
+                ? Colors.teal.withValues(alpha: 0.3)
+                : Colors.transparent,
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -132,31 +167,39 @@ class _WalletPageState extends State<WalletPage> {
               ],
             ),
             const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: LinearProgressIndicator(
-                value: 0.3,
-                minHeight: 18,
-                backgroundColor: Colors.grey.shade300,
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+            Container(
+              height: 80,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Línea de conexión (background)
+                  Positioned(
+                    left: 30,
+                    right: 30,
+                    child: Container(height: 4, color: Colors.grey.shade300),
+                  ),
+                  // Línea de progreso (foreground)
+                  Positioned(
+                    left: 30,
+                    width:
+                        MediaQuery.of(context).size.width * 0.3 -
+                        60, // 0.3 es el valor de progreso
+                    child: Container(height: 4, color: Colors.teal),
+                  ),
+                  // Círculos de puntos
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildPointCircle('\$10', true, Colors.teal),
+                      _buildPointCircle('\$20', false, Colors.grey),
+                      _buildPointCircle('\$38', false, Colors.grey),
+                    ],
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 6),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '\$0',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text('\$10', style: TextStyle(color: Colors.grey)),
-                Text('\$20', style: TextStyle(color: Colors.grey)),
-                Text('\$38', style: TextStyle(color: Colors.grey)),
-              ],
-            ),
             const SizedBox(height: 18),
             Row(
               children: [
