@@ -583,57 +583,51 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                   if (_isUserGroupExpanded)
                     BlocBuilder<WalletBloc, WalletState>(
                       builder: (context, state) {
-                        if (state is WalletLoading) {
+                        // Mostrar indicador de carga solo si no hay datos previos
+                        if (state is WalletLoading &&
+                            state.affiliatedUsers == null) {
                           return const Center(
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 16.0),
                               child: CircularProgressIndicator(),
                             ),
                           );
-                        } else if (state is WalletLoaded) {
-                          final users = state.affiliatedUsers;
-                          if (users.isEmpty) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16.0),
-                              child: Center(
-                                child: Text(
-                                  'No hay usuarios afiliados',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ),
-                            );
-                          }
+                        }
 
-                          return Column(
-                            children: [
-                              // Mostrar los usuarios afiliados
-                              ...users.map(
-                                (user) => _userItem(
-                                  user.customerName,
-                                  user.initials,
-                                  isAffiliate: user.isAffiliate,
-                                ),
-                              ),
-                            ],
-                          );
-                        } else if (state is WalletError) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        // Obtener usuarios afiliados del estado actual
+                        final users = state is WalletLoaded
+                            ? state.affiliatedUsers
+                            : state is WalletLoading &&
+                                  state.affiliatedUsers != null
+                            ? state.affiliatedUsers!
+                            : [];
+
+                        // Mostrar mensaje si no hay usuarios
+                        if (users.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
                             child: Center(
                               child: Text(
-                                'Error: ${state.message}',
-                                style: const TextStyle(color: Colors.red),
+                                'No hay usuarios afiliados',
+                                style: TextStyle(color: Colors.grey),
                               ),
-                            ),
-                          );
-                        } else {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16.0),
-                              child: Text('Cargando usuarios...'),
                             ),
                           );
                         }
+
+                        // Mostrar la lista de usuarios
+                        return Column(
+                          children: [
+                            // Mostrar los usuarios afiliados
+                            ...users.map(
+                              (user) => _userItem(
+                                user.customerName,
+                                user.initials,
+                                isAffiliate: user.isAffiliate,
+                              ),
+                            ),
+                          ],
+                        );
                       },
                     ),
                 ],

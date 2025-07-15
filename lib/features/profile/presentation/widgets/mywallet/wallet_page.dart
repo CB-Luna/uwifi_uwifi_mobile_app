@@ -348,40 +348,38 @@ class _WalletPageState extends State<WalletPage> {
             const SizedBox(height: 8),
             BlocBuilder<WalletBloc, WalletState>(
               builder: (context, state) {
-                if (state is WalletLoading) {
+                // Mostrar indicador de carga solo si no hay datos previos
+                if (state is WalletLoading && state.affiliatedUsers == null) {
                   return const Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: CircularProgressIndicator(),
                     ),
                   );
-                } else if (state is WalletLoaded) {
-                  final users = state.affiliatedUsers;
-                  if (users.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('No hay usuarios afiliados'),
-                    );
-                  }
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: users
-                          .map((user) => UserCircle.fromAffiliatedUser(user))
-                          .toList(),
-                    ),
-                  );
-                } else if (state is WalletError) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      'Error: ${state.message}',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  );
-                } else {
-                  return const Row(children: [UserCircle(initials: '...')]);
                 }
+
+                // Obtener usuarios afiliados del estado actual
+                final users = state is WalletLoaded
+                    ? state.affiliatedUsers
+                    : state is WalletLoading && state.affiliatedUsers != null
+                    ? state.affiliatedUsers!
+                    : [];
+
+                if (users.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text('No affiliated users found'),
+                  );
+                }
+
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: users
+                        .map((user) => UserCircle.fromAffiliatedUser(user))
+                        .toList(),
+                  ),
+                );
               },
             ),
             const SizedBox(height: 24),

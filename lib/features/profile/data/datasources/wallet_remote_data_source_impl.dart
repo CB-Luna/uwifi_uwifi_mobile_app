@@ -21,7 +21,7 @@ class WalletRemoteDataSourceImpl implements WalletRemoteDataSource {
       final requestBody = {'customerid': customerId};
 
       AppLogger.navInfo(
-        'Obteniendo usuarios afiliados para customerId: $customerId',
+        'Obteniendo usuarios afiliados para customerId: $customerId con params: $requestBody',
       );
 
       // Realizar la solicitud a la función RPC de Supabase
@@ -29,6 +29,9 @@ class WalletRemoteDataSourceImpl implements WalletRemoteDataSource {
         'get_afiliate_customers',
         params: requestBody,
       );
+
+      // Log de la respuesta completa para diagnóstico
+      AppLogger.navInfo('Respuesta RPC raw: $response');
 
       if (response == null) {
         AppLogger.navError(
@@ -40,24 +43,35 @@ class WalletRemoteDataSourceImpl implements WalletRemoteDataSource {
       // Verificar si la respuesta es una lista
       if (response is! List) {
         AppLogger.navError(
-          'Error al obtener usuarios afiliados: formato incorrecto',
+          'Error al obtener usuarios afiliados: formato incorrecto. Tipo: ${response.runtimeType}',
         );
         return const Left(ServerFailure('Formato de respuesta incorrecto'));
       }
 
-      // Convertir la respuesta a una lista de modelos
-      final affiliatedUsers = (response)
-          .map(
-            (item) =>
-                AffiliatedUserModel.fromJson(item as Map<String, dynamic>),
-          )
-          .toList();
+      // Si la lista está vacía, retornar una lista vacía válida en lugar de error
+      if (response.isEmpty) {
+        AppLogger.navInfo('No se encontraron usuarios afiliados para este cliente');
+        return const Right([]);
+      }
 
-      AppLogger.navInfo(
-        'Usuarios afiliados obtenidos: ${affiliatedUsers.length}',
-      );
+      try {
+        // Convertir la respuesta a una lista de modelos
+        final affiliatedUsers = (response)
+            .map(
+              (item) => AffiliatedUserModel.fromJson(item as Map<String, dynamic>),
+            )
+            .toList();
 
-      return Right(affiliatedUsers);
+        AppLogger.navInfo(
+          'Usuarios afiliados obtenidos y procesados: ${affiliatedUsers.length}',
+        );
+
+        return Right(affiliatedUsers);
+      } catch (parseError) {
+        AppLogger.navError('Error al parsear usuarios afiliados: $parseError');
+        AppLogger.navError('Contenido de la respuesta: $response');
+        return Left(ServerFailure('Error al procesar datos de usuarios afiliados: $parseError'));
+      }
     } catch (e) {
       AppLogger.navError('Error al obtener usuarios afiliados: $e');
       return Left(ServerFailure(e.toString()));

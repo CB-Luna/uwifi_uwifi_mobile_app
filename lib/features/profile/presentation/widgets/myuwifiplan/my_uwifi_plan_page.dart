@@ -98,15 +98,16 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
       builder: (context) => MyUwifiPlanAutoPayModal(activating: value),
     );
     if (!mounted) return;
-    
-    if (result == AutoPayAction.activated || result == AutoPayAction.deactivated) {
+
+    if (result == AutoPayAction.activated ||
+        result == AutoPayAction.deactivated) {
       final bool isActivating = result == AutoPayAction.activated;
-      
+
       // Obtenemos el customerId del usuario autenticado
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthAuthenticated && authState.user.customerId != null) {
         final customerId = authState.user.customerId.toString();
-        
+
         // Enviamos el evento al BillingBloc para actualizar el estado de AutoPay
         context.read<BillingBloc>().add(
           UpdateAutomaticChargeEvent(
@@ -114,20 +115,21 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
             value: isActivating,
           ),
         );
-        
+
         // Mostramos el modal de confirmación
         await showDialog(
           context: context,
-          builder: (context) => MyUwifiPlanAutoPayConfirmationModal(
-            activated: isActivating,
-          ),
+          builder: (context) =>
+              MyUwifiPlanAutoPayConfirmationModal(activated: isActivating),
         );
         if (!mounted) return;
       } else {
         // Si no hay customerId, mostramos un error
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No se pudo actualizar AutoPay: Usuario no identificado'),
+            content: Text(
+              'No se pudo actualizar AutoPay: Usuario no identificado',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -223,7 +225,7 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
                                   ),
                                   SizedBox(height: 2),
                                   Text(
-                                    'Por favor espere',
+                                    'Please wait',
                                     style: TextStyle(
                                       color: Colors.grey,
                                       fontSize: 14,
@@ -305,7 +307,7 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
                           }
 
                           // Obtener la fecha de vencimiento
-                          String dueDate = 'Próximo pago';
+                          String dueDate = 'Next Due';
                           if (billingState is BillingLoaded) {
                             try {
                               final dateFormat = DateFormat('yyyy-MM-dd');
@@ -319,9 +321,7 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
                                   ? 'Autopay on $formattedDate'
                                   : 'Next Due on $formattedDate';
                             } catch (e) {
-                              AppLogger.navError(
-                                'Error al formatear la fecha: $e',
-                              );
+                              AppLogger.navError('Error to format date: $e');
                               dueDate = billingState.automaticCharge
                                   ? 'Autopay enabled'
                                   : 'Payment due soon';
@@ -365,7 +365,9 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
                       const SizedBox(width: 10),
                       BlocBuilder<BillingBloc, BillingState>(
                         builder: (context, state) {
-                          final bool isAutoPay = state is BillingLoaded ? state.automaticCharge : false;
+                          final bool isAutoPay = state is BillingLoaded
+                              ? state.automaticCharge
+                              : false;
                           return Switch(
                             value: isAutoPay,
                             onChanged: _onAutoPayChanged,

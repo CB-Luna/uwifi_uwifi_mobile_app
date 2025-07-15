@@ -11,7 +11,25 @@ abstract class WalletState extends Equatable {
 
 class WalletInitial extends WalletState {}
 
-class WalletLoading extends WalletState {}
+class WalletLoading extends WalletState {
+  final List<AffiliatedUser>? affiliatedUsers;
+  final CustomerPoints? customerPoints;
+  
+  const WalletLoading({
+    this.affiliatedUsers,
+    this.customerPoints,
+  });
+  
+  factory WalletLoading.fromLoaded(WalletLoaded loaded) {
+    return WalletLoading(
+      affiliatedUsers: loaded.affiliatedUsers,
+      customerPoints: loaded.customerPoints,
+    );
+  }
+  
+  @override
+  List<Object?> get props => [affiliatedUsers, customerPoints];
+}
 
 class WalletLoaded extends WalletState {
   final List<AffiliatedUser> affiliatedUsers;
