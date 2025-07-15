@@ -59,10 +59,11 @@ class _WalletPageState extends State<WalletPage> {
   @override
   void initState() {
     super.initState();
-    // Cargar usuarios afiliados y tarjetas después de que el widget se haya construido
+    // Cargar usuarios afiliados, tarjetas y puntos después de que el widget se haya construido
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadAffiliatedUsers();
       _loadCreditCards();
+      _loadCustomerPoints();
     });
   }
 
@@ -78,6 +79,25 @@ class _WalletPageState extends State<WalletPage> {
         );
         context.read<WalletBloc>().add(
           GetAffiliatedUsersEvent(customerId: user.customerId.toString()),
+        );
+      } else {
+        AppLogger.navError('Error: El usuario no tiene customerId asignado');
+      }
+    }
+  }
+
+  void _loadCustomerPoints() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+
+      // Verificar si el usuario tiene customerId
+      if (user.customerId != null) {
+        AppLogger.navInfo(
+          'Cargando puntos del cliente para customerId: ${user.customerId}',
+        );
+        context.read<WalletBloc>().add(
+          GetCustomerPointsEvent(customerId: user.customerId.toString()),
         );
       } else {
         AppLogger.navError('Error: El usuario no tiene customerId asignado');
@@ -130,23 +150,65 @@ class _WalletPageState extends State<WalletPage> {
             const SizedBox(height: 8),
             const Text(
               'Free U Points',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 4),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '30',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(width: 6),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Text('Points', style: TextStyle(fontSize: 16)),
-                ),
-              ],
+            BlocBuilder<WalletBloc, WalletState>(
+              builder: (context, state) {
+                if (state is WalletLoaded && state.customerPoints != null) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${state.customerPoints!.totalPointsEarned}',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text('Points', style: TextStyle(fontSize: 16)),
+                      ),
+                    ],
+                  );
+                } else if (state is WalletLoading) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                } else if (state is WalletError) {
+                  return Center(
+                    child: Text(
+                      'Error: ${state.message}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  );
+                } else {
+                  return const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '0',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 6),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text('Points', style: TextStyle(fontSize: 16)),
+                      ),
+                    ],
+                  );
+                }
+              },
             ),
             const SizedBox(height: 18),
             const Row(
@@ -167,37 +229,85 @@ class _WalletPageState extends State<WalletPage> {
               ],
             ),
             const SizedBox(height: 10),
-            Container(
-              height: 80,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Línea de conexión (background)
-                  Positioned(
-                    left: 30,
-                    right: 30,
-                    child: Container(height: 4, color: Colors.grey.shade300),
-                  ),
-                  // Línea de progreso (foreground)
-                  Positioned(
-                    left: 30,
-                    width:
-                        MediaQuery.of(context).size.width * 0.3 -
-                        60, // 0.3 es el valor de progreso
-                    child: Container(height: 4, color: Colors.teal),
-                  ),
-                  // Círculos de puntos
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            BlocBuilder<WalletBloc, WalletState>(
+              builder: (context, state) {
+                // Calcular el progreso basado en los puntos del cliente
+                double progress = 0.0;
+                int totalPoints = 0;
+                bool isFirstActive = false;
+                bool isSecondActive = false;
+                bool isThirdActive = false;
+
+                if (state is WalletLoaded && state.customerPoints != null) {
+                  totalPoints = state.customerPoints!.totalPointsEarned;
+
+                  // Determinar qué círculos están activos basado en los puntos
+                  isFirstActive = totalPoints >= 1000;
+                  isSecondActive = totalPoints >= 2000;
+                  isThirdActive = totalPoints >= 4000;
+
+                  // Calcular el progreso para la línea
+                  if (totalPoints >= 4000) {
+                    progress = 1.0; // 100% de progreso
+                  } else if (totalPoints >= 2000) {
+                    // Entre $20 y $38 (2000 a 4000 puntos)
+                    progress = 0.5 + ((totalPoints - 2000) / 2000) * 0.5;
+                  } else if (totalPoints >= 1000) {
+                    // Entre $10 y $20 (1000 a 2000 puntos)
+                    progress = 0.25 + ((totalPoints - 1000) / 1000) * 0.25;
+                  } else {
+                    // Entre $0 y $10 (0 a 1000 puntos)
+                    progress = (totalPoints / 1000) * 0.25;
+                  }
+                }
+
+                return Container(
+                  height: 80,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      _buildPointCircle('\$10', true, Colors.teal),
-                      _buildPointCircle('\$20', false, Colors.grey),
-                      _buildPointCircle('\$38', false, Colors.grey),
+                      // Línea de conexión (background)
+                      Positioned(
+                        left: 30,
+                        right: 30,
+                        child: Container(
+                          height: 4,
+                          color: Colors.grey.shade300,
+                        ),
+                      ),
+                      // Línea de progreso (foreground)
+                      Positioned(
+                        left: 30,
+                        width:
+                            (MediaQuery.of(context).size.width - 76) * progress,
+                        child: Container(height: 4, color: Colors.teal),
+                      ),
+                      // Círculos de puntos
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildPointCircle(
+                            '\$10',
+                            isFirstActive,
+                            isFirstActive ? Colors.teal : Colors.grey,
+                          ),
+                          _buildPointCircle(
+                            '\$20',
+                            isSecondActive,
+                            isSecondActive ? Colors.teal : Colors.grey,
+                          ),
+                          _buildPointCircle(
+                            '\$38',
+                            isThirdActive,
+                            isThirdActive ? Colors.teal : Colors.grey,
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
             const SizedBox(height: 6),
             const SizedBox(height: 18),

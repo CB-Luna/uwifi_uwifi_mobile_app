@@ -75,6 +75,7 @@ import 'features/profile/domain/repositories/payment_repository.dart';
 import 'features/profile/domain/repositories/wallet_repository.dart';
 import 'features/profile/domain/usecases/get_affiliated_users.dart';
 import 'features/profile/domain/usecases/get_credit_cards.dart';
+import 'features/profile/domain/usecases/get_customer_points.dart';
 import 'features/profile/presentation/bloc/payment_bloc.dart';
 
 // Transaction imports
@@ -265,6 +266,7 @@ Future<void> init() async {
   getIt.registerFactory(
     () => WalletBloc(
       getAffiliatedUsers: getIt(),
+      getCustomerPoints: getIt(),
     ),
   );
 
@@ -286,6 +288,7 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => GetAffiliatedUsers(getIt()));
   getIt.registerLazySingleton(() => GetCreditCards(getIt()));
   getIt.registerLazySingleton(() => GetTransactionHistory(getIt()));
+  getIt.registerLazySingleton(() => GetCustomerPoints(getIt()));
 
   // Repository
   getIt.registerLazySingleton<WalletRepository>(

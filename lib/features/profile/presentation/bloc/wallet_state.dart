@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/affiliated_user.dart';
+import '../../domain/entities/customer_points.dart';
 
 abstract class WalletState extends Equatable {
   const WalletState();
@@ -14,17 +15,23 @@ class WalletLoading extends WalletState {}
 
 class WalletLoaded extends WalletState {
   final List<AffiliatedUser> affiliatedUsers;
+  final CustomerPoints? customerPoints;
 
-  const WalletLoaded({required this.affiliatedUsers});
+  const WalletLoaded({
+    required this.affiliatedUsers,
+    this.customerPoints,
+  });
 
   @override
-  List<Object?> get props => [affiliatedUsers];
+  List<Object?> get props => [affiliatedUsers, customerPoints];
 
   WalletLoaded copyWith({
     List<AffiliatedUser>? affiliatedUsers,
+    CustomerPoints? customerPoints,
   }) {
     return WalletLoaded(
       affiliatedUsers: affiliatedUsers ?? this.affiliatedUsers,
+      customerPoints: customerPoints ?? this.customerPoints,
     );
   }
 }

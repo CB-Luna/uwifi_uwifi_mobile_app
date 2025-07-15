@@ -15,3 +15,12 @@ class GetAffiliatedUsersEvent extends WalletEvent {
   @override
   List<Object?> get props => [customerId];
 }
+
+class GetCustomerPointsEvent extends WalletEvent {
+  final String customerId;
+
+  const GetCustomerPointsEvent({required this.customerId});
+
+  @override
+  List<Object?> get props => [customerId];
+}
