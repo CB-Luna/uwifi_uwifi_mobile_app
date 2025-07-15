@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
+import 'package:uwifiapp/injection_container.dart' as di;
 
 import '../../bloc/connection_bloc.dart';
 import '../../bloc/connection_event.dart';
@@ -139,7 +140,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const ConnectionDetailsPage(),
+                        builder: (context) => BlocProvider<ConnectionBloc>(
+                          create: (_) => di.getIt<ConnectionBloc>(),
+                          child: const ConnectionDetailsPage(),
+                        ),
                       ),
                     );
                   },

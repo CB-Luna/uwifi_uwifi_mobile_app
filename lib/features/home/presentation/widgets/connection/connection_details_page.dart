@@ -6,6 +6,9 @@ import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
 
 import '../../bloc/data_usage_bloc.dart';
 import '../../bloc/data_usage_event.dart';
+import '../../bloc/connection_bloc.dart';
+import '../../bloc/connection_event.dart';
+import '../../bloc/connection_state.dart' as connection_state;
 import 'connected_devices_card.dart';
 import 'data_usage_bar_chart.dart';
 import 'data_usage_donut_chart.dart';
@@ -31,11 +34,16 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
       // Verificar si el usuario tiene customerId
       if (user.customerId != null) {
         AppLogger.navInfo(
-          'Cargando usuarios afiliados para customerId: ${user.customerId}',
+          'Cargando información para customerId: ${user.customerId}',
         );
         // Cargar los datos de uso al iniciar la página
         context.read<DataUsageBloc>().add(
           GetDataUsageEvent(customerId: user.customerId.toString()),
+        );
+        
+        // Cargar la información de conexión
+        context.read<ConnectionBloc>().add(
+          GetConnectionInfoEvent(user.customerId!),
         );
       } else {
         AppLogger.navError('Error: El usuario no tiene customerId asignado');
@@ -97,22 +105,54 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Connected',
-                          style: TextStyle(
-                            color: Color(0xFF4CAF50),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Risky Reels',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
+                        BlocBuilder<ConnectionBloc, connection_state.ConnectionState>(
+                          builder: (context, state) {
+                            String connectionStatus = 'Loading...';
+                            String wifiName = 'Searching...';
+                            Color statusColor = Colors.grey;
+                            
+                            if (state is connection_state.ConnectionLoaded) {
+                              connectionStatus = state.gatewayInfo.connectionStatus;
+                              wifiName = state.gatewayInfo.wifiName;
+                              statusColor = connectionStatus == 'Connected'
+                                  ? const Color(0xFF4CAF50)
+                                  : Colors.red;
+                            } else if (state is connection_state.ConnectionLoading &&
+                                state.previousInfo != null) {
+                              connectionStatus = state.previousInfo!.connectionStatus;
+                              wifiName = state.previousInfo!.wifiName;
+                              statusColor = connectionStatus == 'Connected'
+                                  ? const Color(0xFF4CAF50)
+                                  : Colors.red;
+                            } else if (state is connection_state.ConnectionError) {
+                              connectionStatus = 'Error';
+                              wifiName = 'No connection';
+                              statusColor = Colors.red;
+                            }
+                            
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  connectionStatus,
+                                  style: TextStyle(
+                                    color: statusColor,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  wifiName,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
