@@ -62,6 +62,7 @@ import 'features/home/data/repositories/billing_repository_impl.dart';
 import 'features/home/domain/repositories/billing_repository.dart';
 import 'features/home/domain/usecases/get_current_billing_period.dart';
 import 'features/home/domain/usecases/get_customer_balance.dart';
+import 'features/home/domain/usecases/update_automatic_charge.dart';
 import 'features/home/presentation/bloc/billing_bloc.dart';
 
 // Wallet feature imports
@@ -241,12 +242,14 @@ Future<void> init() async {
     () => BillingBloc(
       getCurrentBillingPeriod: getIt(),
       getCustomerBalance: getIt(),
+      updateAutomaticCharge: getIt(),
     ),
   );
 
   // Use cases
   getIt.registerLazySingleton(() => GetCurrentBillingPeriod(getIt()));
   getIt.registerLazySingleton(() => GetCustomerBalance(getIt()));
+  getIt.registerLazySingleton(() => UpdateAutomaticCharge(getIt()));
 
   // Repository
   getIt.registerLazySingleton<BillingRepository>(

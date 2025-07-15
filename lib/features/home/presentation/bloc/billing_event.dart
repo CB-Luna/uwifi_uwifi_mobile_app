@@ -24,3 +24,16 @@ class GetCustomerBalanceEvent extends BillingEvent {
   @override
   List<Object> get props => [customerId];
 }
+
+class UpdateAutomaticChargeEvent extends BillingEvent {
+  final String customerId;
+  final bool value;
+
+  const UpdateAutomaticChargeEvent({
+    required this.customerId,
+    required this.value,
+  });
+
+  @override
+  List<Object> get props => [customerId, value];
+}

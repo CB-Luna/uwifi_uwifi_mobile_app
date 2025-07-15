@@ -9,4 +9,7 @@ class ApiEndpoints {
   // Gateway endpoints
   static const String gatewayUsageInfo = '$baseUrl/uwifi_gateway_zequence_info_usage';
   static const String trafficInformation = '$supabaseBaseUrl/get_traffic_information';
+  
+  // Billing endpoints
+  static const String updateAutomaticCharge = '$supabaseBaseUrl/update_automatic_charge';
 }

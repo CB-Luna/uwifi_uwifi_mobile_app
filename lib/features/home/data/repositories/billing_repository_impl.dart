@@ -47,4 +47,23 @@ class BillingRepositoryImpl implements BillingRepository {
       return const Left(NetworkFailure());
     }
   }
+  
+  @override
+  Future<Either<Failure, bool>> updateAutomaticCharge({
+    required String customerId,
+    required bool value,
+  }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        return await remoteDataSource.updateAutomaticCharge(
+          customerId: customerId,
+          value: value,
+        );
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure());
+    }
+  }
 }

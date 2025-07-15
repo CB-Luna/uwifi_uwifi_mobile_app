@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+
+import '../../features/auth/domain/entities/user.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/widgets/auth_wrapper_widget.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
-import '../../features/auth/domain/entities/user.dart';
-import '../../features/profile/presentation/widgets/mywallet/wallet_page.dart';
-import '../../features/profile/presentation/widgets/mywallet/add_user_page.dart';
+import '../../features/profile/presentation/widgets/myuwifiplan/my_uwifi_plan_page.dart';
 import '../../features/profile/presentation/widgets/mywallet/add_card_page.dart';
-import '../../features/profile/presentation/widgets/uwifistore/uwifi_store_page.dart';
+import '../../features/profile/presentation/widgets/mywallet/add_user_page.dart';
+import '../../features/profile/presentation/widgets/mywallet/wallet_page.dart';
 import '../../features/profile/presentation/widgets/uwifistore/product_details_page.dart';
 import '../../features/profile/presentation/widgets/uwifistore/shopping_cart_page.dart';
-import '../../features/profile/presentation/widgets/myuwifiplan/my_uwifi_plan_page.dart';
+import '../../features/profile/presentation/widgets/uwifistore/uwifi_store_page.dart';
 
 class AppRouter {
   static const String root = '/';
