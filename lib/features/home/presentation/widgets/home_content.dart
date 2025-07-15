@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uwifiapp/injection_container.dart' as di;
+import '../bloc/connection_bloc.dart';
 
 import '../../presentation/bloc/billing_bloc.dart';
 import '../../presentation/bloc/service_bloc.dart';
@@ -22,7 +23,10 @@ class HomeContent extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Sección de conexión WiFi
-              const ConnectionCard(),
+              BlocProvider<ConnectionBloc>(
+                create: (_) => di.getIt<ConnectionBloc>(),
+                child: const ConnectionCard(),
+              ),
 
               const SizedBox(height: 16),
 

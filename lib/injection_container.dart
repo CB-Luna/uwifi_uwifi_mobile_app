@@ -108,6 +108,19 @@ import 'features/home/domain/repositories/service_repository.dart';
 import 'features/home/domain/usecases/get_customer_active_services.dart';
 import 'features/home/presentation/bloc/service_bloc.dart';
 
+// Connection feature imports
+import 'features/home/data/datasources/customer_bundle_remote_data_source.dart';
+import 'features/home/data/datasources/customer_bundle_remote_data_source_impl.dart';
+import 'features/home/data/datasources/gateway_info_remote_data_source.dart';
+import 'features/home/data/datasources/gateway_info_remote_data_source_impl.dart';
+import 'features/home/domain/repositories/customer_bundle_repository.dart';
+import 'features/home/domain/repositories/gateway_info_repository.dart';
+import 'features/home/data/repositories/customer_bundle_repository_impl.dart';
+import 'features/home/data/repositories/gateway_info_repository_impl.dart';
+import 'features/home/domain/usecases/get_customer_bundle.dart';
+import 'features/home/domain/usecases/get_gateway_info.dart';
+import 'features/home/presentation/bloc/connection_bloc.dart';
+
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -390,6 +403,47 @@ Future<void> init() async {
 
   // Use cases
   getIt.registerLazySingleton(() => GetCustomerActiveServices(getIt()));
+  
+  //! Features - Connection
+  // Bloc
+  getIt.registerFactory(
+    () => ConnectionBloc(
+      getCustomerBundle: getIt(),
+      getGatewayInfo: getIt(),
+    ),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetCustomerBundle(getIt()));
+  getIt.registerLazySingleton(() => GetGatewayInfo(getIt()));
+
+  // Repository
+  getIt.registerLazySingleton<CustomerBundleRepository>(
+    () => CustomerBundleRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+  
+  getIt.registerLazySingleton<GatewayInfoRepository>(
+    () => GatewayInfoRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
+  // Data sources
+  getIt.registerLazySingleton<CustomerBundleRemoteDataSource>(
+    () => CustomerBundleRemoteDataSourceImpl(
+      supabaseClient: getIt(),
+    ),
+  );
+  
+  getIt.registerLazySingleton<GatewayInfoRemoteDataSource>(
+    () => GatewayInfoRemoteDataSourceImpl(
+      client: getIt(),
+    ),
+  );
 
   // Repository
   getIt.registerLazySingleton<ServiceRepository>(

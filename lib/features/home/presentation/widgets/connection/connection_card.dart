@@ -1,8 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
+
+import '../../bloc/connection_bloc.dart';
+import '../../bloc/connection_event.dart';
+import '../../bloc/connection_state.dart' as connection_state;
 import 'connection_details_page.dart';
 
-class ConnectionCard extends StatelessWidget {
+class ConnectionCard extends StatefulWidget {
   const ConnectionCard({super.key});
+
+  @override
+  State<ConnectionCard> createState() => _ConnectionCardState();
+}
+
+class _ConnectionCardState extends State<ConnectionCard> {
+  @override
+  void initState() {
+    super.initState();
+    _loadConnectionInfo();
+  }
+
+  void _loadConnectionInfo() {
+    // Obtener el ID del cliente desde el estado de autenticación
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated && authState.user.customerId != null) {
+      // GetConnectionInfoEvent espera un int no nulo
+      final customerId = authState.user.customerId!;
+      context.read<ConnectionBloc>().add(GetConnectionInfoEvent(customerId));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,26 +76,60 @@ class ConnectionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Estado de conexión
-                const Text(
-                  'Connected',
-                  style: TextStyle(
-                    color: Color(0xFF4CAF50),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                // Estado de conexión y nombre del WiFi
+                BlocBuilder<ConnectionBloc, connection_state.ConnectionState>(
+                  builder: (context, state) {
+                    // Determinar el estado de conexión y el nombre del WiFi
+                    String connectionStatus = 'Loading...';
+                    String wifiName = 'Searching...';
+                    Color statusColor = Colors.grey;
 
-                const SizedBox(height: 8),
+                    if (state is connection_state.ConnectionLoaded) {
+                      connectionStatus = state.gatewayInfo.connectionStatus;
+                      wifiName = state.gatewayInfo.wifiName;
+                      statusColor = connectionStatus == 'Connected'
+                          ? const Color(0xFF4CAF50)
+                          : Colors.red;
+                    } else if (state is connection_state.ConnectionLoading &&
+                        state.previousInfo != null) {
+                      connectionStatus = state.previousInfo!.connectionStatus;
+                      wifiName = state.previousInfo!.wifiName;
+                      statusColor = connectionStatus == 'Connected'
+                          ? const Color(0xFF4CAF50)
+                          : Colors.red;
+                    } else if (state is connection_state.ConnectionError) {
+                      connectionStatus = 'Error';
+                      wifiName = 'No connection';
+                      statusColor = Colors.red;
+                    }
 
-                // Nombre del WiFi
-                const Text(
-                  'U-wifi',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Estado de conexión
+                        Text(
+                          connectionStatus,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Nombre del WiFi
+                        Text(
+                          wifiName,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 16),
