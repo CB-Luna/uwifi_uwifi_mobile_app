@@ -1,8 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
+import 'package:uwifiapp/features/home/presentation/bloc/connection_bloc.dart';
+import 'package:uwifiapp/features/home/presentation/bloc/connection_event.dart';
+import 'package:uwifiapp/features/home/presentation/bloc/connection_state.dart' as connection_state;
 import 'speedtest/speed_test_page.dart';
 
-class WifiSettingsPage extends StatelessWidget {
+class WifiSettingsPage extends StatefulWidget {
   const WifiSettingsPage({super.key});
+
+  @override
+  State<WifiSettingsPage> createState() => _WifiSettingsPageState();
+}
+
+class _WifiSettingsPageState extends State<WifiSettingsPage> {
+  @override
+  void initState() {
+    super.initState();
+    _loadConnectionInfo();
+  }
+
+  void _loadConnectionInfo() {
+    // Obtener el ID del cliente desde el estado de autenticación
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated && authState.user.customerId != null) {
+      // GetConnectionInfoEvent espera un int no nulo
+      final customerId = authState.user.customerId!;
+      context.read<ConnectionBloc>().add(GetConnectionInfoEvent(customerId));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,20 +54,44 @@ class WifiSettingsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // 2.4 GHz
-            _wifiCard(
-              context,
-              title: '2.4 GHz',
-              networkName: 'Risky Reels',
-              password: 'Password',
-            ),
-            const SizedBox(height: 16),
-            // 5 GHz
-            _wifiCard(
-              context,
-              title: '5 GHz',
-              networkName: 'Speed Reels 5G',
-              password: '********',
+            // Mostrar tarjetas WiFi con datos dinámicos
+            BlocBuilder<ConnectionBloc, connection_state.ConnectionState>(
+              builder: (context, state) {
+                String wifi24GName = 'Loading...';
+                String wifi5GName = 'Loading...';
+                
+                if (state is connection_state.ConnectionLoaded) {
+                  wifi24GName = state.gatewayInfo.wifi24GName;
+                  wifi5GName = state.gatewayInfo.wifi5GName;
+                } else if (state is connection_state.ConnectionLoading && 
+                    state.previousInfo != null) {
+                  wifi24GName = state.previousInfo!.wifi24GName;
+                  wifi5GName = state.previousInfo!.wifi5GName;
+                } else if (state is connection_state.ConnectionError) {
+                  wifi24GName = 'Error loading network name';
+                  wifi5GName = 'Error loading network name';
+                }
+                
+                return Column(
+                  children: [
+                    // 2.4 GHz
+                    _wifiCard(
+                      context,
+                      title: '2.4 GHz',
+                      networkName: wifi24GName,
+                      password: 'Password',
+                    ),
+                    const SizedBox(height: 16),
+                    // 5 GHz
+                    _wifiCard(
+                      context,
+                      title: '5 GHz',
+                      networkName: wifi5GName,
+                      password: '********',
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 24),
             Padding(

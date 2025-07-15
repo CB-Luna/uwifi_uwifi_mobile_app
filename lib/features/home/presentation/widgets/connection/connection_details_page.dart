@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uwifiapp/core/utils/app_logger.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
+import 'package:uwifiapp/injection_container.dart' as di;
 
 import '../../bloc/data_usage_bloc.dart';
 import '../../bloc/data_usage_event.dart';
@@ -157,11 +158,23 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const WifiSettingsPage(),
-                              ),
-                            );
+                            // Obtener el ID del cliente desde el estado de autenticación
+                            final authState = context.read<AuthBloc>().state;
+                            if (authState is AuthAuthenticated && authState.user.customerId != null) {
+                              final customerId = authState.user.customerId!;
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => BlocProvider<ConnectionBloc>(
+                                    create: (_) {
+                                      final bloc = di.getIt<ConnectionBloc>();
+                                      bloc.add(GetConnectionInfoEvent(customerId));
+                                      return bloc;
+                                    },
+                                    child: const WifiSettingsPage(),
+                                  ),
+                                ),
+                              );
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey.shade300,

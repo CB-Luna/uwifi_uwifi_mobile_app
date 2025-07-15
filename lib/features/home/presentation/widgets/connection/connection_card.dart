@@ -138,14 +138,23 @@ class _ConnectionCardState extends State<ConnectionCard> {
                 // Botón de detalles
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => BlocProvider<ConnectionBloc>(
-                          create: (_) => di.getIt<ConnectionBloc>(),
-                          child: const ConnectionDetailsPage(),
+                    // Obtener el ID del cliente desde el estado de autenticación
+                    final authState = context.read<AuthBloc>().state;
+                    if (authState is AuthAuthenticated && authState.user.customerId != null) {
+                      final customerId = authState.user.customerId!;
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => BlocProvider<ConnectionBloc>(
+                            create: (_) {
+                              final bloc = di.getIt<ConnectionBloc>();
+                              bloc.add(GetConnectionInfoEvent(customerId));
+                              return bloc;
+                            },
+                            child: const ConnectionDetailsPage(),
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.grey.shade300,
