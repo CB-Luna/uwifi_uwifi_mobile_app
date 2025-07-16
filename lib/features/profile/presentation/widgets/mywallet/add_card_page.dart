@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
+
+import '../../../../../core/utils/app_logger.dart';
+import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../presentation/bloc/payment_bloc.dart';
+import '../../../presentation/bloc/payment_event.dart';
+import '../../../presentation/bloc/payment_state.dart';
 
 class AddCardPage extends StatefulWidget {
   const AddCardPage({super.key});
@@ -17,6 +25,25 @@ class _AddCardPageState extends State<AddCardPage> {
   String _expiryMonth = '';
   String _expiryYear = '';
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  String? _customerId;
+  bool isLoading = false;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Obtener el customerId del AuthBloc después de que el widget esté completamente construido
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthAuthenticated) {
+        setState(() {
+          _customerId = authState.user.id;
+          AppLogger.navInfo('CustomerId obtenido: $_customerId');
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +284,7 @@ class _AddCardPageState extends State<AddCardPage> {
                               ),
                               onPressed: () {
                                 if (formKey.currentState!.validate()) {
-                                  _showSuccessDialog(context);
+                                  _registerCreditCard(context);
                                 }
                               },
                               child: const Text(
@@ -345,6 +372,71 @@ class _AddCardPageState extends State<AddCardPage> {
     setState(() {
       isCvvFocused = false;
     });
+  }
+
+  void _registerCreditCard(BuildContext context) {
+    if (_customerId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: No se pudo obtener el ID del cliente'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    // Eliminar espacios y guiones del número de tarjeta
+    final cleanCardNumber = cardNumber.replaceAll(RegExp(r'\s|-'), '');
+
+    AppLogger.navInfo(
+      'Registrando tarjeta: $_customerId, $cleanCardNumber, $_expiryMonth, $_expiryYear, $cvvCode, $cardHolderName',
+    );
+
+    // Enviar evento al PaymentBloc
+    context.read<PaymentBloc>().add(
+      RegisterNewCreditCardEvent(
+        customerId: _customerId!,
+        cardNumber: cleanCardNumber,
+        expMonth: _expiryMonth,
+        expYear: _expiryYear,
+        cvv: cvvCode,
+        cardHolder: cardHolderName,
+      ),
+    );
+
+    // Mostrar diálogo de carga y escuchar cambios en el estado
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return BlocListener<PaymentBloc, PaymentState>(
+          listener: (context, state) {
+            if (state is PaymentLoaded) {
+              Navigator.of(context).pop(); // Cerrar diálogo de carga
+              _showSuccessDialog(context);
+            } else if (state is PaymentError) {
+              Navigator.of(context).pop(); // Cerrar diálogo de carga
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error: ${state.message}')),
+              );
+            }
+          },
+          child: const AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text('Registrando tarjeta...'),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showSuccessDialog(BuildContext context) {

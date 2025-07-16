@@ -41,3 +41,24 @@ class DeleteCreditCardEvent extends PaymentEvent {
   @override
   List<Object> get props => [customerId, cardId];
 }
+
+class RegisterNewCreditCardEvent extends PaymentEvent {
+  final String customerId;
+  final String cardNumber;
+  final String expMonth;
+  final String expYear;
+  final String cvv;
+  final String cardHolder;
+
+  const RegisterNewCreditCardEvent({
+    required this.customerId,
+    required this.cardNumber,
+    required this.expMonth,
+    required this.expYear,
+    required this.cvv,
+    required this.cardHolder,
+  });
+
+  @override
+  List<Object> get props => [customerId, cardNumber, expMonth, expYear, cvv, cardHolder];
+}

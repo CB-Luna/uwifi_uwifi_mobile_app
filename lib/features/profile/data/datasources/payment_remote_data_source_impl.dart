@@ -128,4 +128,55 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+  
+  @override
+  Future<Either<Failure, bool>> registerNewCreditCard({
+    required String customerId,
+    required String cardNumber,
+    required String expMonth,
+    required String expYear,
+    required String cvv,
+    required String cardHolder,
+  }) async {
+    try {
+      AppLogger.navInfo(
+        'Registrando nueva tarjeta para customerId: $customerId',
+      );
+
+      // Convertir customerId a entero
+      final customerIdInt = int.parse(customerId);
+
+      AppLogger.navInfo(
+        'Enviando request para registrar nueva tarjeta con customer_id: $customerIdInt',
+      );
+
+      final response = await client.post(
+        Uri.parse(ApiEndpoints.registerNewCreditCard),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'customer_id': customerIdInt,
+          'credit_card': {
+            'card_number': cardNumber,
+            'exp_month': expMonth,
+            'exp_year': expYear,
+            'cvv': cvv,
+            'card_holder': cardHolder,
+          },
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        AppLogger.navError(
+          'Error al registrar nueva tarjeta. Código: ${response.statusCode}, Respuesta: ${response.body}',
+        );
+        return const Left(ServerFailure('Error al registrar nueva tarjeta'));
+      }
+
+      AppLogger.navInfo('Tarjeta registrada correctamente');
+      return const Right(true);
+    } catch (e) {
+      AppLogger.navError('Error al registrar nueva tarjeta: $e');
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

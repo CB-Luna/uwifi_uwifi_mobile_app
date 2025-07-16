@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../features/auth/domain/entities/user.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/profile/presentation/bloc/payment_bloc.dart';
 import '../../features/auth/presentation/widgets/auth_wrapper_widget.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
@@ -43,7 +46,19 @@ class AppRouter {
       case addUser:
         return MaterialPageRoute(builder: (_) => const AddUserPage());
       case addCard:
-        return MaterialPageRoute(builder: (_) => const AddCardPage());
+        return MaterialPageRoute(
+          builder: (context) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(
+                value: BlocProvider.of<PaymentBloc>(context),
+              ),
+              BlocProvider.value(
+                value: BlocProvider.of<AuthBloc>(context),
+              ),
+            ],
+            child: const AddCardPage(),
+          ),
+        );
       case uwifiStore:
         return MaterialPageRoute(builder: (_) => const UwifiStorePage());
       case productDetails:

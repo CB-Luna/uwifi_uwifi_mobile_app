@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/usecases/delete_credit_card.dart';
 import '../../domain/usecases/get_credit_cards.dart';
+import '../../domain/usecases/register_new_credit_card.dart';
 import '../../domain/usecases/set_default_card.dart';
 import 'payment_event.dart';
 import 'payment_state.dart';
@@ -11,15 +12,18 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   final GetCreditCards getCreditCards;
   final SetDefaultCard setDefaultCard;
   final DeleteCreditCard deleteCreditCard;
+  final RegisterNewCreditCard registerNewCreditCard;
 
   PaymentBloc({
     required this.getCreditCards,
     required this.setDefaultCard,
     required this.deleteCreditCard,
+    required this.registerNewCreditCard,
   }) : super(PaymentInitial()) {
     on<GetCreditCardsEvent>(_onGetCreditCards);
     on<SetDefaultCardEvent>(_onSetDefaultCard);
     on<DeleteCreditCardEvent>(_onDeleteCreditCard);
+    on<RegisterNewCreditCardEvent>(_onRegisterNewCreditCard);
   }
 
   Future<void> _onGetCreditCards(
@@ -108,6 +112,47 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     result.fold(
       (failure) {
         AppLogger.navError('Error al eliminar tarjeta: ${failure.message}');
+        emit(PaymentError(failure.message));
+      },
+      (_) {
+        // Recargar las tarjetas para mostrar los cambios
+        _reloadCards(event.customerId, emit);
+      },
+    );
+  }
+
+  Future<void> _onRegisterNewCreditCard(
+    RegisterNewCreditCardEvent event,
+    Emitter<PaymentState> emit,
+  ) async {
+    // Guardar el estado actual para mantener las tarjetas mientras se actualiza
+    final currentState = state;
+
+    // Emitir estado de carga pero preservando las tarjetas actuales
+    if (currentState is PaymentLoaded) {
+      emit(PaymentLoading(previousCards: currentState.creditCards));
+    } else {
+      emit(const PaymentLoading());
+    }
+
+    AppLogger.navInfo(
+      'Registrando nueva tarjeta para customerId: ${event.customerId}',
+    );
+
+    final result = await registerNewCreditCard(
+      RegisterNewCreditCardParams(
+        customerId: event.customerId,
+        cardNumber: event.cardNumber,
+        expMonth: event.expMonth,
+        expYear: event.expYear,
+        cvv: event.cvv,
+        cardHolder: event.cardHolder,
+      ),
+    );
+
+    result.fold(
+      (failure) {
+        AppLogger.navError('Error al registrar nueva tarjeta: ${failure.message}');
         emit(PaymentError(failure.message));
       },
       (_) {

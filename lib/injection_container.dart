@@ -81,6 +81,7 @@ import 'features/profile/domain/repositories/wallet_repository.dart';
 import 'features/profile/domain/usecases/get_affiliated_users.dart';
 import 'features/profile/domain/usecases/get_credit_cards.dart';
 import 'features/profile/domain/usecases/get_customer_points.dart';
+import 'features/profile/domain/usecases/register_new_credit_card.dart';
 import 'features/profile/presentation/bloc/payment_bloc.dart';
 
 // Transaction imports
@@ -301,6 +302,7 @@ Future<void> init() async {
       getCreditCards: getIt(),
       setDefaultCard: getIt(),
       deleteCreditCard: getIt(),
+      registerNewCreditCard: getIt(),
     ),
   );
 
@@ -316,6 +318,7 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => GetCreditCards(getIt()));
   getIt.registerLazySingleton(() => SetDefaultCard(getIt()));
   getIt.registerLazySingleton(() => DeleteCreditCard(getIt()));
+  getIt.registerLazySingleton(() => RegisterNewCreditCard(getIt()));
   getIt.registerLazySingleton(() => GetTransactionHistory(getIt()));
   getIt.registerLazySingleton(() => GetCustomerPoints(getIt()));
 

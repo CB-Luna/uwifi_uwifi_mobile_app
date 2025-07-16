@@ -15,4 +15,13 @@ abstract class PaymentRepository {
     required String customerId,
     required String cardId,
   });
+  
+  Future<Either<Failure, bool>> registerNewCreditCard({
+    required String customerId,
+    required String cardNumber,
+    required String expMonth,
+    required String expYear,
+    required String cvv,
+    required String cardHolder,
+  });
 }

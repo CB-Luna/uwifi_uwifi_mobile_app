@@ -20,6 +20,7 @@ class ApiEndpoints {
   // Payment endpoints
   static const String updateDefaultCreditCard = '$airflowBaseUrl/update-default-creditcard';
   static const String deleteCreditCard = '$airflowBaseUrl/delete-credit-card';
+  static const String registerNewCreditCard = '$airflowBaseUrl/register-new-creditcard';
   
   // API Keys
   static const String zequenceApiKey = 'd43bdbe46e77d09ef9674c240deb7cd0597d3aae';

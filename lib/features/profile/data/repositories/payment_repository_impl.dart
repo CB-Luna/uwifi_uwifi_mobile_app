@@ -55,4 +55,27 @@ class PaymentRepositoryImpl implements PaymentRepository {
       return const Left(NetworkFailure());
     }
   }
+  
+  @override
+  Future<Either<Failure, bool>> registerNewCreditCard({
+    required String customerId,
+    required String cardNumber,
+    required String expMonth,
+    required String expYear,
+    required String cvv,
+    required String cardHolder,
+  }) async {
+    if (await networkInfo.isConnected) {
+      return remoteDataSource.registerNewCreditCard(
+        customerId: customerId,
+        cardNumber: cardNumber,
+        expMonth: expMonth,
+        expYear: expYear,
+        cvv: cvv,
+        cardHolder: cardHolder,
+      );
+    } else {
+      return const Left(NetworkFailure());
+    }
+  }
 }
