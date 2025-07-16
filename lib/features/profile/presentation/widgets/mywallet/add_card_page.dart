@@ -334,14 +334,14 @@ class _AddCardPageState extends State<AddCardPage> {
   }
 
   // Método para manejar el cambio de foco en el CVV
-  void _onCvvFocus() {
+  void onCvvFocus() {
     setState(() {
       isCvvFocused = true;
     });
   }
 
   // Método para manejar cuando el CVV pierde el foco
-  void _onCvvBlur() {
+  void onCvvBlur() {
     setState(() {
       isCvvFocused = false;
     });
