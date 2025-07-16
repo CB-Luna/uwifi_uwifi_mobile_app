@@ -26,8 +26,8 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
       TextEditingController();
 
   // Variables para controlar la visibilidad de las contraseñas
-  bool _showNewPassword = false;
-  bool _showConfirmPassword = false;
+  final bool _showNewPassword = false;
+  final bool _showConfirmPassword = false;
   bool _showWifi24GPassword = false;
   bool _showWifi5GPassword = false;
 
@@ -91,17 +91,17 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
                   wifi24GName = state.gatewayInfo.wifi24GName;
                   wifi5GName = state.gatewayInfo.wifi5GName;
                   wifi24GPassword =
-                      state.gatewayInfo.wifi24GPassword ?? 'Password';
+                      state.gatewayInfo.wifi24GPassword ?? '••••••••';
                   wifi5GPassword =
-                      state.gatewayInfo.wifi5GPassword ?? 'Password';
+                      state.gatewayInfo.wifi5GPassword ?? '••••••••';
                 } else if (state is connection_state.ConnectionLoading &&
                     state.previousInfo != null) {
                   wifi24GName = state.previousInfo!.wifi24GName;
                   wifi5GName = state.previousInfo!.wifi5GName;
                   wifi24GPassword =
-                      state.previousInfo!.wifi24GPassword ?? 'Password';
+                      state.previousInfo!.wifi24GPassword ?? '••••••••';
                   wifi5GPassword =
-                      state.previousInfo!.wifi5GPassword ?? 'Password';
+                      state.previousInfo!.wifi5GPassword ?? '••••••••';
                 } else if (state is connection_state.ConnectionError) {
                   wifi24GName = 'Error loading network name';
                   wifi5GName = 'Error loading network name';
@@ -300,7 +300,10 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
     String title,
     String currentPassword,
   ) {
-    _newPasswordController.text = '';
+    // Si la contraseña actual es '••••••••', la dejamos en blanco
+    _newPasswordController.text = currentPassword != '••••••••'
+        ? currentPassword
+        : '';
     _confirmPasswordController.text = '';
 
     // Obtener el nombre de la red actual y el número de serie antes de abrir el diálogo
@@ -333,107 +336,128 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
       return;
     }
 
+    // Variables locales para el estado del diálogo
+    bool dialogShowNewPassword = _showNewPassword;
+    bool dialogShowConfirmPassword = _showConfirmPassword;
+
+    // Mostrar el diálogo de edición con StatefulBuilder para manejar su propio estado
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Edit $title Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('Network Name', style: TextStyle(color: Colors.grey.shade600)),
-            Text(
-              networkName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _newPasswordController,
-              obscureText: !_showNewPassword,
-              decoration: InputDecoration(
-                labelText: 'New password',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _showNewPassword ? Icons.visibility : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _showNewPassword = !_showNewPassword;
-                    });
-                  },
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: Text('Edit $title Password'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _confirmPasswordController,
-              obscureText: !_showConfirmPassword,
-              decoration: InputDecoration(
-                labelText: 'Confirm Password',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _showConfirmPassword
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _showConfirmPassword = !_showConfirmPassword;
-                    });
-                  },
+                const SizedBox(height: 8),
+                Text(
+                  'Network Name',
+                  style: TextStyle(color: Colors.grey.shade600),
                 ),
-              ),
+                Text(
+                  networkName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _newPasswordController,
+                  obscureText: !dialogShowNewPassword,
+                  decoration: InputDecoration(
+                    labelText: 'New password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        dialogShowNewPassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setDialogState(() {
+                          dialogShowNewPassword = !dialogShowNewPassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _confirmPasswordController,
+                  obscureText: !dialogShowConfirmPassword,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        dialogShowConfirmPassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setDialogState(() {
+                          dialogShowConfirmPassword =
+                              !dialogShowConfirmPassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (_newPasswordController.text ==
-                  _confirmPasswordController.text) {
-                final newPassword = _newPasswordController.text;
-                final isNetwork24G = title == '2.4 GHz';
-
-                // Enviar el evento para actualizar la contraseña
-                context.read<ConnectionBloc>().add(
-                  UpdateWifiPasswordEvent(
-                    serialNumber: serialNumber,
-                    newPassword: newPassword,
-                    isNetwork24G: isNetwork24G,
-                  ),
-                );
-
-                Navigator.of(dialogContext).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Actualizando contraseña de red $title...'),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Password confirmation does not match'),
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancel'),
               ),
-            ),
-            child: const Text('Save Changes'),
-          ),
-        ],
+              ElevatedButton(
+                onPressed: () {
+                  if (_newPasswordController.text ==
+                      _confirmPasswordController.text) {
+                    final newPassword = _newPasswordController.text;
+                    final isNetwork24G = title == '2.4 GHz';
+
+                    // Enviar el evento para actualizar la contraseña
+                    context.read<ConnectionBloc>().add(
+                      UpdateWifiPasswordEvent(
+                        serialNumber: serialNumber,
+                        newPassword: newPassword,
+                        isNetwork24G: isNetwork24G,
+                      ),
+                    );
+
+                    Navigator.of(dialogContext).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Actualizando contraseña de red $title...',
+                        ),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Password confirmation does not match'),
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text('Save Changes'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

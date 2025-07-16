@@ -55,12 +55,12 @@ class GatewayInfoModel extends GatewayInfo {
       
       // Buscar las contraseñas de WiFi
       final wifi24GPasswordItem = results.firstWhere(
-        (item) => item['name'] == 'Device.WiFi.AccessPoint.1.Security.KeyPassphrase',
+        (item) => item['name'] == 'Device.WiFi.SSID.1.Password',
         orElse: () => {'value': null},
       );
       
       final wifi5GPasswordItem = results.firstWhere(
-        (item) => item['name'] == 'Device.WiFi.AccessPoint.3.Security.KeyPassphrase',
+        (item) => item['name'] == 'Device.WiFi.SSID.3.Password',
         orElse: () => {'value': null},
       );
       

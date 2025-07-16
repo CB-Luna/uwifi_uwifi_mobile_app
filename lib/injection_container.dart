@@ -5,6 +5,8 @@ import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'core/services/secure_storage_service.dart';
+
 import 'features/videos/data/datasources/videos_remote_data_source.dart';
 import 'features/videos/data/datasources/videos_remote_data_source_impl.dart';
 import 'features/videos/data/datasources/videos_local_data_source.dart';
@@ -417,6 +419,7 @@ Future<void> init() async {
       getGatewayInfo: getIt(),
       updateWifiNetworkName: getIt(),
       updateWifiPassword: getIt(),
+      secureStorage: getIt(),
     ),
   );
 
@@ -424,7 +427,7 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => GetCustomerBundle(getIt()));
   getIt.registerLazySingleton(() => GetGatewayInfo(getIt()));
   getIt.registerLazySingleton(() => UpdateWifiNetworkName(getIt()));
-  getIt.registerLazySingleton(() => UpdateWifiPassword(getIt()));
+  getIt.registerLazySingleton(() => UpdateWifiPassword(getIt(), getIt()));
 
   // Repository
   getIt.registerLazySingleton<CustomerBundleRepository>(
@@ -510,6 +513,7 @@ Future<void> init() async {
   getIt.registerLazySingleton<NetworkInfo>(
     () => NetworkInfoImpl(connectionChecker: getIt()),
   );
+  getIt.registerLazySingleton(() => SecureStorageService());
 
   //! External
   final sharedPreferences = await SharedPreferences.getInstance();
