@@ -6,14 +6,19 @@ class GatewayInfoModel extends GatewayInfo {
     required super.wifiName,
     required super.wifi24GName,
     required super.wifi5GName,
+    super.serialNumber,
+    super.wifi24GPassword,
+    super.wifi5GPassword,
   });
 
-  factory GatewayInfoModel.fromJson(Map<String, dynamic> json) {
+  factory GatewayInfoModel.fromJson(Map<String, dynamic> json, {String? serialNumber}) {
     // Valores predeterminados
     String connectionStatus = 'Disconnected';
     String wifiName = 'U-wifi';
     String wifi24GName = 'U-wifi 2.4G';
     String wifi5GName = 'U-wifi 5G';
+    String? wifi24GPassword;
+    String? wifi5GPassword;
 
     // Extraer los valores de la respuesta
     if (json['results'] != null && json['results'] is List) {
@@ -47,6 +52,20 @@ class GatewayInfoModel extends GatewayInfo {
       wifiName = wifiNameItem['value'] ?? 'U-wifi';
       wifi24GName = wifi24GItem['value'] ?? 'U-wifi 2.4G';
       wifi5GName = wifi5GItem['value'] ?? 'U-wifi 5G';
+      
+      // Buscar las contraseñas de WiFi
+      final wifi24GPasswordItem = results.firstWhere(
+        (item) => item['name'] == 'Device.WiFi.AccessPoint.1.Security.KeyPassphrase',
+        orElse: () => {'value': null},
+      );
+      
+      final wifi5GPasswordItem = results.firstWhere(
+        (item) => item['name'] == 'Device.WiFi.AccessPoint.3.Security.KeyPassphrase',
+        orElse: () => {'value': null},
+      );
+      
+      wifi24GPassword = wifi24GPasswordItem['value'];
+      wifi5GPassword = wifi5GPasswordItem['value'];
     }
 
     return GatewayInfoModel(
@@ -54,6 +73,9 @@ class GatewayInfoModel extends GatewayInfo {
       wifiName: wifiName,
       wifi24GName: wifi24GName,
       wifi5GName: wifi5GName,
+      serialNumber: serialNumber,
+      wifi24GPassword: wifi24GPassword,
+      wifi5GPassword: wifi5GPassword,
     );
   }
 
@@ -63,6 +85,9 @@ class GatewayInfoModel extends GatewayInfo {
       'wifi_name': wifiName,
       'wifi_24g_name': wifi24GName,
       'wifi_5g_name': wifi5GName,
+      'serial_number': serialNumber,
+      'wifi_24g_password': wifi24GPassword,
+      'wifi_5g_password': wifi5GPassword,
     };
   }
 }

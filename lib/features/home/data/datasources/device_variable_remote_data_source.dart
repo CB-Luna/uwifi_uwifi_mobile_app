@@ -28,10 +28,10 @@ class DeviceVariableRemoteDataSourceImpl
     final url = Uri.parse('${ApiEndpoints.deviceVariables}/$serialNumber/');
 
     try {
-      final response = await client.post(
+      final response = await client.put(
         url,
         headers: {
-          'accept': 'application/json',
+          'Accept': 'application/json',
           'Authorization': ApiEndpoints.zequenceApiKey,
           'Content-Type': 'application/json',
         },

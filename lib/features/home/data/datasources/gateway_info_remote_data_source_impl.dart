@@ -32,7 +32,10 @@ class GatewayInfoRemoteDataSourceImpl implements GatewayInfoRemoteDataSource {
       }
 
       AppLogger.navInfo('Información del gateway obtenida con éxito');
-      return GatewayInfoModel.fromJson(jsonDecode(response.body));
+      return GatewayInfoModel.fromJson(
+        jsonDecode(response.body),
+        serialNumber: serialNumber,
+      );
     } catch (e) {
       AppLogger.navError('Error al obtener información del gateway: $e');
       throw ServerException(e.toString());
