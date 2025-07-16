@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_credit_card/flutter_credit_card.dart';
 
-class AddCardPage extends StatelessWidget {
+class AddCardPage extends StatefulWidget {
   const AddCardPage({super.key});
 
   @override
+  State<AddCardPage> createState() => _AddCardPageState();
+}
+
+class _AddCardPageState extends State<AddCardPage> {
+  String cardNumber = '';
+  String expiryDate = '';
+  String cardHolderName = '';
+  String cvvCode = '';
+  bool isCvvFocused = false;
+  String _expiryMonth = '';
+  String _expiryYear = '';
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  @override
   Widget build(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -22,159 +36,338 @@ class AddCardPage extends StatelessWidget {
         centerTitle: true,
       ),
       backgroundColor: Colors.white,
-      body: SizedBox(
-        width: double.infinity,
-        height: double.infinity,
-        child: Center(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 40),
-                  // Imagen de la tarjeta
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
-                      'assets/images/profile/CreditCardUI.png',
-                      width: MediaQuery.of(context).size.width - 40,
-                      height: 180,
-                      fit: BoxFit.cover,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Please fill the form below',
+                  style: TextStyle(color: Colors.black54, fontSize: 15),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Tarjeta de crédito con vista previa
+              CreditCardWidget(
+                cardNumber: cardNumber,
+                expiryDate: expiryDate,
+                cardHolderName: cardHolderName,
+                cvvCode: cvvCode,
+                showBackView: isCvvFocused,
+                isHolderNameVisible: true,
+                cardBgColor: Colors.blueGrey,
+                backgroundImage: 'assets/images/profile/CreditCardUI.png',
+                onCreditCardWidgetChange: (CreditCardBrand creditCardBrand) {},
+                customCardTypeIcons: [
+                  CustomCardTypeIcon(
+                    cardType: CardType.mastercard,
+                    cardImage: const Icon(
+                      Icons.credit_card,
+                      size: 24,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 22,
-                    ),
-                    decoration: BoxDecoration(
+                  CustomCardTypeIcon(
+                    cardType: CardType.visa,
+                    cardImage: const Icon(
+                      Icons.credit_card,
+                      size: 24,
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.07),
-                          blurRadius: 18,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Please fill the form below',
-                          style: TextStyle(color: Colors.black54, fontSize: 15),
-                        ),
-                        const SizedBox(height: 22),
-                        Form(
-                          key: formKey,
-                          child: Column(
-                            children: [
-                              const _ModernInputField(
-                                icon: Icons.person_outline,
-                                hintText: 'Name on Card',
-                              ),
-                              const SizedBox(height: 14),
-                              const _ModernInputField(
-                                icon: Icons.credit_card,
-                                hintText: 'Card Number',
-                                maxLength: 16,
-                                keyboardType: TextInputType.number,
-                              ),
-                              const SizedBox(height: 14),
-                              const SizedBox(height: 14),
-                              const _ModernInputField(
-                                icon: Icons.date_range,
-                                hintText: 'Expedition Month',
-                                keyboardType: TextInputType.number,
-                              ),
-                              const SizedBox(height: 14),
-                              const _ModernInputField(
-                                icon: Icons.calendar_today,
-                                hintText: 'Expedition Year',
-                                keyboardType: TextInputType.number,
-                              ),
-                              const SizedBox(height: 14),
-                              const _ModernInputField(
-                                icon: Icons.lock_outline,
-                                hintText: 'CVV',
-                                keyboardType: TextInputType.number,
-                              ),
-                              const SizedBox(height: 28),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {},
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(24),
-                                    ),
-                                    elevation: 2,
-                                    backgroundColor: const Color(0xFF43E97B),
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: const Text(
-                                    'Save Card',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],
               ),
-            ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Form(
+                      key: formKey,
+                      child: Column(
+                        children: [
+                          // Campo para nombre en la tarjeta
+                          _buildCustomTextField(
+                            hintText: 'Card Holder',
+                            onChanged: (value) {
+                              setState(() {
+                                cardHolderName = value;
+                                isCvvFocused = false;
+                              });
+                            },
+                            onTap: () {
+                              setState(() {
+                                isCvvFocused = false;
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter card holder name';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Campo para número de tarjeta
+                          _buildCustomTextField(
+                            hintText: 'Card Number',
+                            keyboardType: TextInputType.number,
+                            maxLength: 16,
+                            onChanged: (value) {
+                              setState(() {
+                                cardNumber = value;
+                                isCvvFocused = false;
+                              });
+                            },
+                            onTap: () {
+                              setState(() {
+                                isCvvFocused = false;
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null ||
+                                  value.isEmpty ||
+                                  value.length < 16) {
+                                return 'Please enter a valid card number';
+                              }
+                              return null;
+                            },
+                            counterText: cardNumber.isNotEmpty
+                                ? '${cardNumber.length}/16'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Fila para fecha de expiración y CVV
+                          Row(
+                            children: [
+                              // Campo para mes de expiración
+                              Expanded(
+                                child: _buildCustomTextField(
+                                  hintText: 'Exp Month',
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 2,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      isCvvFocused = false;
+                                    });
+                                    _updateExpiryDate(month: value);
+                                  },
+                                  onTap: () {
+                                    setState(() {
+                                      isCvvFocused = false;
+                                    });
+                                  },
+                                  counterText: '',
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Required';
+                                    }
+                                    final month = int.tryParse(value);
+                                    if (month == null ||
+                                        month < 1 ||
+                                        month > 12) {
+                                      return 'Invalid';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+
+                              // Campo para año de expiración
+                              Expanded(
+                                child: _buildCustomTextField(
+                                  hintText: 'Exp Year',
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 2,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      isCvvFocused = false;
+                                    });
+                                    _updateExpiryDate(year: value);
+                                  },
+                                  onTap: () {
+                                    setState(() {
+                                      isCvvFocused = false;
+                                    });
+                                  },
+                                  counterText: '',
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Required';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+
+                              // Campo para CVV
+                              Expanded(
+                                child: _buildCustomTextField(
+                                  hintText: 'CVV',
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 3,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      cvvCode = value;
+                                      isCvvFocused = true;
+                                    });
+                                  },
+                                  onTap: () {
+                                    setState(() {
+                                      isCvvFocused = true;
+                                    });
+                                  },
+                                  counterText: '',
+                                  validator: (value) {
+                                    if (value == null ||
+                                        value.isEmpty ||
+                                        value.length < 3) {
+                                      return 'Invalid CVV';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Botón para guardar la tarjeta
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: Colors.green, width: 2),
+                            ),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.green,
+                                elevation: 0,
+                                minimumSize: const Size(double.infinity, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(22),
+                                ),
+                              ),
+                              onPressed: () {
+                                if (formKey.currentState!.validate()) {
+                                  _showSuccessDialog(context);
+                                }
+                              },
+                              child: const Text(
+                                'Save Card',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-}
 
-class _ModernInputField extends StatelessWidget {
-  final IconData icon;
-  final String hintText;
-  final TextInputType? keyboardType;
-  final int? maxLength;
-  const _ModernInputField({
-    required this.icon,
-    required this.hintText,
-    this.keyboardType,
-    this.maxLength,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  // Método para construir campos de texto personalizados
+  Widget _buildCustomTextField({
+    required String hintText,
+    required Function(String) onChanged,
+    required String? Function(String?) validator,
+    TextInputType? keyboardType,
+    int? maxLength,
+    String? counterText,
+    Function()? onTap,
+  }) {
     return TextFormField(
-      keyboardType: keyboardType,
-      maxLength: maxLength,
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.green),
+        labelText: hintText,
         hintText: hintText,
         filled: true,
-        fillColor: const Color(0xFFF5F5F5),
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 16,
-        ),
+        fillColor: Colors.grey[100],
+        counterText: counterText,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
+      keyboardType: keyboardType,
+      maxLength: maxLength,
+      onChanged: onChanged,
+      validator: validator,
+      onTap: onTap,
+    );
+  }
+
+  // Método para actualizar la fecha de expiración
+  void _updateExpiryDate({String? month, String? year}) {
+    if (month != null) {
+      _expiryMonth = month;
+    }
+    if (year != null) {
+      _expiryYear = year;
+    }
+
+    if (_expiryMonth.isNotEmpty && _expiryYear.isNotEmpty) {
+      setState(() {
+        expiryDate = '$_expiryMonth/$_expiryYear';
+      });
+    }
+  }
+
+  // Método para manejar el cambio de foco en el CVV
+  void _onCvvFocus() {
+    setState(() {
+      isCvvFocused = true;
+    });
+  }
+
+  // Método para manejar cuando el CVV pierde el foco
+  void _onCvvBlur() {
+    setState(() {
+      isCvvFocused = false;
+    });
+  }
+
+  void _showSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text('Success'),
+          content: const Text('Card added successfully!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Return to previous screen
+              },
+              child: const Text('OK', style: TextStyle(color: Colors.green)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
