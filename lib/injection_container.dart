@@ -73,6 +73,8 @@ import 'features/profile/data/datasources/payment_remote_data_source_impl.dart';
 import 'features/profile/data/datasources/wallet_remote_data_source.dart';
 import 'features/profile/data/datasources/wallet_remote_data_source_impl.dart';
 import 'features/profile/data/repositories/payment_repository_impl.dart';
+import 'features/profile/domain/usecases/set_default_card.dart';
+import 'features/profile/domain/usecases/delete_credit_card.dart';
 import 'features/profile/data/repositories/wallet_repository_impl.dart';
 import 'features/profile/domain/repositories/payment_repository.dart';
 import 'features/profile/domain/repositories/wallet_repository.dart';
@@ -297,6 +299,8 @@ Future<void> init() async {
   getIt.registerFactory(
     () => PaymentBloc(
       getCreditCards: getIt(),
+      setDefaultCard: getIt(),
+      deleteCreditCard: getIt(),
     ),
   );
 
@@ -310,6 +314,8 @@ Future<void> init() async {
   // Use cases
   getIt.registerLazySingleton(() => GetAffiliatedUsers(getIt()));
   getIt.registerLazySingleton(() => GetCreditCards(getIt()));
+  getIt.registerLazySingleton(() => SetDefaultCard(getIt()));
+  getIt.registerLazySingleton(() => DeleteCreditCard(getIt()));
   getIt.registerLazySingleton(() => GetTransactionHistory(getIt()));
   getIt.registerLazySingleton(() => GetCustomerPoints(getIt()));
 

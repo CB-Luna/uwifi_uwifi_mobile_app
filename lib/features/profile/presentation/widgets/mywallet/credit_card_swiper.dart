@@ -6,8 +6,15 @@ import 'credit_card_widget.dart';
 
 class CreditCardSwiper extends StatefulWidget {
   final List<CreditCard> cards;
+  final Function(CreditCard)? onSetDefault;
+  final Function(CreditCard)? onDelete;
 
-  const CreditCardSwiper({required this.cards, super.key});
+  const CreditCardSwiper({
+    required this.cards, 
+    this.onSetDefault,
+    this.onDelete,
+    super.key,
+  });
 
   @override
   State<CreditCardSwiper> createState() => _CreditCardSwiperState();
@@ -27,7 +34,7 @@ class _CreditCardSwiperState extends State<CreditCardSwiper> {
     if (widget.cards.isEmpty) {
       return const Center(
         child: Text(
-          'No tienes tarjetas registradas',
+          'You have no cards registered',
           style: TextStyle(fontSize: 16, color: Colors.grey),
         ),
       );
@@ -42,7 +49,11 @@ class _CreditCardSwiperState extends State<CreditCardSwiper> {
             cardsCount: widget.cards.length,
             cardBuilder:
                 (context, index, percentThresholdX, percentThresholdY) =>
-                    CreditCardWidget(card: widget.cards[index]),
+                    CreditCardWidget(
+                      card: widget.cards[index],
+                      onSetDefault: widget.onSetDefault,
+                      onDelete: widget.onDelete,
+                    ),
             numberOfCardsDisplayed: 1,
             backCardOffset: const Offset(0, 0),
             padding: const EdgeInsets.all(24.0),

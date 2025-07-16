@@ -4,4 +4,14 @@ import '../models/credit_card_model.dart';
 
 abstract class PaymentRemoteDataSource {
   Future<Either<Failure, List<CreditCardModel>>> getCreditCards(String customerId);
+  
+  Future<Either<Failure, bool>> setDefaultCard({
+    required String customerId,
+    required String cardId,
+  });
+  
+  Future<Either<Failure, bool>> deleteCreditCard({
+    required String customerId,
+    required String cardId,
+  });
 }

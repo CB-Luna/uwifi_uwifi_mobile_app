@@ -11,7 +11,14 @@ abstract class PaymentState extends Equatable {
 
 class PaymentInitial extends PaymentState {}
 
-class PaymentLoading extends PaymentState {}
+class PaymentLoading extends PaymentState {
+  final List<CreditCard>? previousCards;
+
+  const PaymentLoading({this.previousCards});
+
+  @override
+  List<Object> get props => previousCards != null ? [previousCards!] : [];
+}
 
 class PaymentLoaded extends PaymentState {
   final List<CreditCard> creditCards;

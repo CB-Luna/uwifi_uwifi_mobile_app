@@ -4,8 +4,15 @@ import '../../../domain/entities/credit_card.dart';
 
 class CreditCardWidget extends StatelessWidget {
   final CreditCard card;
+  final Function(CreditCard)? onSetDefault;
+  final Function(CreditCard)? onDelete;
 
-  const CreditCardWidget({required this.card, super.key});
+  const CreditCardWidget({
+    required this.card, 
+    this.onSetDefault,
+    this.onDelete,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +70,59 @@ class CreditCardWidget extends StatelessWidget {
                           ),
                         ),
                       )
-                    : const SizedBox(),
+                    : Row(
+                        children: [
+                          // Botón Set Default
+                          if (onSetDefault != null)
+                            ElevatedButton(
+                              onPressed: () => onSetDefault!(card),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                minimumSize: const Size(80, 30),
+                              ),
+                              child: const Text(
+                                'Set Default',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(width: 8),
+                          // Botón Delete
+                          if (onDelete != null)
+                            ElevatedButton(
+                              onPressed: () => onDelete!(card),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                minimumSize: const Size(60, 30),
+                              ),
+                              child: const Text(
+                                'Delete',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
               ],
             ),
             const Spacer(),

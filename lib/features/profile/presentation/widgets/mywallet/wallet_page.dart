@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/utils/app_logger.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../auth/presentation/bloc/auth_state.dart';
+import '../../../domain/entities/credit_card.dart';
 import '../../bloc/payment_bloc.dart';
 import '../../bloc/payment_event.dart';
 import '../../bloc/payment_state.dart';
@@ -120,6 +121,106 @@ class _WalletPageState extends State<WalletPage> {
         );
       } else {
         AppLogger.navError('Error: El usuario no tiene customerId asignado');
+      }
+    }
+  }
+  
+  // Método para establecer una tarjeta como predeterminada
+  void _setDefaultCard(CreditCard card) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+      if (user.customerId != null) {
+        // Mostrar un diálogo de confirmación
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Set as Default'),
+            content: Text('Do you want to set ${card.cardHolder}\'s card ending in ${card.last4Digits} as your default payment method?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Cerrar el diálogo
+                  Navigator.of(context).pop();
+                  
+                  // Enviar el evento para establecer la tarjeta como predeterminada
+                  context.read<PaymentBloc>().add(
+                    SetDefaultCardEvent(
+                      customerId: user.customerId.toString(),
+                      cardId: card.id.toString(),
+                    ),
+                  );
+                  
+                  // Mostrar un mensaje de éxito
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Setting card as default...'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                ),
+                child: const Text('Confirm'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+  
+  // Método para eliminar una tarjeta
+  void _deleteCard(CreditCard card) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final user = authState.user;
+      if (user.customerId != null) {
+        // Mostrar un diálogo de confirmación
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete Card'),
+            content: Text('Are you sure you want to delete the card ending in ${card.last4Digits}?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Cerrar el diálogo
+                  Navigator.of(context).pop();
+                  
+                  // Enviar el evento para eliminar la tarjeta
+                  context.read<PaymentBloc>().add(
+                    DeleteCreditCardEvent(
+                      customerId: user.customerId.toString(),
+                      cardId: card.id.toString(),
+                    ),
+                  );
+                  
+                  // Mostrar un mensaje de éxito
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Deleting card...'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        );
       }
     }
   }
@@ -425,7 +526,7 @@ class _WalletPageState extends State<WalletPage> {
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       child: Center(
                         child: Text(
-                          'No tienes tarjetas registradas',
+                          'You have no cards registered',
                           style: TextStyle(fontSize: 16, color: Colors.grey),
                         ),
                       ),
@@ -433,7 +534,11 @@ class _WalletPageState extends State<WalletPage> {
                   }
                   return SizedBox(
                     height: 380,
-                    child: CreditCardSwiper(cards: cards),
+                    child: CreditCardSwiper(
+                      cards: cards,
+                      onSetDefault: _setDefaultCard,
+                      onDelete: _deleteCard,
+                    ),
                   );
                 } else if (state is PaymentError) {
                   return Padding(

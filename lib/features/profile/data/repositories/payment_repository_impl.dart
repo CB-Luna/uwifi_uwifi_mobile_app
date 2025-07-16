@@ -25,4 +25,28 @@ class PaymentRepositoryImpl implements PaymentRepository {
       return const Left(NetworkFailure());
     }
   }
+  
+  @override
+  Future<Either<Failure, bool>> setDefaultCard({
+    required String customerId,
+    required String cardId,
+  }) async {
+    if (await networkInfo.isConnected) {
+      return remoteDataSource.setDefaultCard(customerId: customerId, cardId: cardId);
+    } else {
+      return const Left(NetworkFailure());
+    }
+  }
+  
+  @override
+  Future<Either<Failure, bool>> deleteCreditCard({
+    required String customerId,
+    required String cardId,
+  }) async {
+    if (await networkInfo.isConnected) {
+      return remoteDataSource.deleteCreditCard(customerId: customerId, cardId: cardId);
+    } else {
+      return const Left(NetworkFailure());
+    }
+  }
 }
