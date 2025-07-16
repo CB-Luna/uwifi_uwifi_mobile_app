@@ -357,6 +357,7 @@ Future<void> init() async {
   getIt.registerLazySingleton<PaymentRemoteDataSource>(
     () => PaymentRemoteDataSourceImpl(
       supabaseClient: getIt(),
+      client: getIt(),
     ),
   );
 

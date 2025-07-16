@@ -22,8 +22,5 @@ class SetDefaultCardParams {
   final String customerId;
   final String cardId;
 
-  SetDefaultCardParams({
-    required this.customerId,
-    required this.cardId,
-  });
+  SetDefaultCardParams({required this.customerId, required this.cardId});
 }

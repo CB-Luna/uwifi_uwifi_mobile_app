@@ -2,26 +2,16 @@ import '../../domain/entities/customer_points.dart';
 
 class CustomerPointsModel extends CustomerPoints {
   const CustomerPointsModel({
-    required int customerId,
-    required int principalPoints,
-    required int affiliatePoints,
-    required int totalPointsEarned,
-    required int secondsWatched,
-    required List<int> adsWatched,
-    required List<int> affiliatesArray,
-    required String billingStart,
-    required String billingEnd,
-  }) : super(
-          customerId: customerId,
-          principalPoints: principalPoints,
-          affiliatePoints: affiliatePoints,
-          totalPointsEarned: totalPointsEarned,
-          secondsWatched: secondsWatched,
-          adsWatched: adsWatched,
-          affiliatesArray: affiliatesArray,
-          billingStart: billingStart,
-          billingEnd: billingEnd,
-        );
+    required super.customerId,
+    required super.principalPoints,
+    required super.affiliatePoints,
+    required super.totalPointsEarned,
+    required super.secondsWatched,
+    required super.adsWatched,
+    required super.affiliatesArray,
+    required super.billingStart,
+    required super.billingEnd,
+  });
 
   factory CustomerPointsModel.fromJson(Map<String, dynamic> json) {
     return CustomerPointsModel(

@@ -9,7 +9,8 @@ import 'service_state.dart';
 class ServiceBloc extends Bloc<ServiceEvent, ServiceState> {
   final GetCustomerActiveServices getCustomerActiveServices;
 
-  ServiceBloc({required this.getCustomerActiveServices}) : super(ServiceInitial()) {
+  ServiceBloc({required this.getCustomerActiveServices})
+    : super(ServiceInitial()) {
     on<GetCustomerActiveServicesEvent>(_onGetCustomerActiveServices);
   }
 
@@ -52,12 +53,12 @@ class ServiceBloc extends Bloc<ServiceEvent, ServiceState> {
 
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
-      case ServerFailure:
+      case const (ServerFailure):
         return failure.toString();
-      case NetworkFailure:
-        return 'No hay conexión a internet';
+      case const (NetworkFailure):
+        return 'Not connected to the internet';
       default:
-        return 'Error inesperado';
+        return 'Unexpected error';
     }
   }
 }

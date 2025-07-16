@@ -26,12 +26,14 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     GetCreditCardsEvent event,
     Emitter<PaymentState> emit,
   ) async {
-    emit(PaymentLoading());
-    
-    AppLogger.navInfo('Obteniendo tarjetas para customerId: ${event.customerId}');
-    
+    emit(const PaymentLoading());
+
+    AppLogger.navInfo(
+      'Obteniendo tarjetas para customerId: ${event.customerId}',
+    );
+
     final result = await getCreditCards(event.customerId);
-    
+
     result.fold(
       (failure) {
         AppLogger.navError('Error al obtener tarjetas: ${failure.message}');
@@ -43,31 +45,34 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       },
     );
   }
-  
+
   Future<void> _onSetDefaultCard(
     SetDefaultCardEvent event,
     Emitter<PaymentState> emit,
   ) async {
     // Guardar el estado actual para mantener las tarjetas mientras se actualiza
     final currentState = state;
-    
+
     // Emitir estado de carga pero preservando las tarjetas actuales
     if (currentState is PaymentLoaded) {
       emit(PaymentLoading(previousCards: currentState.creditCards));
     } else {
-      emit(PaymentLoading());
+      emit(const PaymentLoading());
     }
-    
-    AppLogger.navInfo('Estableciendo tarjeta ${event.cardId} como predeterminada');
-    
-    final result = await setDefaultCard(SetDefaultCardParams(
-      customerId: event.customerId,
-      cardId: event.cardId,
-    ));
-    
+
+    AppLogger.navInfo(
+      'Estableciendo tarjeta ${event.cardId} como predeterminada',
+    );
+
+    final result = await setDefaultCard(
+      SetDefaultCardParams(customerId: event.customerId, cardId: event.cardId),
+    );
+
     result.fold(
       (failure) {
-        AppLogger.navError('Error al establecer tarjeta como predeterminada: ${failure.message}');
+        AppLogger.navError(
+          'Error al establecer tarjeta como predeterminada: ${failure.message}',
+        );
         emit(PaymentError(failure.message));
       },
       (_) {
@@ -76,28 +81,30 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       },
     );
   }
-  
+
   Future<void> _onDeleteCreditCard(
     DeleteCreditCardEvent event,
     Emitter<PaymentState> emit,
   ) async {
     // Guardar el estado actual para mantener las tarjetas mientras se actualiza
     final currentState = state;
-    
+
     // Emitir estado de carga pero preservando las tarjetas actuales
     if (currentState is PaymentLoaded) {
       emit(PaymentLoading(previousCards: currentState.creditCards));
     } else {
-      emit(PaymentLoading());
+      emit(const PaymentLoading());
     }
-    
+
     AppLogger.navInfo('Eliminando tarjeta ${event.cardId}');
-    
-    final result = await deleteCreditCard(DeleteCreditCardParams(
-      customerId: event.customerId,
-      cardId: event.cardId,
-    ));
-    
+
+    final result = await deleteCreditCard(
+      DeleteCreditCardParams(
+        customerId: event.customerId,
+        cardId: event.cardId,
+      ),
+    );
+
     result.fold(
       (failure) {
         AppLogger.navError('Error al eliminar tarjeta: ${failure.message}');
@@ -109,20 +116,17 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       },
     );
   }
-  
+
   // Método auxiliar para recargar las tarjetas después de una operación
-  Future<void> _reloadCards(String customerId, Emitter<PaymentState> emit) async {
-    final result = await getCreditCards(customerId);
+  void _reloadCards(
+    String customerId,
+    Emitter<PaymentState> emit,
+  ) {
+    // En lugar de esperar aquí, emitimos un estado de carga y dejamos que
+    // el evento GetCreditCardsEvent maneje la carga de tarjetas
+    emit(const PaymentLoading());
+    add(GetCreditCardsEvent(customerId));
     
-    result.fold(
-      (failure) {
-        AppLogger.navError('Error al recargar tarjetas: ${failure.message}');
-        emit(PaymentError(failure.message));
-      },
-      (cards) {
-        AppLogger.navInfo('Tarjetas recargadas: ${cards.length}');
-        emit(PaymentLoaded(cards));
-      },
-    );
+    AppLogger.navInfo('Solicitando recarga de tarjetas para customerId: $customerId');
   }
 }

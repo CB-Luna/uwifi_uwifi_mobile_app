@@ -17,16 +17,20 @@ class CustomerBundleRepositoryImpl implements CustomerBundleRepository {
   });
 
   @override
-  Future<Either<Failure, List<CustomerBundle>>> getCustomerBundle(int customerId) async {
+  Future<Either<Failure, List<CustomerBundle>>> getCustomerBundle(
+    int customerId,
+  ) async {
     if (await networkInfo.isConnected) {
       try {
-        final customerBundle = await remoteDataSource.getCustomerBundle(customerId);
+        final customerBundle = await remoteDataSource.getCustomerBundle(
+          customerId,
+        );
         return Right(customerBundle);
       } on ServerException catch (e) {
         return Left(ServerFailure(e.message));
       }
     } else {
-      return const Left(NetworkFailure('No hay conexión a internet'));
+      return const Left(NetworkFailure());
     }
   }
 }

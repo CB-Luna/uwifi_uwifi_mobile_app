@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uwifiapp/core/utils/app_logger.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../models/billing_period_model.dart';
@@ -60,15 +61,13 @@ class BillingRemoteDataSourceImpl implements BillingRemoteDataSource {
 
       // Convertir el resultado a double
       final balance = (response as num).toDouble();
-      
+
       return Right(balance);
     } catch (e) {
-      return Left(
-        ServerFailure('Error al obtener el balance del cliente: $e'),
-      );
+      return Left(ServerFailure('Error al obtener el balance del cliente: $e'));
     }
   }
-  
+
   @override
   Future<Either<Failure, bool>> updateAutomaticCharge({
     required String customerId,
@@ -80,9 +79,11 @@ class BillingRemoteDataSourceImpl implements BillingRemoteDataSource {
         'customerid': int.tryParse(customerId) ?? 0,
         'value': value,
       };
-      
+
       // Log para depuración
-      print('Actualizando AutoPay para customerId: $customerId, valor: $value');
+      AppLogger.navInfo(
+        'Actualizando AutoPay para customerId: $customerId, valor: $value',
+      );
 
       // Realizar la solicitud RPC a Supabase
       final response = await supabaseClient.rpc(
@@ -101,7 +102,9 @@ class BillingRemoteDataSourceImpl implements BillingRemoteDataSource {
         return const Right(true);
       } else {
         return const Left(
-          ServerFailure('Error al actualizar el estado de AutoPay: respuesta inválida'),
+          ServerFailure(
+            'Error al actualizar el estado de AutoPay: respuesta inválida',
+          ),
         );
       }
     } catch (e) {

@@ -17,7 +17,9 @@ class GatewayInfoRepositoryImpl implements GatewayInfoRepository {
   });
 
   @override
-  Future<Either<Failure, GatewayInfo>> getGatewayInfo(String serialNumber) async {
+  Future<Either<Failure, GatewayInfo>> getGatewayInfo(
+    String serialNumber,
+  ) async {
     if (await networkInfo.isConnected) {
       try {
         final gatewayInfo = await remoteDataSource.getGatewayInfo(serialNumber);
@@ -26,7 +28,7 @@ class GatewayInfoRepositoryImpl implements GatewayInfoRepository {
         return Left(ServerFailure(e.message));
       }
     } else {
-      return const Left(NetworkFailure('No hay conexión a internet'));
+      return const Left(NetworkFailure());
     }
   }
 }

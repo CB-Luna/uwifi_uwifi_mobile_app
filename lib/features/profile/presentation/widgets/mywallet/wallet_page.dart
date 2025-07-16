@@ -124,7 +124,7 @@ class _WalletPageState extends State<WalletPage> {
       }
     }
   }
-  
+
   // Método para establecer una tarjeta como predeterminada
   void _setDefaultCard(CreditCard card) {
     final authState = context.read<AuthBloc>().state;
@@ -136,7 +136,9 @@ class _WalletPageState extends State<WalletPage> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Set as Default'),
-            content: Text('Do you want to set ${card.cardHolder}\'s card ending in ${card.last4Digits} as your default payment method?'),
+            content: Text(
+              'Do you want to set ${card.cardHolder}\'s card ending in ${card.last4Digits} as your default payment method?',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -146,7 +148,7 @@ class _WalletPageState extends State<WalletPage> {
                 onPressed: () {
                   // Cerrar el diálogo
                   Navigator.of(context).pop();
-                  
+
                   // Enviar el evento para establecer la tarjeta como predeterminada
                   context.read<PaymentBloc>().add(
                     SetDefaultCardEvent(
@@ -154,7 +156,7 @@ class _WalletPageState extends State<WalletPage> {
                       cardId: card.id.toString(),
                     ),
                   );
-                  
+
                   // Mostrar un mensaje de éxito
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -165,6 +167,10 @@ class _WalletPageState extends State<WalletPage> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
                 child: const Text('Confirm'),
               ),
@@ -174,7 +180,7 @@ class _WalletPageState extends State<WalletPage> {
       }
     }
   }
-  
+
   // Método para eliminar una tarjeta
   void _deleteCard(CreditCard card) {
     final authState = context.read<AuthBloc>().state;
@@ -186,7 +192,9 @@ class _WalletPageState extends State<WalletPage> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Delete Card'),
-            content: Text('Are you sure you want to delete the card ending in ${card.last4Digits}?'),
+            content: Text(
+              'Are you sure you want to delete the card ending in ${card.last4Digits}?',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -196,7 +204,7 @@ class _WalletPageState extends State<WalletPage> {
                 onPressed: () {
                   // Cerrar el diálogo
                   Navigator.of(context).pop();
-                  
+
                   // Enviar el evento para eliminar la tarjeta
                   context.read<PaymentBloc>().add(
                     DeleteCreditCardEvent(
@@ -204,7 +212,7 @@ class _WalletPageState extends State<WalletPage> {
                       cardId: card.id.toString(),
                     ),
                   );
-                  
+
                   // Mostrar un mensaje de éxito
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -213,9 +221,7 @@ class _WalletPageState extends State<WalletPage> {
                     ),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text('Delete'),
               ),
             ],
