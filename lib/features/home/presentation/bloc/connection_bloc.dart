@@ -4,12 +4,16 @@ import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/gateway_info.dart';
 import '../../domain/usecases/get_customer_bundle.dart';
 import '../../domain/usecases/get_gateway_info.dart';
+import '../../domain/usecases/update_wifi_network_name.dart';
+import '../../domain/usecases/update_wifi_password.dart';
 import 'connection_event.dart';
 import 'connection_state.dart';
 
 class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   final GetCustomerBundle getCustomerBundle;
   final GetGatewayInfo getGatewayInfo;
+  final UpdateWifiNetworkName updateWifiNetworkName;
+  final UpdateWifiPassword updateWifiPassword;
   
   // Cache para mantener la información entre recargas
   GatewayInfo? _cachedGatewayInfo;
@@ -17,8 +21,12 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   ConnectionBloc({
     required this.getCustomerBundle,
     required this.getGatewayInfo,
+    required this.updateWifiNetworkName,
+    required this.updateWifiPassword,
   }) : super(const ConnectionInitial()) {
     on<GetConnectionInfoEvent>(_onGetConnectionInfo);
+    on<UpdateWifiNetworkNameEvent>(_onUpdateWifiNetworkName);
+    on<UpdateWifiPasswordEvent>(_onUpdateWifiPassword);
   }
 
   Future<void> _onGetConnectionInfo(
@@ -113,6 +121,110 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
             emit(ConnectionLoaded(gatewayInfo: gatewayInfo));
           },
         );
+      },
+    );
+  }
+  
+  Future<void> _onUpdateWifiNetworkName(
+    UpdateWifiNetworkNameEvent event,
+    Emitter<ConnectionState> emit,
+  ) async {
+    // Preservar estado anterior
+    final currentState = state;
+    GatewayInfo? previousInfo;
+    
+    if (currentState is ConnectionLoaded) {
+      previousInfo = currentState.gatewayInfo;
+      emit(ConnectionLoading(previousInfo: previousInfo));
+    } else {
+      emit(const ConnectionLoading());
+      return; // No podemos actualizar sin información previa
+    }
+    
+    AppLogger.navInfo(
+      'Actualizando nombre de red WiFi: ${event.isNetwork24G ? "2.4GHz" : "5GHz"} a ${event.newName}',
+    );
+    
+    final params = UpdateWifiNetworkNameParams(
+      serialNumber: event.serialNumber,
+      newName: event.newName,
+      isNetwork24G: event.isNetwork24G,
+    );
+    
+    final result = await updateWifiNetworkName(params);
+    
+    result.fold(
+      (failure) {
+        AppLogger.navError(
+          'Error al actualizar nombre de red WiFi: ${failure.message}',
+        );
+        emit(ConnectionError(message: failure.message));
+      },
+      (success) {
+        AppLogger.navInfo('Nombre de red WiFi actualizado con éxito');
+        
+        // Actualizar la información en caché con el nuevo nombre
+        GatewayInfo updatedInfo;
+        if (event.isNetwork24G) {
+          updatedInfo = previousInfo!.copyWith(wifi24GName: event.newName);
+        } else {
+          updatedInfo = previousInfo!.copyWith(wifi5GName: event.newName);
+        }
+        
+        _cachedGatewayInfo = updatedInfo;
+        emit(ConnectionLoaded(gatewayInfo: updatedInfo));
+      },
+    );
+  }
+  
+  Future<void> _onUpdateWifiPassword(
+    UpdateWifiPasswordEvent event,
+    Emitter<ConnectionState> emit,
+  ) async {
+    // Preservar estado anterior
+    final currentState = state;
+    GatewayInfo? previousInfo;
+    
+    if (currentState is ConnectionLoaded) {
+      previousInfo = currentState.gatewayInfo;
+      emit(ConnectionLoading(previousInfo: previousInfo));
+    } else {
+      emit(const ConnectionLoading());
+      return; // No podemos actualizar sin información previa
+    }
+    
+    AppLogger.navInfo(
+      'Actualizando contraseña WiFi: ${event.isNetwork24G ? "2.4GHz" : "5GHz"}',
+    );
+    
+    final params = UpdateWifiPasswordParams(
+      serialNumber: event.serialNumber,
+      newPassword: event.newPassword,
+      isNetwork24G: event.isNetwork24G,
+    );
+    
+    final result = await updateWifiPassword(params);
+    
+    result.fold(
+      (failure) {
+        AppLogger.navError(
+          'Error al actualizar contraseña WiFi: ${failure.message}',
+        );
+        emit(ConnectionError(message: failure.message));
+      },
+      (success) {
+        AppLogger.navInfo('Contraseña WiFi actualizada con éxito');
+        
+        // Actualizar la información en caché con la nueva contraseña
+        GatewayInfo updatedInfo;
+        if (event.isNetwork24G) {
+          updatedInfo = previousInfo!.copyWith(wifi24GPassword: event.newPassword);
+        } else {
+          updatedInfo = previousInfo!.copyWith(wifi5GPassword: event.newPassword);
+        }
+        
+        _cachedGatewayInfo = updatedInfo;
+        emit(ConnectionLoaded(gatewayInfo: updatedInfo));
       },
     );
   }

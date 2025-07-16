@@ -119,6 +119,11 @@ import 'features/home/data/repositories/customer_bundle_repository_impl.dart';
 import 'features/home/data/repositories/gateway_info_repository_impl.dart';
 import 'features/home/domain/usecases/get_customer_bundle.dart';
 import 'features/home/domain/usecases/get_gateway_info.dart';
+import 'features/home/domain/usecases/update_wifi_network_name.dart';
+import 'features/home/domain/usecases/update_wifi_password.dart';
+import 'features/home/domain/repositories/device_variable_repository.dart';
+import 'features/home/data/repositories/device_variable_repository_impl.dart';
+import 'features/home/data/datasources/device_variable_remote_data_source.dart';
 import 'features/home/presentation/bloc/connection_bloc.dart';
 
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
@@ -410,12 +415,16 @@ Future<void> init() async {
     () => ConnectionBloc(
       getCustomerBundle: getIt(),
       getGatewayInfo: getIt(),
+      updateWifiNetworkName: getIt(),
+      updateWifiPassword: getIt(),
     ),
   );
 
   // Use cases
   getIt.registerLazySingleton(() => GetCustomerBundle(getIt()));
   getIt.registerLazySingleton(() => GetGatewayInfo(getIt()));
+  getIt.registerLazySingleton(() => UpdateWifiNetworkName(getIt()));
+  getIt.registerLazySingleton(() => UpdateWifiPassword(getIt()));
 
   // Repository
   getIt.registerLazySingleton<CustomerBundleRepository>(
@@ -442,6 +451,19 @@ Future<void> init() async {
   getIt.registerLazySingleton<GatewayInfoRemoteDataSource>(
     () => GatewayInfoRemoteDataSourceImpl(
       client: getIt(),
+    ),
+  );
+  
+  getIt.registerLazySingleton<DeviceVariableRemoteDataSource>(
+    () => DeviceVariableRemoteDataSourceImpl(
+      client: getIt(),
+    ),
+  );
+  
+  getIt.registerLazySingleton<DeviceVariableRepository>(
+    () => DeviceVariableRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
     ),
   );
 
