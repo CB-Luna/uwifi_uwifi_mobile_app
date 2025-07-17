@@ -10,7 +10,7 @@ class CreditCardSwiper extends StatefulWidget {
   final Function(CreditCard)? onDelete;
 
   const CreditCardSwiper({
-    required this.cards, 
+    required this.cards,
     this.onSetDefault,
     this.onDelete,
     super.key,
@@ -40,43 +40,42 @@ class _CreditCardSwiperState extends State<CreditCardSwiper> {
       );
     }
 
-    return Column(
-      children: [
-        SizedBox(
-          height: 300,
-          child: CardSwiper(
-            controller: controller,
-            cardsCount: widget.cards.length,
-            cardBuilder:
-                (context, index, percentThresholdX, percentThresholdY) =>
-                    CreditCardWidget(
-                      card: widget.cards[index],
-                      onSetDefault: widget.onSetDefault,
-                      onDelete: widget.onDelete,
-                    ),
-            numberOfCardsDisplayed: 1,
-            backCardOffset: const Offset(0, 0),
-            padding: const EdgeInsets.all(24.0),
-          ),
+    return SizedBox(
+      height: 320,
+      child: CardSwiper(
+        controller: controller,
+        cardsCount: widget.cards.length,
+        cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
+          // Aplicar transformaciones basadas en el índice para crear efecto de mazo
+          return CreditCardWidget(
+            card: widget.cards[index],
+            onSetDefault: widget.onSetDefault,
+            onDelete: widget.onDelete,
+          );
+        },
+        // Mostrar hasta 3 tarjetas en el mazo (o menos si no hay suficientes)
+        numberOfCardsDisplayed: widget.cards.length > 3
+            ? 3
+            : widget.cards.length,
+        // Desplazamiento para crear efecto escalonado (como en las imágenes de referencia)
+        backCardOffset: const Offset(0, -30),
+        // Escala para tarjetas traseras (más pequeñas)
+        scale: 0.92,
+        // Padding para dar espacio al mazo
+        padding: const EdgeInsets.all(16.0),
+        // Permitir deslizar horizontalmente
+        allowedSwipeDirection: const AllowedSwipeDirection.symmetric(
+          horizontal: true,
         ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (widget.cards.length > 1) ...[
-              IconButton(
-                onPressed: () => controller.swipe(CardSwiperDirection.left),
-                icon: const Icon(Icons.arrow_back_ios),
-              ),
-              const SizedBox(width: 16),
-              IconButton(
-                onPressed: () => controller.swipe(CardSwiperDirection.right),
-                icon: const Icon(Icons.arrow_forward_ios),
-              ),
-            ],
-          ],
-        ),
-      ],
+        // Duración de la animación al deslizar
+        duration: const Duration(milliseconds: 300),
+        // Sensibilidad del deslizamiento (40%)
+        threshold: 40,
+        onSwipe: (previousIndex, currentIndex, direction) {
+          // Opcional: Añadir lógica adicional al deslizar
+          return true; // Permitir siempre el deslizamiento
+        },
+      ),
     );
   }
 }
