@@ -1,3 +1,4 @@
+import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -136,60 +137,7 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
   }
 
   // Método para mostrar las opciones de ordenamiento
-  void _showSortOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      // Ajustar la altura del BottomSheet para que aparezca más arriba
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.4,
-      ),
-      isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8),
-              child: Text(
-                'Sort Transactions',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.arrow_downward),
-              title: const Text('Newest first'),
-              trailing: _newestFirst
-                  ? const Icon(Icons.check, color: Colors.green)
-                  : null,
-              onTap: () {
-                setState(() {
-                  _newestFirst = true;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.arrow_upward),
-              title: const Text('Oldest first'),
-              trailing: !_newestFirst
-                  ? const Icon(Icons.check, color: Colors.green)
-                  : null,
-              onTap: () {
-                setState(() {
-                  _newestFirst = false;
-                });
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // El método _showSortOptions ha sido eliminado ya que ahora usamos el AnimatedToggleSwitch
 
   @override
   Widget build(BuildContext context) {
@@ -407,42 +355,83 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                         ),
                       ),
                       const Spacer(),
-                      GestureDetector(
-                        onTap: () {
-                          _showSortOptions(context);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[300]!),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.sort,
-                                size: 18,
-                                color: Colors.black45,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _newestFirst ? 'newest' : 'oldest',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                              const Icon(
-                                Icons.keyboard_arrow_down,
-                                size: 18,
-                                color: Colors.black45,
+                      // Toggle switch animado para ordenar transacciones
+                      // Envolvemos el toggle en un Container para darle el tamaño deseado
+                      Container(
+                        width: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: AnimatedToggleSwitch<bool>.dual(
+                          current: _newestFirst,
+                          first: false,
+                          second: true,
+                          spacing: 10.0,
+                          height: 38, // Más alto
+                          borderWidth: 1.0,
+                          style: ToggleStyle(
+                            borderColor: Colors.grey[300],
+                            backgroundColor: Colors.grey[100]!,
+                            borderRadius: BorderRadius.circular(
+                              10.0,
+                            ), // Bordes más redondeados
+                            indicatorBorderRadius: BorderRadius.circular(8.0),
+                            indicatorColor: Colors.white,
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                spreadRadius: 0.5,
+                                blurRadius: 1.5,
+                                offset: Offset(0, 1),
                               ),
                             ],
                           ),
+                          iconBuilder: (value) => Transform(
+                            // Invertir el icono para Newest (flecha hacia abajo)
+                            transform: value
+                                ? Matrix4.rotationX(
+                                    3.14159,
+                                  ) // Invertir para Newest
+                                : Matrix4.identity(), // Normal para Oldest
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.sort,
+                              size: 20, // Icono más grande
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          textBuilder: (value) => value
+                              ? const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: Text(
+                                    'Newest',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ), // Texto más grande y en negrita
+                                  ),
+                                )
+                              : const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: Text(
+                                    'Oldest',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ), // Texto más grande y en negrita
+                                  ),
+                                ),
+                          onChanged: (value) {
+                            setState(() {
+                              _newestFirst = value;
+                            });
+                          },
                         ),
                       ),
                     ],

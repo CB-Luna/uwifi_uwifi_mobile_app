@@ -27,6 +27,7 @@ dependencies:
   internet_connection_checker: ^3.0.1
   local_auth: ^2.2.0
   lottie: ^3.0.0
+  animated_toggle_switch: ^0.8.5
   provider: ^6.1.2
   qr_flutter: ^4.1.0
   share_plus: ^7.2.2
