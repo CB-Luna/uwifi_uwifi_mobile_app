@@ -310,8 +310,11 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
     String networkName = title == '2.4 GHz' ? 'Loading...' : 'Loading...';
     String serialNumber = '';
 
+    // Capturar el ConnectionBloc antes de abrir el diálogo
+    final connectionBloc = context.read<ConnectionBloc>();
+
     // Obtener el estado actual del bloc fuera del builder del diálogo
-    final state = context.read<ConnectionBloc>().state;
+    final state = connectionBloc.state;
     if (state is connection_state.ConnectionLoaded) {
       networkName = title == '2.4 GHz'
           ? state.gatewayInfo.wifi24GName
@@ -421,8 +424,8 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
                     final newPassword = _newPasswordController.text;
                     final isNetwork24G = title == '2.4 GHz';
 
-                    // Enviar el evento para actualizar la contraseña
-                    context.read<ConnectionBloc>().add(
+                    // Usar el connectionBloc capturado anteriormente en lugar de intentar accederlo desde el contexto del diálogo
+                    connectionBloc.add(
                       UpdateWifiPasswordEvent(
                         serialNumber: serialNumber,
                         newPassword: newPassword,
@@ -433,9 +436,7 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
                     Navigator.of(dialogContext).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          'Actualizando contraseña de red $title...',
-                        ),
+                        content: Text('Actualizando contraseña de red $title...'),
                       ),
                     );
                   } else {
