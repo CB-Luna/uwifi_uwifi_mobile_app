@@ -18,13 +18,16 @@ class AuthService {
 
     final prefs = await SharedPreferences.getInstance();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-
+    
+    // Verificar si el usuario ya ha completado el onboarding anteriormente
+    final hasCompletedOnboarding = prefs.getBool(_keyHasCompletedOnboarding) ?? false;
+    
     await Future.wait([
       prefs.setBool(_keyIsLoggedIn, true),
       prefs.setString(_keyUserEmail, email),
       prefs.setInt(_keyLastLoginTimestamp, timestamp),
-      // Si es primera vez, resetear onboarding para que se muestre
-      if (isFirstTime) prefs.setBool(_keyHasCompletedOnboarding, false),
+      // Solo resetear el onboarding si es la primera vez Y no lo ha completado antes
+      if (isFirstTime && !hasCompletedOnboarding) prefs.setBool(_keyHasCompletedOnboarding, false),
     ]);
 
     AppLogger.authInfo('User login state saved successfully');
@@ -80,10 +83,20 @@ class AuthService {
 
   /// Resetear onboarding (solo para nuevos usuarios)
   Future<void> resetOnboardingForNewUser() async {
-    AppLogger.onboardingInfo('Resetting onboarding for new user');
+    AppLogger.onboardingInfo('Checking if onboarding reset is needed for new user');
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_keyHasCompletedOnboarding, false);
-    AppLogger.onboardingInfo('Onboarding reset completed');
+    
+    // Verificar si el usuario ya ha completado el onboarding anteriormente
+    final hasCompletedOnboarding = prefs.getBool(_keyHasCompletedOnboarding) ?? false;
+    
+    // Solo resetear si no lo ha completado antes
+    if (!hasCompletedOnboarding) {
+      AppLogger.onboardingInfo('Resetting onboarding for new user');
+      await prefs.setBool(_keyHasCompletedOnboarding, false);
+      AppLogger.onboardingInfo('Onboarding reset completed');
+    } else {
+      AppLogger.onboardingInfo('Onboarding reset skipped - user already completed it before');
+    }
   }
 
   /// Obtener información completa del estado de autenticación

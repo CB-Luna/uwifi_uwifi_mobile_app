@@ -48,23 +48,24 @@ class _AuthWrapperWidgetState extends State<AuthWrapperWidget> {
 
     _lastAuthenticatedUserId = currentUserId;
 
-    // ✅ CORRECCIÓN: Solo resetear onboarding para usuarios completamente nuevos
-    // No llamar _refreshOnboardingStatus aquí para permitir que el FutureBuilder funcione
+    // Solo verificar el estado del onboarding para usuarios nuevos
+    // El método resetOnboardingForNewUser ya verifica si el usuario ha completado el onboarding antes
     if (isNewUser) {
       AppLogger.onboardingInfo(
-        'New user detected, resetting onboarding status',
+        'New user detected, checking onboarding status',
       );
       try {
+        // Este método solo reseteará si el usuario no ha completado el onboarding antes
         await _authService.resetOnboardingForNewUser();
-        // Solo actualizar el estado sin navegar inmediatamente
+        // Actualizar el estado para que el FutureBuilder vuelva a verificar
         setState(() {
           _refreshKey++;
         });
       } catch (e) {
-        AppLogger.authError('Error resetting onboarding for new user: $e');
+        AppLogger.authError('Error checking onboarding for new user: $e');
       }
     } else {
-      AppLogger.authInfo('Returning user, checking onboarding state');
+      AppLogger.authInfo('Returning user, maintaining onboarding state');
     }
   }
 
