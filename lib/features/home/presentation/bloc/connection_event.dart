@@ -45,3 +45,14 @@ class UpdateWifiPasswordEvent extends ConnectionEvent {
   @override
   List<Object> get props => [serialNumber, newPassword, isNetwork24G];
 }
+
+class RebootGatewayEvent extends ConnectionEvent {
+  final String serialNumber;
+
+  const RebootGatewayEvent({
+    required this.serialNumber,
+  });
+
+  @override
+  List<Object> get props => [serialNumber];
+}

@@ -158,7 +158,7 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _showRebootConfirmationDialog(context),
                       icon: const Icon(Icons.restart_alt, color: Colors.purple),
                       label: const Text('Reboot Gateway'),
                       style: OutlinedButton.styleFrom(
@@ -295,6 +295,87 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
   }
 
   // Diálogo para editar la contraseña
+  void _showRebootConfirmationDialog(BuildContext context) {
+    // Obtener el ConnectionBloc
+    final connectionBloc = context.read<ConnectionBloc>();
+
+    // Obtener el número de serie del gateway
+    String serialNumber = '';
+    final state = connectionBloc.state;
+
+    if (state is connection_state.ConnectionLoaded) {
+      serialNumber = state.gatewayInfo.serialNumber ?? '';
+    } else if (state is connection_state.ConnectionLoading &&
+        state.previousInfo != null) {
+      serialNumber = state.previousInfo!.serialNumber ?? '';
+    }
+
+    if (serialNumber.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'It can not be obtained the serial number of the gateway',
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Mostrar el diálogo de confirmación
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Reboot Gateway'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Are you sure you want to reboot the gateway?',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'This action will reboot your gateway and may take a few minutes to come back online.',
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Serial number: $serialNumber',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Send event to reboot the gateway
+              connectionBloc.add(
+                RebootGatewayEvent(serialNumber: serialNumber),
+              );
+
+              Navigator.of(dialogContext).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Rebooting gateway...')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: const Text('Reboot'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showEditPasswordDialog(
     BuildContext context,
     String title,
@@ -436,7 +517,9 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
                     Navigator.of(dialogContext).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Actualizando contraseña de red $title...'),
+                        content: Text(
+                          'Actualizando contraseña de red $title...',
+                        ),
                       ),
                     );
                   } else {

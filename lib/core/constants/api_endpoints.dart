@@ -13,6 +13,7 @@ class ApiEndpoints {
   static const String gatewayUsageInfo = '$baseUrl/uwifi_gateway_zequence_info_usage';
   static const String trafficInformation = '$supabaseBaseUrl/get_traffic_information';
   static const String deviceVariables = '$zequenceBaseUrl/inventory_device_serial_variables';
+  static const String gatewayReboot = '$zequenceBaseUrl/inventory_device_serial_operations';
   
   // Billing endpoints
   static const String updateAutomaticCharge = '$supabaseBaseUrl/update_automatic_charge';

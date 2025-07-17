@@ -5,6 +5,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/gateway_info.dart';
 import '../../domain/usecases/get_customer_bundle.dart';
 import '../../domain/usecases/get_gateway_info.dart';
+import '../../domain/usecases/reboot_gateway.dart';
 import '../../domain/usecases/update_wifi_network_name.dart';
 import '../../domain/usecases/update_wifi_password.dart';
 import 'connection_event.dart';
@@ -15,6 +16,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   final GetGatewayInfo getGatewayInfo;
   final UpdateWifiNetworkName updateWifiNetworkName;
   final UpdateWifiPassword updateWifiPassword;
+  final RebootGateway rebootGateway;
   final SecureStorageService secureStorage;
   
   // Cache para mantener la información entre recargas
@@ -25,11 +27,13 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     required this.getGatewayInfo,
     required this.updateWifiNetworkName,
     required this.updateWifiPassword,
+    required this.rebootGateway,
     required this.secureStorage,
   }) : super(const ConnectionInitial()) {
     on<GetConnectionInfoEvent>(_onGetConnectionInfo);
     on<UpdateWifiNetworkNameEvent>(_onUpdateWifiNetworkName);
     on<UpdateWifiPasswordEvent>(_onUpdateWifiPassword);
+    on<RebootGatewayEvent>(_onRebootGateway);
   }
 
   Future<void> _onGetConnectionInfo(
@@ -243,6 +247,52 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
         
         _cachedGatewayInfo = updatedInfo;
         emit(ConnectionLoaded(gatewayInfo: updatedInfo));
+      },
+    );
+  }
+  
+  Future<void> _onRebootGateway(
+    RebootGatewayEvent event,
+    Emitter<ConnectionState> emit,
+  ) async {
+    // Preservar estado anterior
+    final currentState = state;
+    GatewayInfo? previousInfo;
+    
+    if (currentState is ConnectionLoaded) {
+      previousInfo = currentState.gatewayInfo;
+      emit(ConnectionLoading(previousInfo: previousInfo));
+    } else {
+      emit(const ConnectionLoading());
+      return; // No podemos actualizar sin información previa
+    }
+    
+    AppLogger.navInfo(
+      'Reiniciando gateway con número de serie: ${event.serialNumber}',
+    );
+    
+    final params = RebootGatewayParams(
+      serialNumber: event.serialNumber,
+    );
+    
+    final result = await rebootGateway(params);
+    
+    result.fold(
+      (failure) {
+        AppLogger.navError(
+          'Error al reiniciar el gateway: ${failure.message}',
+        );
+        emit(ConnectionError(message: failure.message));
+      },
+      (success) {
+        AppLogger.navInfo('Gateway reiniciado con éxito');
+        
+        // Mantenemos la misma información del gateway ya que el reinicio no cambia sus datos
+        if (previousInfo != null) {
+          emit(ConnectionLoaded(gatewayInfo: previousInfo));
+        } else {
+          emit(const ConnectionInitial());
+        }
       },
     );
   }
