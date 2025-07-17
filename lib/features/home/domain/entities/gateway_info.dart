@@ -1,5 +1,22 @@
 import 'package:equatable/equatable.dart';
 
+class ConnectedDevice extends Equatable {
+  final String? macAddress;
+  final String? name;
+  final String? ipAddress;
+  final String? connectionType; // Wired, WiFi
+
+  const ConnectedDevice({
+    this.macAddress,
+    this.name,
+    this.ipAddress,
+    this.connectionType,
+  });
+
+  @override
+  List<Object?> get props => [macAddress, name, ipAddress, connectionType];
+}
+
 class GatewayInfo extends Equatable {
   final String connectionStatus;
   final String wifiName;
@@ -8,6 +25,8 @@ class GatewayInfo extends Equatable {
   final String? serialNumber;
   final String? wifi24GPassword;
   final String? wifi5GPassword;
+  final List<ConnectedDevice> devices24G;
+  final List<ConnectedDevice> devices5G;
 
   const GatewayInfo({
     required this.connectionStatus,
@@ -17,6 +36,8 @@ class GatewayInfo extends Equatable {
     this.serialNumber,
     this.wifi24GPassword,
     this.wifi5GPassword,
+    this.devices24G = const [],
+    this.devices5G = const [],
   });
 
   /// Crea una copia de este objeto con los valores dados
@@ -28,6 +49,8 @@ class GatewayInfo extends Equatable {
     String? serialNumber,
     String? wifi24GPassword,
     String? wifi5GPassword,
+    List<ConnectedDevice>? devices24G,
+    List<ConnectedDevice>? devices5G,
   }) {
     return GatewayInfo(
       connectionStatus: connectionStatus ?? this.connectionStatus,
@@ -37,9 +60,21 @@ class GatewayInfo extends Equatable {
       serialNumber: serialNumber ?? this.serialNumber,
       wifi24GPassword: wifi24GPassword ?? this.wifi24GPassword,
       wifi5GPassword: wifi5GPassword ?? this.wifi5GPassword,
+      devices24G: devices24G ?? this.devices24G,
+      devices5G: devices5G ?? this.devices5G,
     );
   }
 
   @override
-  List<Object?> get props => [connectionStatus, wifiName, wifi24GName, wifi5GName, serialNumber, wifi24GPassword, wifi5GPassword];
+  List<Object?> get props => [
+        connectionStatus,
+        wifiName,
+        wifi24GName,
+        wifi5GName,
+        serialNumber,
+        wifi24GPassword,
+        wifi5GPassword,
+        devices24G,
+        devices5G,
+      ];
 }

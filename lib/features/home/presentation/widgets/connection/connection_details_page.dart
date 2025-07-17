@@ -5,11 +5,11 @@ import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
 import 'package:uwifiapp/injection_container.dart' as di;
 
-import '../../bloc/data_usage_bloc.dart';
-import '../../bloc/data_usage_event.dart';
 import '../../bloc/connection_bloc.dart';
 import '../../bloc/connection_event.dart';
 import '../../bloc/connection_state.dart' as connection_state;
+import '../../bloc/data_usage_bloc.dart';
+import '../../bloc/data_usage_event.dart';
 import 'connected_devices_card.dart';
 import 'data_usage_bar_chart.dart';
 import 'data_usage_donut_chart.dart';
@@ -41,7 +41,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
         context.read<DataUsageBloc>().add(
           GetDataUsageEvent(customerId: user.customerId.toString()),
         );
-        
+
         // Cargar la información de conexión
         context.read<ConnectionBloc>().add(
           GetConnectionInfoEvent(user.customerId!),
@@ -106,31 +106,38 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        BlocBuilder<ConnectionBloc, connection_state.ConnectionState>(
+                        BlocBuilder<
+                          ConnectionBloc,
+                          connection_state.ConnectionState
+                        >(
                           builder: (context, state) {
                             String connectionStatus = 'Loading...';
                             String wifiName = 'Searching...';
                             Color statusColor = Colors.grey;
-                            
+
                             if (state is connection_state.ConnectionLoaded) {
-                              connectionStatus = state.gatewayInfo.connectionStatus;
+                              connectionStatus =
+                                  state.gatewayInfo.connectionStatus;
                               wifiName = state.gatewayInfo.wifiName;
                               statusColor = connectionStatus == 'Connected'
                                   ? const Color(0xFF4CAF50)
                                   : Colors.red;
-                            } else if (state is connection_state.ConnectionLoading &&
+                            } else if (state
+                                    is connection_state.ConnectionLoading &&
                                 state.previousInfo != null) {
-                              connectionStatus = state.previousInfo!.connectionStatus;
+                              connectionStatus =
+                                  state.previousInfo!.connectionStatus;
                               wifiName = state.previousInfo!.wifiName;
                               statusColor = connectionStatus == 'Connected'
                                   ? const Color(0xFF4CAF50)
                                   : Colors.red;
-                            } else if (state is connection_state.ConnectionError) {
+                            } else if (state
+                                is connection_state.ConnectionError) {
                               connectionStatus = 'Error';
                               wifiName = 'No connection';
                               statusColor = Colors.red;
                             }
-                            
+
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -160,18 +167,23 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                           onPressed: () {
                             // Obtener el ID del cliente desde el estado de autenticación
                             final authState = context.read<AuthBloc>().state;
-                            if (authState is AuthAuthenticated && authState.user.customerId != null) {
+                            if (authState is AuthAuthenticated &&
+                                authState.user.customerId != null) {
                               final customerId = authState.user.customerId!;
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => BlocProvider<ConnectionBloc>(
-                                    create: (_) {
-                                      final bloc = di.getIt<ConnectionBloc>();
-                                      bloc.add(GetConnectionInfoEvent(customerId));
-                                      return bloc;
-                                    },
-                                    child: const WifiSettingsPage(),
-                                  ),
+                                  builder: (context) =>
+                                      BlocProvider<ConnectionBloc>(
+                                        create: (_) {
+                                          final bloc = di
+                                              .getIt<ConnectionBloc>();
+                                          bloc.add(
+                                            GetConnectionInfoEvent(customerId),
+                                          );
+                                          return bloc;
+                                        },
+                                        child: const WifiSettingsPage(),
+                                      ),
                                 ),
                               );
                             }
@@ -308,13 +320,18 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                   showLast3Months
                       ? BlocBuilder<AuthBloc, AuthState>(
                           builder: (context, state) {
-                            if (state is AuthAuthenticated && state.user.customerId != null) {
+                            if (state is AuthAuthenticated &&
+                                state.user.customerId != null) {
                               // Usar el TrafficBloc global que ya está disponible
                               return DataUsageBarChart(
                                 customerId: state.user.customerId.toString(),
                               );
                             }
-                            return const Center(child: Text('No se pudo obtener el ID del cliente'));
+                            return const Center(
+                              child: Text(
+                                'No se pudo obtener el ID del cliente',
+                              ),
+                            );
                           },
                         )
                       : const DataUsageDonutChart(),
@@ -323,6 +340,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
             ),
             // Card de dispositivos conectados
             const ConnectedDevicesCard(),
+            const SizedBox(height: 32),
           ],
         ),
       ),
