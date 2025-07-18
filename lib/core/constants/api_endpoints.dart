@@ -7,6 +7,7 @@ class ApiEndpoints {
   
   // Auth endpoints
   static const String resetPassword = '$baseUrl/uwifi_customer_reset_password';
+  static const String customerDetails = '$supabaseBaseUrl/get_customer_details';
   
   // Gateway endpoints
   static const String gatewayInfo = '$baseUrl/uwifi_gateway_zequence_info';

@@ -137,6 +137,14 @@ import 'features/home/presentation/bloc/connection_bloc.dart';
 
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
 
+// Customer Details imports
+import 'features/customer/data/datasources/customer_remote_data_source.dart';
+import 'features/customer/data/datasources/customer_local_data_source.dart';
+import 'features/customer/data/repositories/customer_repository_impl.dart';
+import 'features/customer/domain/repositories/customer_repository.dart';
+import 'features/customer/domain/usecases/get_customer_details.dart';
+import 'features/customer/presentation/bloc/customer_details_bloc.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> init() async {
@@ -425,6 +433,39 @@ Future<void> init() async {
   // Use cases
   getIt.registerLazySingleton(() => GetCustomerActiveServices(getIt()));
   
+  //! Features - Customer Details
+  // Bloc
+  getIt.registerFactory(
+    () => CustomerDetailsBloc(
+      getCustomerDetails: getIt(),
+    ),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetCustomerDetails(getIt()));
+
+  // Repository
+  getIt.registerLazySingleton<CustomerRepository>(
+    () => CustomerRepositoryImpl(
+      remoteDataSource: getIt(),
+      localDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
+  // Data sources
+  getIt.registerLazySingleton<CustomerRemoteDataSource>(
+    () => CustomerRemoteDataSourceImpl(
+      supabaseClient: getIt(),
+    ),
+  );
+
+  getIt.registerLazySingleton<CustomerLocalDataSource>(
+    () => CustomerLocalDataSourceImpl(
+      sharedPreferences: getIt(),
+    ),
+  );
+
   //! Features - Connection
   // Bloc
   getIt.registerFactory(

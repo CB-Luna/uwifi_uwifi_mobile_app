@@ -6,6 +6,7 @@ import '../../../../../core/utils/app_logger.dart';
 import '../../../../../injection_container.dart' as di;
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../customer/presentation/bloc/customer_details_bloc.dart';
 import '../../../../home/presentation/bloc/billing_bloc.dart';
 import '../../../../home/presentation/bloc/billing_event.dart';
 import '../../../../home/presentation/bloc/billing_state.dart';
@@ -24,6 +25,10 @@ class MyUwifiPlanPage extends StatelessWidget {
       providers: [
         BlocProvider<BillingBloc>(create: (context) => di.getIt<BillingBloc>()),
         BlocProvider<ServiceBloc>(create: (context) => di.getIt<ServiceBloc>()),
+        // Reutilizar el CustomerDetailsBloc existente en lugar de crear uno nuevo
+        BlocProvider.value(
+          value: BlocProvider.of<CustomerDetailsBloc>(context),
+        ),
       ],
       child: const _MyUwifiPlanPageContent(),
     );
@@ -48,6 +53,7 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
     Future.microtask(() {
       _loadBillingData();
       _loadServiceData();
+      _loadCustomerDetails();
     });
   }
 
@@ -91,6 +97,28 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
     }
   }
 
+  // Método para cargar los detalles del cliente si no están cargados
+  void _loadCustomerDetails() {
+    final customerDetailsState = context.read<CustomerDetailsBloc>().state;
+    if (customerDetailsState is! CustomerDetailsLoaded) {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthAuthenticated) {
+        final customerId = authState.user.customerId;
+        if (customerId != null) {
+          AppLogger.navInfo(
+            'Cargando detalles del cliente para ID: $customerId',
+          );
+          context.read<CustomerDetailsBloc>().add(
+            FetchCustomerDetails(customerId),
+          );
+        }
+      }
+    }
+  }
+
+  // Variable para mantener el estado local del switch
+  bool _localAutoPay = false;
+
   void _onAutoPayChanged(bool value) async {
     final result = await showDialog<AutoPayAction>(
       context: context,
@@ -107,8 +135,14 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthAuthenticated && authState.user.customerId != null) {
         final customerId = authState.user.customerId.toString();
+        final customerIdInt = int.tryParse(authState.user.id) ?? 0;
 
-        // Enviamos el evento al BillingBloc para actualizar el estado de AutoPay
+        // Actualizamos el estado local inmediatamente para que la UI se actualice
+        setState(() {
+          _localAutoPay = isActivating;
+        });
+
+        // Enviamos el evento al BillingBloc para actualizar el estado de AutoPay en el backend
         context.read<BillingBloc>().add(
           UpdateAutomaticChargeEvent(
             customerId: customerId,
@@ -123,6 +157,15 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
               MyUwifiPlanAutoPayConfirmationModal(activated: isActivating),
         );
         if (!mounted) return;
+
+        // Después de mostrar la confirmación, recargamos los datos del backend
+        // para asegurar que todo esté sincronizado
+        _loadBillingData();
+        
+        // También recargamos los detalles del cliente para mantener todo sincronizado
+        if (customerIdInt > 0) {
+          context.read<CustomerDetailsBloc>().add(FetchCustomerDetails(customerIdInt));
+        }
       } else {
         // Si no hay customerId, mostramos un error
         ScaffoldMessenger.of(context).showSnackBar(
@@ -363,13 +406,27 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      BlocBuilder<BillingBloc, BillingState>(
+                      // Usar CustomerDetailsBloc para el estado del AutoPay
+                      BlocConsumer<CustomerDetailsBloc, CustomerDetailsState>(
+                        listener: (context, state) {
+                          // Actualizar el estado local cuando cambia el estado del bloc
+                          if (state is CustomerDetailsLoaded &&
+                              state.customerDetails.billingCycle != null) {
+                            _localAutoPay = state.customerDetails.billingCycle!.automaticCharge;
+                          }
+                        },
                         builder: (context, state) {
-                          final bool isAutoPay = state is BillingLoaded
-                              ? state.automaticCharge
-                              : false;
+                          // Inicializar el valor desde el estado del bloc si es la primera carga
+                          if (state is CustomerDetailsLoaded &&
+                              state.customerDetails.billingCycle != null &&
+                              !_localAutoPay) {
+                            _localAutoPay = state.customerDetails.billingCycle!.automaticCharge;
+                          }
+
+                          // Usar el estado local para el valor del switch
+                          // Esto permite que la UI se actualice inmediatamente
                           return Switch(
-                            value: isAutoPay,
+                            value: _localAutoPay,
                             onChanged: _onAutoPayChanged,
                             activeColor: Colors.green,
                           );

@@ -21,6 +21,8 @@ import 'features/videos/presentation/bloc/genres_bloc.dart';
 import 'features/videos/presentation/bloc/genres_event.dart';
 import 'features/videos/presentation/bloc/video_explorer_bloc.dart';
 import 'features/videos/presentation/bloc/videos_bloc.dart';
+import 'features/customer/presentation/bloc/customer_details_bloc.dart';
+import 'features/customer/presentation/widgets/customer_details_listener.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -96,37 +98,44 @@ class MyApp extends StatelessWidget {
         BlocProvider<TrafficBloc>(
           create: (_) => di.getIt<TrafficBloc>(),
         ),
+        // Añadir CustomerDetailsBloc para el feature de detalles del cliente
+        BlocProvider<CustomerDetailsBloc>(
+          create: (_) => di.getIt<CustomerDetailsBloc>(),
+        ),
       ],
       child: ChangeNotifierProvider(
         create: (context) => CartProvider(),
         child: Builder(
           builder: (context) {
             // ✅ Usar Builder para asegurar acceso correcto al contexto de BLoCs
-            return MaterialApp(
-              title: AppConstants.appName,
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-                useMaterial3: true,
-                appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
-                elevatedButtonTheme: ElevatedButtonThemeData(
-                  style: ElevatedButton.styleFrom(
+            // Envolver la aplicación con CustomerDetailsListener para cargar los detalles del cliente después del login
+            return CustomerDetailsListener(
+              child: MaterialApp(
+                title: AppConstants.appName,
+                debugShowCheckedModeBanner: false,
+                theme: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+                  useMaterial3: true,
+                  appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  cardTheme: CardThemeData(
                     elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-                cardTheme: CardThemeData(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+                // ✅ Usar home en lugar de initialRoute para evitar conflictos del Navigator
+                home: const AuthWrapperWidget(),
+                onGenerateRoute: AppRouter.generateRoute,
               ),
-              // ✅ Usar home en lugar de initialRoute para evitar conflictos del Navigator
-              home: const AuthWrapperWidget(),
-              onGenerateRoute: AppRouter.generateRoute,
             );
           },
         ),
