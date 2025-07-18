@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
+
+import 'custom_widgets/connection_quality_widget.dart';
+import 'custom_widgets/speed_test_custom_widget_emoji.dart';
 
 class SpeedTestPage extends StatefulWidget {
   const SpeedTestPage({super.key});
@@ -70,215 +72,130 @@ class _SpeedTestPageState extends State<SpeedTestPage> {
   }
 
   Widget _speedTestView() {
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.language, color: Colors.grey),
-              SizedBox(width: 8),
-              Text('IP Address: --', style: TextStyle(color: Colors.black)),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'Download',
-          style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        _gaugeWidget(color: Colors.green),
-        const SizedBox(height: 24),
-        const Text(
-          'Upload',
-          style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        _gaugeWidget(color: Colors.purple),
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16),
-          child: OutlinedButton(
-            onPressed: () {},
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.green,
-              side: const BorderSide(color: Colors.green),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            child: const Text('Start Testing'),
-          ),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: SpeedTestCustomWidgetEmoji(
+        primaryColor: Colors.green,
+        secondaryColor: Colors.purple,
+        textColor: Colors.black87,
+        cardBackgroundColor: Colors.white,
+        onTestCompleted:
+            (
+              downloadSpeedMbps,
+              uploadSpeedMbps,
+              ipAddress,
+              ispName,
+              asnName,
+            ) async {
+              // Aquí podríamos guardar los resultados o realizar alguna acción
+              debugPrint('Test completado: $downloadSpeedMbps Mbps download, $uploadSpeedMbps Mbps upload');
+            },
+        onTestError: (errorMessage) async {
+          debugPrint('Error en el test: $errorMessage');
+        },
+        // URLs de emojis para los diferentes niveles de velocidad
+        redFaceUrl: 'https://em-content.zobj.net/source/google/387/crying-face_1f622.png',
+        yellowFaceUrl: 'https://em-content.zobj.net/source/google/387/slightly-frowning-face_1f641.png',
+        greenSmileFaceUrl: 'https://em-content.zobj.net/source/google/387/slightly-smiling-face_1f642.png',
+        greenSmileFace2Url: 'https://em-content.zobj.net/source/google/387/grinning-face-with-smiling-eyes_1f604.png',
+        greenSunglassesFaceUrl: 'https://em-content.zobj.net/source/google/387/star-struck_1f929.png',
+        downloadGaugeMax: 100,
+        uploadGaugeMax: 50,
+      ),
     );
   }
+
+  // Variables para almacenar los resultados del test de velocidad
+  double _downloadSpeed = 0.0;
+  double _uploadSpeed = 0.0;
+  double _latency = 0.0;
+  bool _isAdvancedTesting = false;
 
   Widget _advancedTestView() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _infoBox(Icons.language, 'IP Address', '--'),
-              _infoBox(Icons.dns, 'ASN', '--'),
-              _infoBox(Icons.router, 'ISP', '--'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Download',
-                style: TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Upload',
-                style: TextStyle(
-                  color: Colors.purple,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _advancedGaugeWidget(color: Colors.green),
-              _advancedGaugeWidget(color: Colors.purple),
-            ],
-          ),
-        ),
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16),
-          child: OutlinedButton(
-            onPressed: () {},
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.green,
-              side: const BorderSide(color: Colors.green),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            child: const Text('Start Testing'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _gaugeWidget({required Color color}) {
-    // Mock de velocímetro con caritas
-    return SizedBox(
-      height: 120,
-      width: 200,
-      child: CustomPaint(painter: _GaugePainter(color: color)),
-    );
-  }
-
-  Widget _advancedGaugeWidget({required Color color}) {
-    // Mock de velocímetro avanzado
-    return SizedBox(
-      height: 100,
-      width: 100,
-      child: CustomPaint(painter: _GaugePainter(color: color, advanced: true)),
-    );
-  }
-
-  Widget _infoBox(IconData icon, String label, String value) {
-    return Container(
-      width: 90,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         children: [
-          Icon(icon, color: Colors.grey),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 12)),
-          const SizedBox(height: 2),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          // Card para mostrar la IP y otros datos de red
+          Card(
+            elevation: 0,
+            color: Colors.grey.shade50,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _infoItem(Icons.language, 'IP Address', '--'),
+                  _infoItem(Icons.router, 'ISP', '--'),
+                  _infoItem(Icons.dns, 'ASN', '--'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Widget de calidad de conexión que muestra ratings para diferentes actividades
+          ConnectionQualityWidget(
+            downloadSpeed: _downloadSpeed,
+            uploadSpeed: _uploadSpeed,
+            latency: _latency,
+            primaryColor: Colors.blue,
+            textColor: Colors.black87,
+            backgroundColor: Colors.white,
+          ),
+          const Spacer(),
+          // Botón para iniciar el test avanzado
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
+            child: ElevatedButton(
+              onPressed: _isAdvancedTesting ? null : () {
+                setState(() {
+                  _isAdvancedTesting = true;
+                });
+                
+                // Simulamos un test con un delay para mostrar progreso
+                Future.delayed(const Duration(seconds: 2), () {
+                  setState(() {
+                    _downloadSpeed = 25.5; // Mbps
+                    _uploadSpeed = 10.2; // Mbps
+                    _latency = 15.0; // ms
+                  });
+                  
+                  // Simulamos el fin del test
+                  Future.delayed(const Duration(seconds: 1), () {
+                    setState(() {
+                      _isAdvancedTesting = false;
+                    });
+                  });
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: Text(_isAdvancedTesting ? 'Testing...' : 'Start Advanced Testing'),
+            ),
+          ),
         ],
       ),
     );
   }
-}
-
-class _GaugePainter extends CustomPainter {
-  final Color color;
-  final bool advanced;
-  _GaugePainter({required this.color, this.advanced = false});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.grey.shade300
-      ..strokeWidth = 12
-      ..style = PaintingStyle.stroke;
-    final center = Offset(size.width / 2, size.height);
-    final radius = size.width / 2 - 12;
-    // Semicírculo
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      3.14,
-      3.14,
-      false,
-      paint,
+  
+  Widget _infoItem(IconData icon, String label, String value) {
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: Colors.grey),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
-    // Aguja
-    final needlePaint = Paint()
-      ..color = color
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round;
-    final angle = 3.14 + 3.14 * 0.3; // Mock posición
-    final needleLength = radius - 10;
-    final needleEnd = Offset(
-      center.dx + needleLength * -1 * cos(angle),
-      center.dy + needleLength * -1 * sin(angle),
-    );
-    canvas.drawLine(center, needleEnd, needlePaint);
-    // Caritas (solo en modo normal)
-    if (!advanced) {
-      final emojiStyle = const TextStyle(fontSize: 18);
-      final emojis = ['😡', '😕', '🙂', '😀', '😎'];
-      for (int i = 0; i < emojis.length; i++) {
-        final emojiAngle = 3.14 + (3.14 / (emojis.length - 1)) * i;
-        final emojiOffset = Offset(
-          center.dx + (radius - 18) * -1 * cos(emojiAngle),
-          center.dy + (radius - 18) * -1 * sin(emojiAngle),
-        );
-        final tp = TextPainter(
-          text: TextSpan(text: emojis[i], style: emojiStyle),
-          textDirection: TextDirection.ltr,
-        );
-        tp.layout();
-        tp.paint(canvas, emojiOffset - Offset(tp.width / 2, tp.height / 2));
-      }
-    }
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

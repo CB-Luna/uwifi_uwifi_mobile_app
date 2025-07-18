@@ -131,7 +131,7 @@ class _DevicesTabContent extends StatelessWidget {
               height: 80,
               width: 80,
               child: Lottie.asset(
-                'assets/animations/no_connected_devices.json',
+                'assets/animations/lotties/no_connected_devices.json',
                 repeat: true,
                 animate: true,
               ),

@@ -1,0 +1,12 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 3f9c2d9..f9c2d9a 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -22,6 +22,7 @@ android {
+     compileSdkVersion 33
+     
+     defaultConfig {
++        namespace "com.tahamalas.flutter_internet_speed_test"
+         minSdkVersion 16
+         targetSdkVersion 33
+         versionCode flutterVersionCode.toInteger()
