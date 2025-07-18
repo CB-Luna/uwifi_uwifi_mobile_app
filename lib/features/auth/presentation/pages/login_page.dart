@@ -19,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isBiometricAvailable = false;
+  String _biometricType = 'Touch ID';
   
   @override
   void initState() {
@@ -40,9 +41,23 @@ class _LoginPageState extends State<LoginPage> {
       final canCheckBiometrics = await localAuth.canCheckBiometrics;
       final canAuthenticate = canCheckBiometrics || await localAuth.isDeviceSupported();
       
+      String biometricType = 'Touch ID';
+      if (canAuthenticate) {
+        final availableBiometrics = await localAuth.getAvailableBiometrics();
+        if (availableBiometrics.contains(BiometricType.face)) {
+          biometricType = 'Face ID';
+        } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
+          biometricType = 'Fingerprint';
+        } else if (availableBiometrics.contains(BiometricType.strong) || 
+                   availableBiometrics.contains(BiometricType.weak)) {
+          biometricType = 'Biometrics';
+        }
+      }
+      
       if (mounted) {
         setState(() {
           _isBiometricAvailable = canAuthenticate;
+          _biometricType = biometricType;
         });
       }
     } catch (e) {
@@ -66,9 +81,32 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
   
-  void _handleBiometricLogin() {
+  Future<void> _handleBiometricLogin() async {
     AppLogger.authInfo('Biometric login requested');
-    context.read<AuthBloc>().add(BiometricLoginRequested());
+    
+    // Mostrar un indicador de carga
+    setState(() {
+      // No es necesario establecer un estado de carga aquí ya que
+      // el AuthBloc ya emitirá AuthLoading que deshabilitará el botón
+    });
+    
+    try {
+      // Disparar el evento de login biométrico
+      context.read<AuthBloc>().add(BiometricLoginRequested());
+      
+      // No necesitamos esperar aquí ya que el BlocListener en el build
+      // manejará los estados de éxito y error
+    } catch (e) {
+      AppLogger.authError('Error during biometric login: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error en la autenticación biométrica: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
   
   void _showForgotPasswordSheet(BuildContext context) {
@@ -271,15 +309,21 @@ class _LoginPageState extends State<LoginPage> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'Log in with Face ID',
+                                      'Log in with $_biometricType',
                                       style: TextStyle(color: Colors.green.shade400),
                                     ),
                                     const SizedBox(width: 8),
-                                    Image.asset(
-                                      'assets/images/login/face-id.png',
-                                      height: 24,
-                                      width: 24,
-                                    ),
+                                    _biometricType == 'Face ID'
+                                      ? Image.asset(
+                                          'assets/images/login/face-id.png',
+                                          height: 24,
+                                          width: 24,
+                                        )
+                                      : Icon(
+                                          Icons.fingerprint,
+                                          color: Colors.green.shade400,
+                                          size: 24,
+                                        ),
                                   ],
                                 ),
                               ),
