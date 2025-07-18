@@ -23,7 +23,8 @@ class ConnectionQualityWidget extends StatefulWidget {
   });
 
   @override
-  State<ConnectionQualityWidget> createState() => _ConnectionQualityWidgetState();
+  State<ConnectionQualityWidget> createState() =>
+      _ConnectionQualityWidgetState();
 }
 
 class _ConnectionQualityWidgetState extends State<ConnectionQualityWidget> {
@@ -179,7 +180,7 @@ class _ConnectionQualityWidgetState extends State<ConnectionQualityWidget> {
                   decoration: BoxDecoration(
                     color: index < rating
                         ? _getColorForRating(rating)
-                        : Colors.grey.withOpacity(0.3),
+                        : Colors.grey.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -205,7 +206,7 @@ class _ConnectionQualityWidgetState extends State<ConnectionQualityWidget> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -226,14 +227,14 @@ class _ConnectionQualityWidgetState extends State<ConnectionQualityWidget> {
           Text(
             'Based on your speed test results:',
             style: TextStyle(
-              color: widget.textColor.withOpacity(0.7),
+              color: widget.textColor.withValues(alpha: 0.7),
               fontSize: 14,
             ),
           ),
           const SizedBox(height: 16),
-          ..._activityRatings.entries
-              .map((entry) => _buildRatingItem(entry.key, entry.value))
-              .toList(),
+          ..._activityRatings.entries.map(
+            (entry) => _buildRatingItem(entry.key, entry.value),
+          ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
