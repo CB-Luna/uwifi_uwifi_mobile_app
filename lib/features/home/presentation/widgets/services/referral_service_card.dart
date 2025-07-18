@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../core/constants/api_endpoints.dart';
+import '../../../../../core/utils/app_logger.dart';
+import '../../../../customer/presentation/bloc/customer_details_bloc.dart';
 import 'qr_referral_modal.dart';
 
 class ReferralServiceCard extends StatelessWidget {
@@ -91,9 +95,28 @@ class ReferralServiceCard extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            // Aquí deberías obtener el referralLink real del usuario
-                            final referralLink =
-                                'https://uwifi.com/referral/USERFE09D459';
+                            // Obtener los detalles del cliente actuales
+                            final customerState = context.read<CustomerDetailsBloc>().state;
+                            String referralLink;
+                            
+                            if (customerState is CustomerDetailsLoaded && 
+                                customerState.customerDetails.sharedLinkId.isNotEmpty) {
+                              // Usar el sharedLinkId del cliente para generar el enlace
+                              final sharedLinkId = customerState.customerDetails.sharedLinkId;
+                              referralLink = '${ApiEndpoints.inviteBaseUrl}/$sharedLinkId';
+                              
+                              AppLogger.navInfo(
+                                'ReferralServiceCard: Usando sharedLinkId para QR - $sharedLinkId',
+                              );
+                            } else {
+                              // Enlace de fallback si no hay sharedLinkId disponible
+                              referralLink = '${ApiEndpoints.inviteBaseUrl}/DEMO001';
+                              
+                              AppLogger.navInfo(
+                                'ReferralServiceCard: Usando enlace de fallback para QR',
+                              );
+                            }
+                            
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
