@@ -6,6 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uwifiapp/core/utils/app_logger.dart';
 
+import 'core/providers/biometric_provider.dart';
+import 'core/services/biometric_preferences_service.dart';
+
 import 'core/network/network_info.dart';
 import 'core/services/secure_storage_service.dart';
 import 'features/auth/data/datasources/auth_local_data_source.dart';
@@ -211,7 +214,13 @@ Future<void> init() async {
 
   //! Features - Auth
   // Services
-  getIt.registerLazySingleton(() => BiometricAuthService(localAuth: getIt()));
+  getIt.registerLazySingleton<BiometricAuthService>(
+    () => BiometricAuthService(
+      localAuth: getIt<LocalAuthentication>(),
+      preferencesService: getIt<BiometricPreferencesService>(),
+      biometricProvider: getIt<BiometricProvider>(),
+    ),
+  );
 
   // Auth BLoCs
   getIt.registerFactory(
@@ -502,6 +511,8 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => LogoutUser(getIt()));
   getIt.registerLazySingleton(() => GetCurrentUser(getIt()));
   getIt.registerLazySingleton(() => ResetPassword(getIt()));
+  
+  // El servicio de autenticación biométrica ya está registrado arriba
 
   // Repository
   getIt.registerLazySingleton<AuthRepository>(
@@ -534,6 +545,10 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => InternetConnectionChecker.createInstance());
 
   getIt.registerLazySingleton(() => LocalAuthentication());
+
+  // Registrar servicios de biometría
+  getIt.registerLazySingleton(() => BiometricPreferencesService());
+  getIt.registerFactory(() => BiometricProvider());
 
   // Registrar http.Client para las llamadas HTTP
   getIt.registerLazySingleton(() => http.Client());

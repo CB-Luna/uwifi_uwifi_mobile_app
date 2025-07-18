@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'core/bootstrap/app_bootstrapper.dart';
 import 'core/constants/app_constants.dart';
+import 'core/providers/biometric_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/utils/app_logger.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -103,8 +104,11 @@ class MyApp extends StatelessWidget {
           create: (_) => di.getIt<CustomerDetailsBloc>(),
         ),
       ],
-      child: ChangeNotifierProvider(
-        create: (context) => CartProvider(),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) => CartProvider()),
+          ChangeNotifierProvider(create: (context) => di.getIt<BiometricProvider>()),
+        ],
         child: Builder(
           builder: (context) {
             // ✅ Usar Builder para asegurar acceso correcto al contexto de BLoCs

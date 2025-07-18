@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../core/providers/biometric_provider.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../../../injection_container.dart' as di;
+import '../../domain/services/biometric_auth_service.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../widgets/forgot_password_sheet.dart';
-import 'package:local_auth/local_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,55 +22,24 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _isBiometricAvailable = false;
-  String _biometricType = 'Touch ID';
-  
+  late final BiometricAuthService _biometricAuthService;
+
   @override
   void initState() {
     super.initState();
     AppLogger.navInfo('LoginPage initialized');
-    _checkBiometricAvailability();
+    _biometricAuthService = di.getIt<BiometricAuthService>();
   }
-  
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
-  
-  Future<void> _checkBiometricAvailability() async {
-    final localAuth = LocalAuthentication();
-    try {
-      final canCheckBiometrics = await localAuth.canCheckBiometrics;
-      final canAuthenticate = canCheckBiometrics || await localAuth.isDeviceSupported();
-      
-      String biometricType = 'Touch ID';
-      if (canAuthenticate) {
-        final availableBiometrics = await localAuth.getAvailableBiometrics();
-        if (availableBiometrics.contains(BiometricType.face)) {
-          biometricType = 'Face ID';
-        } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
-          biometricType = 'Fingerprint';
-        } else if (availableBiometrics.contains(BiometricType.strong) || 
-                   availableBiometrics.contains(BiometricType.weak)) {
-          biometricType = 'Biometrics';
-        }
-      }
-      
-      if (mounted) {
-        setState(() {
-          _isBiometricAvailable = canAuthenticate;
-          _biometricType = biometricType;
-        });
-      }
-    } catch (e) {
-      AppLogger.authError('Error checking biometric availability: $e');
-    }
-  }
-  
+
   void _handleLogin() {
-    if (_validateEmail(_emailController.text) == null && 
+    if (_validateEmail(_emailController.text) == null &&
         _validatePassword(_passwordController.text) == null) {
       AppLogger.authInfo('Login form validated, attempting login');
 
@@ -80,20 +53,15 @@ class _LoginPageState extends State<LoginPage> {
       AppLogger.authWarning('Login form validation failed');
     }
   }
-  
+
   Future<void> _handleBiometricLogin() async {
     AppLogger.authInfo('Biometric login requested');
-    
-    // Mostrar un indicador de carga
-    setState(() {
-      // No es necesario establecer un estado de carga aquí ya que
-      // el AuthBloc ya emitirá AuthLoading que deshabilitará el botón
-    });
-    
+
     try {
       // Disparar el evento de login biométrico
+      // No necesitamos verificar si está habilitado porque el botón solo se muestra si lo está
       context.read<AuthBloc>().add(BiometricLoginRequested());
-      
+
       // No necesitamos esperar aquí ya que el BlocListener en el build
       // manejará los estados de éxito y error
     } catch (e) {
@@ -101,14 +69,14 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error en la autenticación biométrica: $e'),
+            content: Text('Error during biometric login: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
   }
-  
+
   void _showForgotPasswordSheet(BuildContext context) {
     AppLogger.authInfo('Showing forgot password sheet');
     showModalBottomSheet(
@@ -184,7 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                    
+
                     Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
@@ -206,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 32),
-                          
+
                           // Email field
                           TextField(
                             controller: _emailController,
@@ -218,18 +186,25 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.green.shade400),
+                                borderSide: BorderSide(
+                                  color: Colors.green.shade400,
+                                ),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                             ),
                             enabled: state is! AuthLoading,
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Password field
                           TextField(
                             controller: _passwordController,
@@ -241,16 +216,25 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.green.shade400),
+                                borderSide: BorderSide(
+                                  color: Colors.green.shade400,
+                                ),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                                  _isPasswordVisible
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                   color: Colors.grey,
                                 ),
                                 onPressed: () {
@@ -263,13 +247,15 @@ class _LoginPageState extends State<LoginPage> {
                             enabled: state is! AuthLoading,
                           ),
                           const SizedBox(height: 24),
-                          
+
                           // Login button
                           SizedBox(
                             width: double.infinity,
                             height: 50,
                             child: ElevatedButton(
-                              onPressed: state is AuthLoading ? null : _handleLogin,
+                              onPressed: state is AuthLoading
+                                  ? null
+                                  : _handleLogin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green.shade400,
                                 foregroundColor: Colors.white,
@@ -284,52 +270,83 @@ class _LoginPageState extends State<LoginPage> {
                                       width: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
                                       ),
                                     )
                                   : const Text('Log In'),
                             ),
                           ),
-                          
-                          if (_isBiometricAvailable) ...[  
-                            const SizedBox(height: 16),
-                            // Biometric login button
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: OutlinedButton(
-                                onPressed: state is AuthLoading ? null : _handleBiometricLogin,
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: Colors.green.shade400),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Log in with $_biometricType',
-                                      style: TextStyle(color: Colors.green.shade400),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    _biometricType == 'Face ID'
-                                      ? Image.asset(
-                                          'assets/images/login/face-id.png',
-                                          height: 24,
-                                          width: 24,
-                                        )
-                                      : Icon(
-                                          Icons.fingerprint,
-                                          color: Colors.green.shade400,
-                                          size: 24,
+
+                          // Biometric login button - usando Consumer para acceder al BiometricProvider
+                          Consumer<BiometricProvider>(
+                            builder: (context, biometricProvider, child) {
+                              // Crear un FutureBuilder para verificar si la biometría está habilitada
+                              return FutureBuilder<bool>(
+                                future: _biometricAuthService.isBiometricEnabled(),
+                                builder: (context, snapshot) {
+                                  // Solo mostrar el botón si la biometría está disponible Y habilitada
+                                  final bool isEnabled = snapshot.data ?? false;
+                                  if (!biometricProvider.isAvailable || !isEnabled) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  
+                                  return Column(
+                                    children: [
+                                      const SizedBox(height: 16),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        height: 50,
+                                        child: OutlinedButton(
+                                          onPressed: state is AuthLoading
+                                              ? null
+                                              : _handleBiometricLogin,
+                                          style: OutlinedButton.styleFrom(
+                                            side: BorderSide(
+                                              color: Colors.green.shade400,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(
+                                                25,
+                                              ),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                'Log in with ${biometricProvider.biometricType}',
+                                                style: TextStyle(
+                                                  color: Colors.green.shade400,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              biometricProvider.biometricType
+                                                      .contains('Face')
+                                                  ? Image.asset(
+                                                      'assets/images/login/face-id.png',
+                                                      height: 24,
+                                                      width: 24,
+                                                    )
+                                                  : Icon(
+                                                      Icons.fingerprint,
+                                                      color: Colors.green.shade400,
+                                                      size: 24,
+                                                    ),
+                                            ],
+                                          ),
                                         ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                          
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          ),
+
                           const SizedBox(height: 24),
                           // Forgot password
                           Center(
@@ -343,7 +360,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          
+
                           // Ad banner
                           const SizedBox(height: 24),
                           Container(

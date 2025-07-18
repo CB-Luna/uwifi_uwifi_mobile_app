@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'help_center_page.dart';
+import '../../../../../core/providers/biometric_provider.dart';
 
 class SettingsModal extends StatefulWidget {
   const SettingsModal({super.key});
@@ -11,6 +13,11 @@ class SettingsModal extends StatefulWidget {
 class _SettingsModalState extends State<SettingsModal> {
   bool darkMode = false;
   String language = 'Select';
+  
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +164,88 @@ class _SettingsModalState extends State<SettingsModal> {
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Biometric Authentication Option
+                  Consumer<BiometricProvider>(
+                    builder: (context, biometricProvider, child) {
+                      // Si está cargando, mostrar un indicador de progreso
+                      if (biometricProvider.isLoading) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF6F8FA),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        );
+                      }
+                      
+                      // Si la biometría no está disponible, no mostrar nada
+                      if (!biometricProvider.isAvailable) {
+                        return const SizedBox.shrink();
+                      }
+                      
+                      // Mostrar la opción de biometría
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF6F8FA),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              biometricProvider.biometricType.contains('Face') 
+                                  ? Icons.face_outlined 
+                                  : Icons.fingerprint,
+                              color: Colors.black54,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    biometricProvider.biometricType,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text(
+                                    'Enable biometric login',
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch(
+                              value: biometricProvider.isEnabled,
+                              onChanged: (value) {
+                                biometricProvider.toggleBiometric(value);
+                              },
+                              activeColor: Colors.black,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
                   Container(
