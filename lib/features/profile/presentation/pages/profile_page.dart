@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../customer/presentation/bloc/customer_details_bloc.dart';
 import '../widgets/settings/settings_modal.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -13,216 +15,252 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        final String name = state is AuthAuthenticated
-            ? (state.user.name ?? 'Usuario')
-            : 'Frank Befera';
-        final String email = state is AuthAuthenticated
-            ? state.user.email
+      builder: (context, authState) {
+        // Obtener el email del usuario autenticado
+        final String email = authState is AuthAuthenticated
+            ? authState.user.email
             : 'frank.befera@u-wifi.com';
-        final String initials = name.isNotEmpty
-            ? name
-                  .trim()
-                  .split(' ')
-                  .map((e) => e.isNotEmpty ? e[0] : '')
-                  .take(2)
-                  .join()
-                  .toUpperCase()
-            : 'FB';
-        return Scaffold(
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                // Header
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: Colors.grey.shade400,
-                        width: 1.2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 32,
-                          backgroundColor: Colors.grey.shade200,
-                          child: Text(
-                            initials,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
+
+        // Si el usuario está autenticado, disparar el evento para obtener los detalles del cliente
+        if (authState is AuthAuthenticated &&
+            authState.user.customerId != null) {
+          // Verificar si ya tenemos los detalles del cliente
+          final customerState = context.watch<CustomerDetailsBloc>().state;
+          if (customerState is! CustomerDetailsLoaded &&
+              customerState is! CustomerDetailsLoading) {
+            AppLogger.navInfo(
+              'Solicitando detalles del cliente desde ProfilePage',
+            );
+            context.read<CustomerDetailsBloc>().add(
+              FetchCustomerDetails(authState.user.customerId!),
+            );
+          }
+        }
+
+        // Usar BlocBuilder anidado para obtener los detalles del cliente
+        return BlocBuilder<CustomerDetailsBloc, CustomerDetailsState>(
+          builder: (context, customerState) {
+            // Determinar el nombre a mostrar
+            String name;
+            if (customerState is CustomerDetailsLoaded) {
+              name = customerState.customerDetails.fullName;
+              AppLogger.navInfo('Usando nombre del cliente: $name');
+            } else if (authState is AuthAuthenticated) {
+              name = authState.user.name ?? 'Usuario';
+              AppLogger.navInfo('Usando nombre del usuario autenticado: $name');
+            } else {
+              name = 'Usuario';
+              AppLogger.navInfo('Usando nombre predeterminado: $name');
+            }
+
+            // Calcular las iniciales
+            final String initials = name.isNotEmpty
+                ? name
+                      .trim()
+                      .split(' ')
+                      .map((e) => e.isNotEmpty ? e[0] : '')
+                      .take(2)
+                      .join()
+                      .toUpperCase()
+                : 'U';
+            return Scaffold(
+              backgroundColor: Colors.white,
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 24),
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.grey.shade400,
+                            width: 1.2,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 20),
-                        Expanded(
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 32,
+                              backgroundColor: Colors.grey.shade200,
+                              child: Text(
+                                initials,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    name,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    email,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                name,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                              const Text(
+                                'Account',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                email,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.black54,
+                              const SizedBox(height: 12),
+                              _ProfileOption(
+                                icon: Icons.account_balance_wallet_outlined,
+                                label: 'My Wallet',
+                                onTap: () {
+                                  Navigator.of(
+                                    context,
+                                  ).pushNamed(AppRouter.wallet);
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              _ProfileOption(
+                                icon: Icons.storefront_outlined,
+                                label: 'U-wifi Store',
+                                onTap: () {
+                                  Navigator.of(
+                                    context,
+                                  ).pushNamed(AppRouter.uwifiStore);
+                                },
+                              ),
+                              const SizedBox(height: 28),
+                              const Text(
+                                'App Settings',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
                                 ),
                               ),
+                              const SizedBox(height: 12),
+                              _ProfileOption(
+                                icon: Icons.wifi_tethering,
+                                label: 'My U-wifi Plan',
+                                onTap: () {
+                                  Navigator.of(
+                                    context,
+                                  ).pushNamed(AppRouter.myUwifiPlan);
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              _ProfileOption(
+                                icon: Icons.settings,
+                                label: 'Settings',
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) => const SettingsModal(),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 36),
+                              Center(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '© 2025 U-wifi. All rights reserved. | Version 1.0.0',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Test Version: 1.0.0 (19)',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Center(
+                                child: SizedBox(
+                                  width: 180,
+                                  child: OutlinedButton(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                      side: const BorderSide(color: Colors.red),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      _showLogoutDialog(context);
+                                    },
+                                    child: const Text(
+                                      'Log Out',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 32),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Account',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _ProfileOption(
-                            icon: Icons.account_balance_wallet_outlined,
-                            label: 'My Wallet',
-                            onTap: () {
-                              Navigator.of(context).pushNamed(AppRouter.wallet);
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _ProfileOption(
-                            icon: Icons.storefront_outlined,
-                            label: 'U-wifi Store',
-                            onTap: () {
-                              Navigator.of(
-                                context,
-                              ).pushNamed(AppRouter.uwifiStore);
-                            },
-                          ),
-                          const SizedBox(height: 28),
-                          const Text(
-                            'App Settings',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _ProfileOption(
-                            icon: Icons.wifi_tethering,
-                            label: 'My U-wifi Plan',
-                            onTap: () {
-                              Navigator.of(
-                                context,
-                              ).pushNamed(AppRouter.myUwifiPlan);
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _ProfileOption(
-                            icon: Icons.settings,
-                            label: 'Settings',
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) => const SettingsModal(),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 36),
-                          Center(
-                            child: Column(
-                              children: [
-                                Text(
-                                  '© 2025 U-wifi. All rights reserved. | Version 1.0.0',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Test Version: 1.0.0 (19)',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Center(
-                            child: SizedBox(
-                              width: 180,
-                              child: OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                  side: const BorderSide(color: Colors.red),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  _showLogoutDialog(context);
-                                },
-                                child: const Text(
-                                  'Log Out',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                        ],
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
