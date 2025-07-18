@@ -5,7 +5,7 @@ class Referral extends Equatable {
   final String id;
   final String referralCode;
   final String referralLink;
-  final String userId;
+  final int userId;
   final int totalReferrals;
   final double totalEarnings;
   final DateTime createdAt;
@@ -24,13 +24,13 @@ class Referral extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        referralCode,
-        referralLink,
-        userId,
-        totalReferrals,
-        totalEarnings,
-        createdAt,
-        isActive,
-      ];
+    id,
+    referralCode,
+    referralLink,
+    userId,
+    totalReferrals,
+    totalEarnings,
+    createdAt,
+    isActive,
+  ];
 }

@@ -1,40 +1,116 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart';
+import 'package:uwifiapp/core/constants/api_endpoints.dart';
+
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_logger.dart';
+import '../../../../injection_container.dart';
+import '../../../customer/domain/entities/customer_details.dart';
+import '../../../customer/presentation/bloc/customer_details_bloc.dart';
 import '../models/referral_model.dart';
-import 'invite_remote_data_source.dart';
 import 'invite_demo_data.dart';
+import 'invite_remote_data_source.dart';
 
 /// Implementación del data source remoto para invitaciones
 class InviteRemoteDataSourceImpl implements InviteRemoteDataSource {
   final SupabaseClient supabaseClient;
+  final CustomerDetails? customerDetails;
 
-  InviteRemoteDataSourceImpl({required this.supabaseClient});
+  InviteRemoteDataSourceImpl({
+    required this.supabaseClient,
+    this.customerDetails,
+  });
 
   @override
-  Future<ReferralModel> getUserReferral() async {
-    debugPrint('📱 InviteRemoteDataSource: Iniciando getUserReferral (MODO DEMO)...');
-    
+  Future<ReferralModel> getUserReferral({
+    CustomerDetails? customerDetails,
+  }) async {
+    AppLogger.navInfo(
+      'InviteRemoteDataSource: Iniciando getUserReferral (MODO DEMO)...',
+    );
+
     // Simular delay de red
     await Future.delayed(const Duration(milliseconds: 800));
-    
+
     try {
       final user = supabaseClient.auth.currentUser;
-      debugPrint('👤 InviteRemoteDataSource: Usuario actual: ${user?.id ?? "guest"}');
-      
+      AppLogger.navInfo(
+        'InviteRemoteDataSource: Usuario actual: ${user?.id ?? "guest"}',
+      );
+
+      // Obtener el sharedLinkId desde customerDetails si está disponible
+      String? sharedLinkId;
+      int? customerId;
+
+      // Primero intentamos usar el customerDetails pasado como parámetro
+      CustomerDetails? currentCustomerDetails = customerDetails;
+
+      // Si no está disponible como parámetro, intentamos usar el inyectado
+      if (currentCustomerDetails == null) {
+        currentCustomerDetails = this.customerDetails;
+        if (currentCustomerDetails != null) {
+          AppLogger.navInfo(
+            'InviteRemoteDataSource: Usando CustomerDetails inyectado',
+          );
+        }
+      } else {
+        AppLogger.navInfo(
+          'InviteRemoteDataSource: Usando CustomerDetails pasado como parámetro',
+        );
+      }
+
+      // Si aún no está disponible, intentamos obtenerlo del bloc
+      if (currentCustomerDetails == null) {
+        try {
+          final customerDetailsBloc = getIt<CustomerDetailsBloc>();
+          final state = customerDetailsBloc.state;
+          if (state is CustomerDetailsLoaded) {
+            currentCustomerDetails = state.customerDetails;
+            AppLogger.navInfo(
+              'InviteRemoteDataSource: CustomerDetails obtenido del bloc',
+            );
+          }
+        } catch (e) {
+          AppLogger.navError(
+            'InviteRemoteDataSource: Error al obtener CustomerDetailsBloc: $e',
+          );
+        }
+      }
+
+      if (currentCustomerDetails != null) {
+        sharedLinkId = currentCustomerDetails.sharedLinkId;
+        customerId = currentCustomerDetails.customerId;
+        AppLogger.navInfo(
+          'InviteRemoteDataSource: Usando sharedLinkId: $sharedLinkId',
+        );
+      } else {
+        AppLogger.navInfo(
+          'InviteRemoteDataSource: customerDetails no disponible, usando código generado',
+        );
+      }
+
       // Usar datos demo en lugar de consultar Supabase
-      debugPrint('🎭 InviteRemoteDataSource: Generando datos demo...');
-      final demoReferral = InviteDemoData.getUserReferralDemo(userId: user?.id);
-      
-      debugPrint('✅ InviteRemoteDataSource: Datos demo generados exitosamente');
-      debugPrint('📊 Código de referido: ${demoReferral.referralCode}');
-      debugPrint('💰 Total referidos: ${demoReferral.totalReferrals}');
-      debugPrint('💵 Ganancias totales: \$${demoReferral.totalEarnings.toStringAsFixed(2)}');
-      
+      AppLogger.navInfo('InviteRemoteDataSource: Generando datos demo...');
+      final demoReferral = InviteDemoData.getUserReferralDemo(
+        userId: user?.id,
+        customerId: customerId,
+        sharedLinkId: sharedLinkId,
+      );
+
+      AppLogger.navInfo(
+        'InviteRemoteDataSource: Datos demo generados exitosamente',
+      );
+      AppLogger.navInfo('Código de referido: ${demoReferral.referralCode}');
+      AppLogger.navInfo('Total referidos: ${demoReferral.totalReferrals}');
+      AppLogger.navInfo(
+        'Ganancias totales: \$${demoReferral.totalEarnings.toStringAsFixed(2)}',
+      );
+
       return demoReferral;
     } catch (e) {
-      debugPrint('💥 InviteRemoteDataSource: Error al generar datos demo: $e');
-      throw ServerException();
+      AppLogger.navError(
+        'InviteRemoteDataSource: Error al generar datos demo: $e',
+      );
+      throw ServerException(e.toString());
     }
   }
 
@@ -48,7 +124,7 @@ class InviteRemoteDataSourceImpl implements InviteRemoteDataSource {
 
       // Generar código único
       final referralCode = _generateUniqueCode(user.id);
-      final referralLink = 'https://u-wifi.virtualus.cbluna-dev.com/invite/$referralCode';
+      final referralLink = '${ApiEndpoints.inviteBaseUrl}/$referralCode';
 
       final referralData = {
         'user_id': user.id,

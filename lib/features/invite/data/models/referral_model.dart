@@ -19,10 +19,12 @@ class ReferralModel extends Referral {
       id: json['id'] ?? '',
       referralCode: json['referral_code'] ?? '',
       referralLink: json['referral_link'] ?? '',
-      userId: json['user_id'] ?? '',
+      userId: json['user_id'] ?? 0,
       totalReferrals: json['total_referrals'] ?? 0,
       totalEarnings: (json['total_earnings'] ?? 0.0).toDouble(),
-      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(
+        json['created_at'] ?? DateTime.now().toIso8601String(),
+      ),
       isActive: json['is_active'] ?? true,
     );
   }
@@ -46,7 +48,7 @@ class ReferralModel extends Referral {
     String? id,
     String? referralCode,
     String? referralLink,
-    String? userId,
+    int? userId,
     int? totalReferrals,
     double? totalEarnings,
     DateTime? createdAt,

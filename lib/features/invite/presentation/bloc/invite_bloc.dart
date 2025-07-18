@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
-import '../../../../core/usecases/usecase.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../domain/usecases/get_user_referral.dart';
 import '../../domain/usecases/share_referral_link.dart';
 import '../../domain/usecases/generate_qr_code.dart';
@@ -29,26 +28,38 @@ class InviteBloc extends Bloc<InviteEvent, InviteState> {
     LoadUserReferralEvent event,
     Emitter<InviteState> emit,
   ) async {
-    debugPrint('🔄 InviteBloc: Iniciando carga de referido...');
+    AppLogger.navInfo('InviteBloc: Iniciando carga de referido...');
     emit(const InviteLoading());
 
     try {
-      final result = await getUserReferral(NoParams());
-      debugPrint('📊 InviteBloc: Resultado obtenido');
+      // Si tenemos customerDetails en el evento, registramos la información
+      if (event.customerDetails != null) {
+        final customerDetails = event.customerDetails!;
+        AppLogger.navInfo(
+          'InviteBloc: CustomerDetails proporcionado - customerId: ${customerDetails.customerId}, '
+          'sharedLinkId: ${customerDetails.sharedLinkId}',
+        );
+      }
+
+      // Usamos GetUserReferralParams para pasar el CustomerDetails al caso de uso
+      final result = await getUserReferral(
+        GetUserReferralParams(customerDetails: event.customerDetails),
+      );
+      AppLogger.navInfo('InviteBloc: Resultado obtenido');
 
       result.fold(
         (failure) {
-          debugPrint('❌ InviteBloc: Error - ${failure.runtimeType}');
+          AppLogger.navError('InviteBloc: Error - ${failure.runtimeType}');
           emit(const InviteError('Error al cargar información de referidos'));
         },
         (referral) {
-          debugPrint('✅ InviteBloc: Referido cargado exitosamente - ${referral.referralCode}');
+          AppLogger.navInfo('InviteBloc: Referido cargado exitosamente - ${referral.referralCode}');
           emit(InviteLoaded(referral: referral));
         },
       );
     } catch (e, stackTrace) {
-      debugPrint('💥 InviteBloc: Excepción no manejada: $e');
-      debugPrint('📍 StackTrace: $stackTrace');
+      AppLogger.navError('InviteBloc: Excepción no manejada: $e');
+      AppLogger.navError('StackTrace: $stackTrace');
       emit(const InviteError('Error inesperado al cargar información de referidos'));
     }
   }
@@ -57,6 +68,13 @@ class InviteBloc extends Bloc<InviteEvent, InviteState> {
     ShareReferralLinkEvent event,
     Emitter<InviteState> emit,
   ) async {
+    // Registrar si tenemos CustomerDetails
+    if (event.customerDetails != null) {
+      AppLogger.navInfo(
+        'InviteBloc: Compartiendo enlace con CustomerDetails - sharedLinkId: ${event.customerDetails!.sharedLinkId}',
+      );
+    }
+    
     final result = await shareReferralLink(
       ShareReferralLinkParams(referralLink: event.referralLink),
     );
@@ -71,7 +89,8 @@ class InviteBloc extends Bloc<InviteEvent, InviteState> {
             if (state is InviteLoaded) {
               // Mantener el estado actual
             } else {
-              add(const LoadUserReferralEvent());
+              // Usar el CustomerDetails si está disponible
+              add(LoadUserReferralEvent(customerDetails: event.customerDetails));
             }
           });
         } else {
@@ -104,12 +123,20 @@ class InviteBloc extends Bloc<InviteEvent, InviteState> {
     Emitter<InviteState> emit,
   ) async {
     try {
+      // Registrar si tenemos CustomerDetails
+      if (event.customerDetails != null) {
+        AppLogger.navInfo(
+          'InviteBloc: Copiando enlace con CustomerDetails - sharedLinkId: ${event.customerDetails!.sharedLinkId}',
+        );
+      }
+      
       await Clipboard.setData(ClipboardData(text: event.referralLink));
       emit(const InviteLinkCopied('Link copied to clipboard!'));
       
       // Volver al estado cargado después de un momento
       Future.delayed(const Duration(seconds: 2), () {
-        add(const LoadUserReferralEvent());
+        // Usar el CustomerDetails si está disponible
+        add(LoadUserReferralEvent(customerDetails: event.customerDetails));
       });
     } catch (e) {
       emit(InviteError('Failed to copy link: $e'));

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../../core/utils/app_logger.dart';
+import '../../../customer/domain/entities/customer_details.dart';
+import '../../../customer/presentation/bloc/customer_details_bloc.dart';
 import '../bloc/invite_bloc.dart';
 import '../bloc/invite_event.dart';
 
@@ -69,8 +72,19 @@ class ReferralLinkWidget extends StatelessWidget {
                 // Botón de copiar
                 GestureDetector(
                   onTap: () {
+                    // Obtener los detalles del cliente actuales
+                    final customerState = context.read<CustomerDetailsBloc>().state;
+                    CustomerDetails? customerDetails;
+                    
+                    if (customerState is CustomerDetailsLoaded) {
+                      customerDetails = customerState.customerDetails;
+                      AppLogger.navInfo(
+                        'ReferralLinkWidget: Copiando enlace con CustomerDetails - sharedLinkId: ${customerDetails.sharedLinkId}',
+                      );
+                    }
+                    
                     context.read<InviteBloc>().add(
-                      CopyReferralLinkEvent(referralLink),
+                      CopyReferralLinkEvent(referralLink, customerDetails: customerDetails),
                     );
                   },
                   child: Container(
@@ -99,8 +113,19 @@ class ReferralLinkWidget extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
+                    // Obtener los detalles del cliente actuales
+                    final customerState = context.read<CustomerDetailsBloc>().state;
+                    CustomerDetails? customerDetails;
+                    
+                    if (customerState is CustomerDetailsLoaded) {
+                      customerDetails = customerState.customerDetails;
+                      AppLogger.navInfo(
+                        'ReferralLinkWidget: Compartiendo enlace con CustomerDetails - sharedLinkId: ${customerDetails.sharedLinkId}',
+                      );
+                    }
+                    
                     context.read<InviteBloc>().add(
-                      ShareReferralLinkEvent(referralLink),
+                      ShareReferralLinkEvent(referralLink, customerDetails: customerDetails),
                     );
                   },
                   icon: const Icon(Icons.share, size: 20),
