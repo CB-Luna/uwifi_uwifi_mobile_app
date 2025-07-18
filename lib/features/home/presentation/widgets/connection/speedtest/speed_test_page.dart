@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'custom_widgets/connection_quality_widget.dart';
+import 'custom_widgets/speed_test_custom_widget.dart';
 import 'custom_widgets/speed_test_custom_widget_emoji.dart';
 
 class SpeedTestPage extends StatefulWidget {
@@ -88,17 +88,24 @@ class _SpeedTestPageState extends State<SpeedTestPage> {
               asnName,
             ) async {
               // Aquí podríamos guardar los resultados o realizar alguna acción
-              debugPrint('Test completado: $downloadSpeedMbps Mbps download, $uploadSpeedMbps Mbps upload');
+              debugPrint(
+                'Test completado: $downloadSpeedMbps Mbps download, $uploadSpeedMbps Mbps upload',
+              );
             },
         onTestError: (errorMessage) async {
           debugPrint('Error en el test: $errorMessage');
         },
         // URLs de emojis para los diferentes niveles de velocidad
-        redFaceUrl: 'https://em-content.zobj.net/source/google/387/crying-face_1f622.png',
-        yellowFaceUrl: 'https://em-content.zobj.net/source/google/387/slightly-frowning-face_1f641.png',
-        greenSmileFaceUrl: 'https://em-content.zobj.net/source/google/387/slightly-smiling-face_1f642.png',
-        greenSmileFace2Url: 'https://em-content.zobj.net/source/google/387/grinning-face-with-smiling-eyes_1f604.png',
-        greenSunglassesFaceUrl: 'https://em-content.zobj.net/source/google/387/star-struck_1f929.png',
+        redFaceUrl:
+            'https://em-content.zobj.net/source/google/387/crying-face_1f622.png',
+        yellowFaceUrl:
+            'https://em-content.zobj.net/source/google/387/slightly-frowning-face_1f641.png',
+        greenSmileFaceUrl:
+            'https://em-content.zobj.net/source/google/387/slightly-smiling-face_1f642.png',
+        greenSmileFace2Url:
+            'https://em-content.zobj.net/source/google/387/grinning-face-with-smiling-eyes_1f604.png',
+        greenSunglassesFaceUrl:
+            'https://em-content.zobj.net/source/google/387/star-struck_1f929.png',
         downloadGaugeMax: 100,
         uploadGaugeMax: 50,
       ),
@@ -106,96 +113,64 @@ class _SpeedTestPageState extends State<SpeedTestPage> {
   }
 
   // Variables para almacenar los resultados del test de velocidad
-  double _downloadSpeed = 0.0;
-  double _uploadSpeed = 0.0;
-  double _latency = 0.0;
-  bool _isAdvancedTesting = false;
+  // Estas variables se actualizan desde los callbacks y podrían utilizarse
+  // para mostrar resultados en otras partes de la aplicación o para análisis
+  double downloadSpeed = 0.0;
+  double uploadSpeed = 0.0;
+  bool isAdvancedTesting = false;
+  String? ipAddress;
+  String? ispName;
+  String? asnName;
 
   Widget _advancedTestView() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: [
-          // Card para mostrar la IP y otros datos de red
-          Card(
-            elevation: 0,
-            color: Colors.grey.shade50,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _infoItem(Icons.language, 'IP Address', '--'),
-                  _infoItem(Icons.router, 'ISP', '--'),
-                  _infoItem(Icons.dns, 'ASN', '--'),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Widget de calidad de conexión que muestra ratings para diferentes actividades
-          ConnectionQualityWidget(
-            downloadSpeed: _downloadSpeed,
-            uploadSpeed: _uploadSpeed,
-            latency: _latency,
-            primaryColor: Colors.blue,
-            textColor: Colors.black87,
-            backgroundColor: Colors.white,
-          ),
-          const Spacer(),
-          // Botón para iniciar el test avanzado
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16),
-            child: ElevatedButton(
-              onPressed: _isAdvancedTesting ? null : () {
-                setState(() {
-                  _isAdvancedTesting = true;
-                });
-                
-                // Simulamos un test con un delay para mostrar progreso
-                Future.delayed(const Duration(seconds: 2), () {
-                  setState(() {
-                    _downloadSpeed = 25.5; // Mbps
-                    _uploadSpeed = 10.2; // Mbps
-                    _latency = 15.0; // ms
-                  });
-                  
-                  // Simulamos el fin del test
-                  Future.delayed(const Duration(seconds: 1), () {
-                    setState(() {
-                      _isAdvancedTesting = false;
-                    });
-                  });
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              child: Text(_isAdvancedTesting ? 'Testing...' : 'Start Advanced Testing'),
-            ),
-          ),
-        ],
+    return Expanded(
+      child: SpeedTestCustomWidget(
+        // Configuración de colores para el widget avanzado
+        primaryColor: Colors.green, // Color para descarga
+        secondaryColor: Colors.purple, // Color para subida
+        textColor: Colors.black87, // Color de texto principal
+        cardBackgroundColor:
+            Colors.grey.shade50, // Color de fondo para tarjetas
+        // Callback cuando la prueba se completa exitosamente
+        onTestCompleted:
+            (downloadSpeed, uploadSpeed, ipAddress, ispName, asnName) async {
+              setState(() {
+                // Actualizamos las variables de estado con los resultados
+                downloadSpeed = downloadSpeed;
+                uploadSpeed = uploadSpeed;
+                ipAddress = ipAddress;
+                ispName = ispName;
+                asnName = asnName;
+                isAdvancedTesting = false;
+              });
+              // Registramos los resultados para depuración
+              debugPrint(
+                'Test completado: $downloadSpeed Mbps download, $uploadSpeed Mbps upload',
+              );
+              debugPrint('IP: $ipAddress, ISP: $ispName, ASN: $asnName');
+              return Future.value();
+            },
+
+        // Callback cuando ocurre un error durante la prueba
+        onTestError: (errorMessage) async {
+          setState(() {
+            isAdvancedTesting = false;
+          });
+          debugPrint('Error en el test: $errorMessage');
+          return Future.value();
+        },
+
+        // Callback cuando inicia la prueba
+        onTestStart: () async {
+          setState(() {
+            isAdvancedTesting = true;
+          });
+          debugPrint('Iniciando prueba avanzada de velocidad');
+          return Future.value();
+        },
       ),
     );
   }
-  
-  Widget _infoItem(IconData icon, String label, String value) {
-    return Column(
-      children: [
-        Icon(icon, size: 20, color: Colors.grey),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
+
+  // Este método ya no es necesario porque el widget SpeedTestCustomWidget maneja su propia UI
 }
