@@ -6,11 +6,13 @@ class CreditCardWidget extends StatelessWidget {
   final CreditCard card;
   final Function(CreditCard)? onSetDefault;
   final Function(CreditCard)? onDelete;
+  final bool isFrontCard;
 
   const CreditCardWidget({
-    required this.card, 
+    required this.card,
     this.onSetDefault,
     this.onDelete,
+    this.isFrontCard = false,
     super.key,
   });
 
@@ -20,9 +22,11 @@ class CreditCardWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        image: const DecorationImage(
-          image: AssetImage('assets/images/profile/CreditCardUI.png'),
+        // Agregar borde blanco solo a la tarjeta frontal
+        image: DecorationImage(
+          image: const AssetImage('assets/images/profile/CreditCardUI.png'),
           fit: BoxFit.cover,
+          opacity: isFrontCard ? 1.0 : 0.2,
         ),
         boxShadow: [
           BoxShadow(

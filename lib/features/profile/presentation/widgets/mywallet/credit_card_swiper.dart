@@ -22,12 +22,23 @@ class CreditCardSwiper extends StatefulWidget {
 
 class _CreditCardSwiperState extends State<CreditCardSwiper> {
   final CardSwiperController controller = CardSwiperController();
+  
+  // Variable para rastrear el índice de la tarjeta frontal actual
+  int _currentFrontCardIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializar la tarjeta frontal como la primera tarjeta (índice 0)
+    _currentFrontCardIndex = 0;
+  }
 
   @override
   void dispose() {
     controller.dispose();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -46,11 +57,15 @@ class _CreditCardSwiperState extends State<CreditCardSwiper> {
         controller: controller,
         cardsCount: widget.cards.length,
         cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
-          // Aplicar transformaciones basadas en el índice para crear efecto de mazo
+          // Determinar si es la tarjeta frontal basado en la posición actual
+          // La tarjeta está al frente cuando está completamente centrada (percentThreshold cercano a 0)
+          final bool isFrontCard = (percentThresholdX.abs() < 0.1) && (_currentFrontCardIndex == index);
+          
           return CreditCardWidget(
             card: widget.cards[index],
             onSetDefault: widget.onSetDefault,
             onDelete: widget.onDelete,
+            isFrontCard: isFrontCard, // Pasar el parámetro para indicar si es la tarjeta frontal
           );
         },
         // Mostrar hasta 3 tarjetas en el mazo (o menos si no hay suficientes)
@@ -72,7 +87,11 @@ class _CreditCardSwiperState extends State<CreditCardSwiper> {
         // Sensibilidad del deslizamiento (40%)
         threshold: 40,
         onSwipe: (previousIndex, currentIndex, direction) {
-          // Opcional: Añadir lógica adicional al deslizar
+          // Actualizar el índice de la tarjeta frontal cuando el usuario desliza
+          setState(() {
+            // Asegurarnos de manejar el caso en que currentIndex sea null
+            _currentFrontCardIndex = currentIndex ?? 0;
+          });
           return true; // Permitir siempre el deslizamiento
         },
       ),

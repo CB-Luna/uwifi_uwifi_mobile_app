@@ -440,7 +440,7 @@ class _WalletPageState extends State<WalletPage> {
                   },
                   icon: const Icon(Icons.add, color: Colors.green),
                   label: const Text(
-                    'Add User',
+                    'Affiliate',
                     style: TextStyle(color: Colors.green),
                   ),
                   style: OutlinedButton.styleFrom(
@@ -515,7 +515,7 @@ class _WalletPageState extends State<WalletPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             BlocBuilder<PaymentBloc, PaymentState>(
               builder: (context, state) {
                 if (state is PaymentLoading) {
@@ -539,7 +539,7 @@ class _WalletPageState extends State<WalletPage> {
                     );
                   }
                   return SizedBox(
-                    height: 380,
+                    height: 250,
                     child: CreditCardSwiper(
                       cards: cards,
                       onSetDefault: _setDefaultCard,
