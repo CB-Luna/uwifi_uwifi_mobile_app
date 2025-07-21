@@ -278,74 +278,78 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: GestureDetector(
-                          onTap: () {
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Si ya está seleccionado, no hacemos nada
+                            if (!showLast3Months) return;
+                            
                             // Añadir debounce para evitar múltiples actualizaciones rápidas
                             final now = DateTime.now();
                             if (lastToggleTime == null ||
-                                now.difference(lastToggleTime!).inMilliseconds >
-                                    300) {
+                                now.difference(lastToggleTime!).inMilliseconds > 500) {
                               setState(() {
                                 showLast3Months = false;
                                 lastToggleTime = now;
                               });
                             }
                           },
-                          child: Container(
+                          style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 6),
-                            decoration: BoxDecoration(
-                              color: !showLast3Months
-                                  ? Colors.black
-                                  : Colors.grey.shade200,
+                            backgroundColor: !showLast3Months
+                                ? Colors.black
+                                : Colors.grey.shade200,
+                            foregroundColor: !showLast3Months
+                                ? Colors.white
+                                : Colors.black,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'This Month',
-                              style: TextStyle(
-                                color: !showLast3Months
-                                    ? Colors.white
-                                    : Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                          ),
+                          child: const Text(
+                            'This Month',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: GestureDetector(
-                          onTap: () {
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Si ya está seleccionado, no hacemos nada
+                            if (showLast3Months) return;
+                            
                             // Añadir debounce para evitar múltiples actualizaciones rápidas
                             final now = DateTime.now();
                             if (lastToggleTime == null ||
-                                now.difference(lastToggleTime!).inMilliseconds >
-                                    300) {
+                                now.difference(lastToggleTime!).inMilliseconds > 500) {
                               setState(() {
                                 showLast3Months = true;
                                 lastToggleTime = now;
                               });
                             }
                           },
-                          child: Container(
+                          style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 6),
-                            decoration: BoxDecoration(
-                              color: showLast3Months
-                                  ? Colors.black
-                                  : Colors.grey.shade200,
+                            backgroundColor: showLast3Months
+                                ? Colors.black
+                                : Colors.grey.shade200,
+                            foregroundColor: showLast3Months
+                                ? Colors.white
+                                : Colors.black,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Last 3 Months',
-                              style: TextStyle(
-                                color: showLast3Months
-                                    ? Colors.white
-                                    : Colors.black,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                          ),
+                          child: const Text(
+                            'Last 3 Months',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
                           ),
                         ),
