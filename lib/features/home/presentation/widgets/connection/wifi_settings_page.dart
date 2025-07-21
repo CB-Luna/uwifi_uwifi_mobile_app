@@ -72,7 +72,7 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
             const SizedBox(height: 16),
             Center(
               child: Image.asset(
-                'assets/images/homeimage/realGateway.png',
+                'assets/router.png',
                 height: 200,
                 width: 200,
                 fit: BoxFit.contain,
@@ -430,7 +430,7 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            title: Text('Edit $title Password'),
+            title: Text('Reset $title Password'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
