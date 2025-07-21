@@ -1,26 +1,34 @@
-// ignore_for_file: file_names
-
 import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
 class ConnectionQualityWidget extends StatefulWidget {
-  final double downloadSpeed;
-  final double uploadSpeed;
-  final double latency;
-  final Color primaryColor;
-  final Color textColor;
-  final Color backgroundColor;
-
   const ConnectionQualityWidget({
     required this.downloadSpeed,
     required this.uploadSpeed,
-    required this.latency,
-    required this.primaryColor,
-    required this.textColor,
-    required this.backgroundColor,
+    required this.iconColor,
+    required this.activeColor,
+    required this.averageColor,
+    required this.inactiveColor,
+    required this.iconSize,
+    required this.dotSize,
+    this.width,
+    this.height,
+    this.textColor,
     super.key,
   });
+
+  final double? width;
+  final double? height;
+  final double downloadSpeed;
+  final double uploadSpeed;
+  final Color iconColor;
+  final Color activeColor;
+  final Color averageColor;
+  final Color inactiveColor;
+  final double iconSize;
+  final double dotSize;
+  final Color? textColor; // Nuevo parámetro opcional
 
   @override
   State<ConnectionQualityWidget> createState() =>
@@ -28,27 +36,8 @@ class ConnectionQualityWidget extends StatefulWidget {
 }
 
 class _ConnectionQualityWidgetState extends State<ConnectionQualityWidget> {
-  late Map<String, int> _activityRatings;
-
-  @override
-  void initState() {
-    super.initState();
-    _activityRatings = _calculateRatings();
-  }
-
-  @override
-  void didUpdateWidget(ConnectionQualityWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.downloadSpeed != widget.downloadSpeed ||
-        oldWidget.uploadSpeed != widget.uploadSpeed ||
-        oldWidget.latency != widget.latency) {
-      setState(() {
-        _activityRatings = _calculateRatings();
-      });
-    }
-  }
-
-  Map<String, int> _calculateRatings() {
+  // --- LÓGICA DE CALIFICACIÓN ---
+  Map<String, int> _getRatings() {
     final ratings = <String, int>{};
 
     // 1. Browsing (Navegación)
@@ -117,157 +106,101 @@ class _ConnectionQualityWidgetState extends State<ConnectionQualityWidget> {
     return ratings;
   }
 
-  String _getEmojiForRating(int rating) {
-    switch (rating) {
-      case 5:
-        return '😍';
-      case 4:
-        return '😊';
-      case 3:
-        return '🙂';
-      case 2:
-        return '😐';
-      case 1:
-        return '😕';
-      case 0:
-      default:
-        return '😢';
-    }
+  // Widget para construir un solo ítem (icono + título + puntos)
+  Widget _buildActivityItem({
+    required IconData icon,
+    required String title,
+    required int rating,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: widget.iconColor, size: widget.iconSize),
+        const SizedBox(height: 8),
+        Text(
+          title,
+          style: TextStyle(
+            color:
+                widget.textColor ??
+                widget
+                    .iconColor, // Usa textColor o el color del icono como fallback
+            fontSize: 12, // Puedes ajustar este tamaño
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6), // Espacio entre el título y los puntos
+        _buildRatingDots(rating),
+      ],
+    );
   }
 
-  Color _getColorForRating(int rating) {
-    switch (rating) {
-      case 5:
-        return Colors.green;
-      case 4:
-        return Colors.lightGreen;
-      case 3:
-        return Colors.amber;
-      case 2:
-        return Colors.orange;
-      case 1:
-        return Colors.deepOrange;
-      case 0:
-      default:
-        return Colors.red;
+  // Widget para construir los 5 puntos de calificación
+  Widget _buildRatingDots(int rating) {
+    Color currentActiveColor = widget.activeColor;
+    if (rating <= 2) {
+      currentActiveColor = widget.averageColor;
+    } else if (rating <= 3) {
+      currentActiveColor = widget.averageColor;
     }
-  }
 
-  Widget _buildRatingItem(String activity, int rating) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              activity,
-              style: TextStyle(
-                color: widget.textColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center, // Centrar los puntos
+      children: List.generate(5, (index) {
+        return Container(
+          width: widget.dotSize,
+          height: widget.dotSize,
+          margin: EdgeInsets.symmetric(horizontal: widget.dotSize / 4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: index < rating ? currentActiveColor : widget.inactiveColor,
           ),
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: List.generate(
-                5,
-                (index) => Container(
-                  width: 18,
-                  height: 18,
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  decoration: BoxDecoration(
-                    color: index < rating
-                        ? _getColorForRating(rating)
-                        : Colors.grey.withValues(alpha: 0.3),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            _getEmojiForRating(rating),
-            style: const TextStyle(fontSize: 18),
-          ),
-        ],
-      ),
+        );
+      }),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: widget.backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final ratings = _getRatings();
+
+    return SizedBox(
+      width: widget.width,
+      height: widget.height,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Text(
-            'Connection Quality',
-            style: TextStyle(
-              color: widget.primaryColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+          Expanded(
+            child: _buildActivityItem(
+              icon: Icons.public_outlined,
+              title: "Browsing",
+              rating: ratings['Browsing'] ?? 0,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Based on your speed test results:',
-            style: TextStyle(
-              color: widget.textColor.withValues(alpha: 0.7),
-              fontSize: 14,
+          Expanded(
+            child: _buildActivityItem(
+              icon: Icons.sports_esports_outlined,
+              title: "Gaming",
+              rating: ratings['Gaming'] ?? 0,
             ),
           ),
-          const SizedBox(height: 16),
-          ..._activityRatings.entries.map(
-            (entry) => _buildRatingItem(entry.key, entry.value),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Download: ${widget.downloadSpeed.toStringAsFixed(1)} Mbps',
-                style: TextStyle(
-                  color: widget.textColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                'Upload: ${widget.uploadSpeed.toStringAsFixed(1)} Mbps',
-                style: TextStyle(
-                  color: widget.textColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          if (widget.latency > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                'Latency: ${widget.latency.toStringAsFixed(1)} ms',
-                style: TextStyle(
-                  color: widget.textColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+          Expanded(
+            child: _buildActivityItem(
+              icon: Icons.personal_video_outlined,
+              title: "Streaming",
+              rating: ratings['Streaming'] ?? 0,
             ),
+          ),
+          Expanded(
+            child: _buildActivityItem(
+              icon: Icons.video_call_outlined,
+              title: "Video Call",
+              rating: ratings['Video Call'] ?? 0,
+            ),
+          ),
         ],
       ),
     );
   }
 }
+
+// End custom widget code
