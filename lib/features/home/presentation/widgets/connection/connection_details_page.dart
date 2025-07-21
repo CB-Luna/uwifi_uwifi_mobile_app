@@ -24,6 +24,7 @@ class ConnectionDetailsPage extends StatefulWidget {
 
 class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
   bool showLast3Months = false;
+  DateTime? lastToggleTime;
 
   @override
   void initState() {
@@ -67,16 +68,16 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
           children: [
             // Header con imagen, estado, nombre y botón Settings
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x1A000000),
-                    blurRadius: 100,
-                    offset: Offset(0, 20),
+                    blurRadius: 20,
+                    offset: Offset(0, 5),
                   ),
                 ],
               ),
@@ -84,27 +85,28 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                 children: [
                   // Contenedor de la imagen del gateway
                   Container(
-                    width: 120,
-                    height: 180,
+                    width: 90,
+                    height: 120,
                     decoration: BoxDecoration(
                       color: const Color(0xFFE8EAF6),
-                      borderRadius: BorderRadius.circular(100),
+                      borderRadius: BorderRadius.circular(60),
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100),
+                      borderRadius: BorderRadius.circular(60),
                       child: Image.asset(
                         'assets/images/homeimage/realGateway.png',
                         fit: BoxFit.cover,
-                        width: 120,
-                        height: 180,
+                        width: 90,
+                        height: 120,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 20),
+                  const SizedBox(width: 12),
                   // Contenido del lado derecho
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         BlocBuilder<
                           ConnectionBloc,
@@ -145,15 +147,15 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                                   connectionStatus,
                                   style: TextStyle(
                                     color: statusColor,
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 4),
                                 Text(
                                   wifiName,
                                   style: const TextStyle(
-                                    fontSize: 24,
+                                    fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black87,
                                   ),
@@ -162,7 +164,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                             );
                           },
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: () {
                             // Obtener el ID del cliente desde el estado de autenticación
@@ -192,8 +194,13 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                             backgroundColor: Colors.grey.shade300,
                             foregroundColor: Colors.black87,
                             elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            minimumSize: const Size(80, 30),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                           ),
                           child: const Text('Settings'),
@@ -207,7 +214,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
             // Card de Data Usage
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -233,7 +240,9 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.refresh, size: 18),
+                        icon: const Icon(Icons.refresh, size: 16),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                         onPressed: () {
                           // Recargar los datos de uso
                           context.read<DataUsageBloc>().add(
@@ -241,8 +250,11 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                           );
                         },
                       ),
+                      const SizedBox(width: 8),
                       IconButton(
-                        icon: const Icon(Icons.info_outline, size: 18),
+                        icon: const Icon(Icons.info_outline, size: 16),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                         onPressed: () {
                           showDialog(
                             context: context,
@@ -267,14 +279,25 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                     children: [
                       Expanded(
                         child: GestureDetector(
-                          onTap: () => setState(() => showLast3Months = false),
+                          onTap: () {
+                            // Añadir debounce para evitar múltiples actualizaciones rápidas
+                            final now = DateTime.now();
+                            if (lastToggleTime == null ||
+                                now.difference(lastToggleTime!).inMilliseconds >
+                                    300) {
+                              setState(() {
+                                showLast3Months = false;
+                                lastToggleTime = now;
+                              });
+                            }
+                          },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.symmetric(vertical: 6),
                             decoration: BoxDecoration(
                               color: !showLast3Months
                                   ? Colors.black
                                   : Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             alignment: Alignment.center,
                             child: Text(
@@ -284,6 +307,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                                     ? Colors.white
                                     : Colors.black,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
                             ),
                           ),
@@ -292,14 +316,25 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: GestureDetector(
-                          onTap: () => setState(() => showLast3Months = true),
+                          onTap: () {
+                            // Añadir debounce para evitar múltiples actualizaciones rápidas
+                            final now = DateTime.now();
+                            if (lastToggleTime == null ||
+                                now.difference(lastToggleTime!).inMilliseconds >
+                                    300) {
+                              setState(() {
+                                showLast3Months = true;
+                                lastToggleTime = now;
+                              });
+                            }
+                          },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.symmetric(vertical: 6),
                             decoration: BoxDecoration(
                               color: showLast3Months
                                   ? Colors.black
                                   : Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             alignment: Alignment.center,
                             child: Text(
@@ -309,6 +344,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                                     ? Colors.white
                                     : Colors.black,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
                             ),
                           ),
@@ -340,7 +376,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
             ),
             // Card de dispositivos conectados
             const ConnectedDevicesCard(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
           ],
         ),
       ),

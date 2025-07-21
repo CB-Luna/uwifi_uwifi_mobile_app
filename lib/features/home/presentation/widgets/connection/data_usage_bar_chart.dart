@@ -172,9 +172,11 @@ class _DataUsageBarChartState extends State<DataUsageBarChart> {
                 ),
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: trafficData.map((data) {
+              // Envolver en RepaintBoundary para optimizar el rendimiento
+              RepaintBoundary(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: trafficData.map((data) {
                   // Normalizar valores para la visualización
                   final downloadRatio = maxValue > 0
                       ? data.downloadGB / maxValue
@@ -201,6 +203,7 @@ class _DataUsageBarChartState extends State<DataUsageBarChart> {
                     uploadText,
                   );
                 }).toList(),
+                ),
               ),
             ],
           );
@@ -248,17 +251,17 @@ class _DataUsageBarChartState extends State<DataUsageBarChart> {
   ) {
     // Log para depuración de las alturas de las barras
     AppLogger.navInfo(
-      '[DEBUG] 📏 Altura de barras para $month: download=${80 * download}, upload=${80 * upload}',
+      '[DEBUG] 📏 Altura de barras para $month: download=${70 * download}, upload=${70 * upload}',
     );
 
     // Altura mínima para barras muy pequeñas pero no cero
-    final double minHeight = 10.0;
-    final double maxHeight = 120.0; // Altura máxima para las barras
+    const double minHeight = 8.0;
+    const double maxHeight = 100.0; // Altura máxima reducida para las barras
     final double downloadHeight = download > 0
-        ? max(min(80 * download, maxHeight), minHeight)
+        ? max(min(70 * download, maxHeight), minHeight)
         : 0;
     final double uploadHeight = upload > 0
-        ? max(min(80 * upload, maxHeight), minHeight)
+        ? max(min(70 * upload, maxHeight), minHeight)
         : 0;
 
     return Column(
@@ -270,27 +273,27 @@ class _DataUsageBarChartState extends State<DataUsageBarChart> {
           children: [
             // Etiqueta de descarga
             Container(
-              width: 45,
+              width: 40,
               alignment: Alignment.center,
               child: Text(
                 dText,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: Colors.green,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             // Etiqueta de subida
             Container(
-              width: 45,
+              width: 40,
               alignment: Alignment.center,
               child: Text(
                 uText,
                 style: const TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: Colors.purple,
                   fontWeight: FontWeight.bold,
                 ),
@@ -299,7 +302,7 @@ class _DataUsageBarChartState extends State<DataUsageBarChart> {
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 3),
         // Barras
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -307,30 +310,30 @@ class _DataUsageBarChartState extends State<DataUsageBarChart> {
           children: [
             // Barra de descarga
             Container(
-              width: 30,
+              width: 25,
               height: downloadHeight,
               decoration: BoxDecoration(
                 color: Colors.green,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             // Barra de subida
             Container(
-              width: 30,
+              width: 25,
               height: uploadHeight,
               decoration: BoxDecoration(
                 color: Colors.purple,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         // Mes
         Text(
           month,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
         ),
       ],
     );

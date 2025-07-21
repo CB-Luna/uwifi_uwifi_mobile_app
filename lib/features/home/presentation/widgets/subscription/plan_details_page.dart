@@ -665,6 +665,10 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
+                  transaction.formattedDate,
+                  style: const TextStyle(color: Colors.black54, fontSize: 12),
+                ),
+                Text(
                   transaction.transactionType,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
@@ -674,10 +678,6 @@ class _PlanDetailsPageState extends State<PlanDetailsPage> {
                 Text(
                   'Transaction ID: ${transaction.transactionId}',
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-                Text(
-                  transaction.formattedDate,
-                  style: const TextStyle(color: Colors.black54, fontSize: 12),
                 ),
               ],
             ),

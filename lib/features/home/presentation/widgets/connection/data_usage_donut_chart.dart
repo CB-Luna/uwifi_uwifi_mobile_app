@@ -28,7 +28,7 @@ class DonutChartPainter extends CustomPainter {
     const startAngle = -pi / 2; // Comenzar desde arriba (90 grados)
 
     // Grosor del anillo
-    const strokeWidth = 25.0;
+    const strokeWidth = 20.0;
 
     // Crear un rectángulo para contener el círculo
     final rect = Rect.fromCircle(
@@ -66,7 +66,12 @@ class DonutChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
+  bool shouldRepaint(DonutChartPainter oldDelegate) {
+    return oldDelegate.downloadPercentage != downloadPercentage ||
+        oldDelegate.uploadPercentage != uploadPercentage ||
+        oldDelegate.downloadColor != downloadColor ||
+        oldDelegate.uploadColor != uploadColor;
+  }
 }
 
 class DataUsageDonutChart extends StatelessWidget {
@@ -95,7 +100,7 @@ class DataUsageDonutChart extends StatelessWidget {
           const uploadColor = Color(0xFF9C27B0); // Morado
 
           return Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -114,10 +119,10 @@ class DataUsageDonutChart extends StatelessWidget {
                   'Total Used: ${totalGB.toStringAsFixed(2)} GB',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -132,12 +137,13 @@ class DataUsageDonutChart extends StatelessWidget {
                             shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Text(
                           'Download: ${downloadGB.toStringAsFixed(2)} GB',
                           style: const TextStyle(
                             color: downloadColor,
                             fontWeight: FontWeight.w500,
+                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -153,66 +159,63 @@ class DataUsageDonutChart extends StatelessWidget {
                             shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Text(
                           'Upload: ${uploadGB.toStringAsFixed(2)} GB',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: uploadColor,
                             fontWeight: FontWeight.w500,
+                            fontSize: 12,
                           ),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: 180,
-                  width: 180,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Donut chart
-                      CustomPaint(
-                        size: const Size(180, 180),
-                        painter: DonutChartPainter(
-                          downloadPercentage: downloadPercentage,
-                          uploadPercentage: uploadPercentage,
-                          downloadColor: downloadColor,
-                          uploadColor: uploadColor,
+                const SizedBox(height: 12),
+                // Usar RepaintBoundary para optimizar el rendimiento
+                RepaintBoundary(
+                  child: SizedBox(
+                    height: 150,
+                    width: 150,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Donut chart
+                        CustomPaint(
+                          size: const Size(150, 150),
+                          painter: DonutChartPainter(
+                            downloadPercentage: downloadPercentage,
+                            uploadPercentage: uploadPercentage,
+                            downloadColor: downloadColor,
+                            uploadColor: uploadColor,
+                          ),
                         ),
-                      ),
-                      // Porcentaje de descarga
-                      Positioned(
-                        top: 50,
-                        child: Column(
+                        // Textos centrales
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
+                            // Porcentaje de descarga
                             Text(
                               '${(downloadPercentage * 100).toStringAsFixed(1)}%',
                               style: const TextStyle(
                                 color: downloadColor,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18,
+                                fontSize: 22,
                               ),
                             ),
                             const Text(
                               'Download',
                               style: TextStyle(fontSize: 12),
                             ),
-                          ],
-                        ),
-                      ),
-                      // Porcentaje de subida
-                      Positioned(
-                        bottom: 50,
-                        child: Column(
-                          children: [
+                            const SizedBox(height: 4),
+                            // Porcentaje de subida
                             Text(
                               '${(uploadPercentage * 100).toStringAsFixed(1)}%',
                               style: const TextStyle(
                                 color: uploadColor,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18,
+                                fontSize: 22,
                               ),
                             ),
                             const Text(
@@ -221,8 +224,8 @@ class DataUsageDonutChart extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

@@ -33,7 +33,7 @@ class _ConnectedDevicesCardState extends State<ConnectedDevicesCard>
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -66,33 +66,36 @@ class _ConnectedDevicesCardState extends State<ConnectedDevicesCard>
       children: [
         Row(
           children: [
-            const Icon(Icons.devices, size: 20),
-            const SizedBox(width: 8),
+            const Icon(Icons.devices, size: 18),
+            const SizedBox(width: 6),
             const Text(
               'Devices',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               'Connected Devices (${gatewayInfo.devices24G.length + gatewayInfo.devices5G.length})',
-              style: const TextStyle(color: Colors.grey),
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         TabBar(
           controller: _tabController,
           labelColor: Theme.of(context).primaryColor,
           unselectedLabelColor: Colors.grey,
           indicatorColor: Theme.of(context).primaryColor,
+          labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
+          indicatorSize: TabBarIndicatorSize.label,
           tabs: const [
             Tab(text: '2.4 GHz'),
             Tab(text: '5 GHz'),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         SizedBox(
-          height: 180, // Altura fija para el contenido de las pestañas
+          height: 150, // Altura reducida para el contenido de las pestañas
           child: TabBarView(
             controller: _tabController,
             children: [
@@ -128,15 +131,15 @@ class _DevicesTabContent extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              height: 80,
-              width: 80,
+              height: 60,
+              width: 60,
               child: Lottie.asset(
                 'assets/animations/lotties/no_connected_devices.json',
                 repeat: true,
                 animate: true,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'No connected devices to $networkName',
               textAlign: TextAlign.center,
@@ -152,14 +155,29 @@ class _DevicesTabContent extends StatelessWidget {
       padding: EdgeInsets.zero,
       itemBuilder: (context, index) {
         final device = devices[index];
-        return ListTile(
-          dense: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-          leading: const Icon(Icons.devices, size: 20),
-          title: Text(device.name ?? 'Unknown Device'),
-          subtitle: Text(
-            'MAC: ${device.macAddress ?? 'N/A'} | IP: ${device.ipAddress ?? 'N/A'}',
-            style: const TextStyle(fontSize: 12),
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              const Icon(Icons.devices, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      device.name ?? 'Unknown Device',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      'MAC: ${device.macAddress ?? 'N/A'} | IP: ${device.ipAddress ?? 'N/A'}',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -177,14 +195,14 @@ class _LoadingView extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.devices, size: 20),
-            SizedBox(width: 8),
-            Text('Devices', style: TextStyle(fontWeight: FontWeight.bold)),
+            Icon(Icons.devices, size: 18),
+            SizedBox(width: 6),
+            Text('Devices', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ],
         ),
-        SizedBox(height: 20),
-        Center(child: CircularProgressIndicator()),
-        SizedBox(height: 20),
+        SizedBox(height: 12),
+        Center(child: SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+        SizedBox(height: 12),
       ],
     );
   }
@@ -202,19 +220,19 @@ class _ErrorView extends StatelessWidget {
       children: [
         const Row(
           children: [
-            Icon(Icons.devices, size: 20),
-            SizedBox(width: 8),
-            Text('Devices', style: TextStyle(fontWeight: FontWeight.bold)),
+            Icon(Icons.devices, size: 18),
+            SizedBox(width: 6),
+            Text('Devices', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
         Center(
           child: Text(
             'Error: $message',
-            style: const TextStyle(color: Colors.red),
+            style: const TextStyle(color: Colors.red, fontSize: 13),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
       ],
     );
   }
@@ -230,19 +248,19 @@ class _EmptyView extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.devices, size: 20),
-            SizedBox(width: 8),
-            Text('Devices', style: TextStyle(fontWeight: FontWeight.bold)),
+            Icon(Icons.devices, size: 18),
+            SizedBox(width: 6),
+            Text('Devices', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           ],
         ),
-        SizedBox(height: 20),
+        SizedBox(height: 12),
         Center(
           child: Text(
             'No available information',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: Colors.grey, fontSize: 13),
           ),
         ),
-        SizedBox(height: 20),
+        SizedBox(height: 12),
       ],
     );
   }
