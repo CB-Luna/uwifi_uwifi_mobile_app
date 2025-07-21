@@ -19,13 +19,13 @@ class Transaction extends Equatable {
 
   @override
   List<Object?> get props => [
-        transactionId,
-        customerId,
-        createdAt,
-        transactionTypeFk,
-        amount,
-        serviceFk,
-      ];
+    transactionId,
+    customerId,
+    createdAt,
+    transactionTypeFk,
+    amount,
+    serviceFk,
+  ];
 
   // Método para obtener el tipo de transacción como texto
   String get transactionType {
@@ -43,6 +43,6 @@ class Transaction extends Equatable {
 
   // Método para formatear la fecha
   String get formattedDate {
-    return '${createdAt.year}/${createdAt.month.toString().padLeft(2, '0')}/${createdAt.day.toString().padLeft(2, '0')}';
+    return '${createdAt.month.toString().padLeft(2, '0')}/${createdAt.day.toString().padLeft(2, '0')}/${createdAt.year}';
   }
 }
