@@ -84,13 +84,22 @@ class _LoginPageState extends State<LoginPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black54,
-      // Eliminamos el controlador de animación personalizado y usamos el predeterminado
-      // que es más seguro y evita problemas de vsync
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+      // Configuramos para que aparezca más arriba en la pantalla
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85, // Limita la altura al 85% de la pantalla
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        // Hacemos que inicialmente ocupe más espacio vertical
+        initialChildSize: 0.7, // Antes era aproximadamente 0.5 (valor por defecto)
+        minChildSize: 0.5, // Mínimo tamaño al deslizar hacia abajo
+        maxChildSize: 0.95, // Máximo tamaño al expandir
+        expand: false,
+        builder: (context, scrollController) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: const ForgotPasswordSheet(),
         ),
-        child: const ForgotPasswordSheet(),
       ),
     );
   }

@@ -134,7 +134,7 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet>
           children: [
             // Indicador de arrastre
             Container(
-              margin: const EdgeInsets.only(top: 12),
+              margin: const EdgeInsets.only(top: 12, bottom: 12),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
@@ -237,12 +237,12 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet>
                           ),
                           enabled: !_isLoading,
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
 
                         // Reset button
                         SizedBox(
                           width: double.infinity,
-                          height: 50,
+                          height: 56,
                           child:
                               BlocBuilder<
                                 ResetPasswordBloc,
@@ -278,7 +278,7 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet>
                                 },
                               ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
