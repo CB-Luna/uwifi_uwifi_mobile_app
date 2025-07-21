@@ -12,10 +12,10 @@ class BiometricAuthService {
 
   BiometricAuthService({
     LocalAuthentication? localAuth,
-    BiometricPreferencesService? preferencesService,
+    required BiometricPreferencesService preferencesService,
     BiometricProvider? biometricProvider,
   }) : _localAuth = localAuth ?? LocalAuthentication(),
-       _preferencesService = preferencesService ?? BiometricPreferencesService(),
+       _preferencesService = preferencesService,
        _biometricProvider = biometricProvider;
 
   Future<bool> isBiometricAvailable() async {

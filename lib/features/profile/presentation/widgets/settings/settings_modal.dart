@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'help_center_page.dart';
 import '../../../../../core/providers/biometric_provider.dart';
+import '../../../../../core/utils/app_logger.dart';
+import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../../auth/presentation/bloc/auth_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SettingsModal extends StatefulWidget {
   const SettingsModal({super.key});
@@ -238,7 +242,23 @@ class _SettingsModalState extends State<SettingsModal> {
                             Switch(
                               value: biometricProvider.isEnabled,
                               onChanged: (value) {
-                                biometricProvider.toggleBiometric(value);
+                                // Obtener el estado actual del AuthBloc
+                                final authState = context.read<AuthBloc>().state;
+                                
+                                // Si está habilitando biometría y el usuario está autenticado
+                                if (value && authState is AuthAuthenticated) {
+                                  final userEmail = authState.user.email;
+                                  AppLogger.authInfo('Habilitando biometría para el usuario: $userEmail');
+                                  
+                                  // Pasar el email del usuario al habilitar la biometría
+                                  biometricProvider.toggleBiometric(value, userEmail: userEmail);
+                                } else {
+                                  // Si está deshabilitando o no hay usuario autenticado
+                                  AppLogger.authWarning(
+                                    'No se puede habilitar biometría: ${value ? 'usuario no autenticado' : 'deshabilitando'}'
+                                  );
+                                  biometricProvider.toggleBiometric(value);
+                                }
                               },
                               activeColor: Colors.black,
                             ),

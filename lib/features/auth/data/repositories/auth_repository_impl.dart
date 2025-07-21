@@ -91,4 +91,34 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Left(NetworkFailure());
     }
   }
+  
+  @override
+  Future<Either<Failure, User?>> getUserByEmail(String email) async {
+    if (await networkInfo.isConnected) {
+      try {
+        // Intentamos obtener el usuario por email desde el remoteDataSource
+        final user = await remoteDataSource.getUserByEmail(email);
+        if (user != null) {
+          // Si encontramos el usuario, lo guardamos en caché
+          await localDataSource.cacheUser(user);
+        }
+        return Right(user);
+      } catch (e) {
+        return Left(AuthenticationFailure(e.toString()));
+      }
+    } else {
+      // Si no hay conexión, intentamos obtener el usuario de la caché
+      try {
+        final cachedUser = await localDataSource.getCachedUser();
+        // Solo devolvemos el usuario en caché si coincide con el email solicitado
+        if (cachedUser != null && cachedUser.email == email) {
+          return Right(cachedUser);
+        } else {
+          return const Right(null);
+        }
+      } catch (e) {
+        return const Left(CacheFailure());
+      }
+    }
+  }
 }

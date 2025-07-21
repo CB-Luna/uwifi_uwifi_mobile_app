@@ -15,4 +15,8 @@ abstract class AuthRepository {
   Future<Either<Failure, bool>> isUserLoggedIn();
   
   Future<Either<Failure, void>> resetPassword(String email);
+  
+  /// Obtiene un usuario por su email
+  /// Útil para autenticación biométrica donde ya tenemos el email guardado
+  Future<Either<Failure, User?>> getUserByEmail(String email);
 }

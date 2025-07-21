@@ -229,6 +229,7 @@ Future<void> init() async {
       logoutUser: getIt(),
       getCurrentUser: getIt(),
       biometricAuthService: getIt(),
+      authRepository: getIt(),
     ),
   );
 
@@ -547,8 +548,8 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => LocalAuthentication());
 
   // Registrar servicios de biometría
-  getIt.registerLazySingleton(() => BiometricPreferencesService());
-  getIt.registerFactory(() => BiometricProvider());
+  getIt.registerLazySingleton(() => BiometricPreferencesService(preferences: getIt<SharedPreferences>()));
+  getIt.registerFactory(() => BiometricProvider(preferences: getIt<SharedPreferences>()));
 
   // Registrar http.Client para las llamadas HTTP
   getIt.registerLazySingleton(() => http.Client());

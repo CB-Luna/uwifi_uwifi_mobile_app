@@ -1,7 +1,12 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:async';
+
+import 'package:bloc/bloc.dart';
 
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../../../core/services/biometric_preferences_service.dart';
+import '../../../../injection_container.dart';
+import '../../domain/repositories/auth_repository.dart';
 import '../../domain/services/biometric_auth_service.dart';
 import '../../domain/usecases/get_current_user.dart';
 import '../../domain/usecases/login_user.dart';
@@ -14,12 +19,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LogoutUser logoutUser;
   final GetCurrentUser getCurrentUser;
   final BiometricAuthService biometricAuthService;
+  final AuthRepository authRepository;
 
   AuthBloc({
     required this.loginUser,
     required this.logoutUser,
     required this.getCurrentUser,
     required this.biometricAuthService,
+    required this.authRepository,
   }) : super(AuthInitial()) {
     AppLogger.authInfo('Creating new AuthBloc instance - $hashCode');
     on<CheckAuthStatus>(_onCheckAuthStatus);
@@ -153,41 +160,87 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       final authenticated = await biometricAuthService.authenticate();
       if (authenticated) {
-        // If biometric auth is successful, get the current user
-        final result = await getCurrentUser(NoParams());
-
-        result.fold(
-          (failure) {
-            AppLogger.authError(
-              'Failed to get user after biometric auth: ${failure.toString()}',
-            );
-            emit(
-              const AuthError(
-                message:
-                    'Error al obtener usuario después de autenticación biométrica',
-              ),
-            );
-          },
-          (user) {
-            if (user != null) {
-              AppLogger.authInfo(
-                'Biometric login successful for user: ${user.email}',
+        AppLogger.authInfo('Biometric authentication successful via provider');
+        
+        // Obtener el email guardado en las preferencias biométricas
+        final biometricPreferencesService = getIt<BiometricPreferencesService>();
+        final savedEmail = await biometricPreferencesService.getBiometricUserEmail();
+        
+        if (savedEmail != null && savedEmail.isNotEmpty) {
+          AppLogger.authInfo('Found saved email for biometric login: $savedEmail');
+          
+          // Intentar iniciar sesión con el email guardado
+          // Aquí no necesitamos contraseña porque la autenticación biométrica ya fue exitosa
+          // Simplemente recuperamos el usuario asociado con este email
+          final result = await authRepository.getUserByEmail(savedEmail);
+          
+          result.fold(
+            (failure) {
+              AppLogger.authError(
+                'Failed to get user with saved email: ${failure.toString()}',
               );
-              final timestamp = DateTime.now().millisecondsSinceEpoch;
-              emit(AuthAuthenticated(user: user, loginTimestamp: timestamp));
-            } else {
-              AppLogger.authWarning(
-                'No user found after biometric authentication',
+              emit(
+                const AuthError(
+                  message: 'Error al recuperar usuario con email guardado',
+                ),
+              );
+            },
+            (user) {
+              if (user != null) {
+                AppLogger.authInfo(
+                  'Biometric login successful for user: ${user.email}',
+                );
+                final timestamp = DateTime.now().millisecondsSinceEpoch;
+                emit(AuthAuthenticated(user: user, loginTimestamp: timestamp));
+              } else {
+                AppLogger.authWarning(
+                  'No user found with saved email after biometric authentication',
+                );
+                emit(
+                  const AuthError(
+                    message: 'No se encontró usuario para autenticación biométrica',
+                  ),
+                );
+              }
+            },
+          );
+        } else {
+          // Si no hay email guardado, intentar obtener el usuario actual
+          AppLogger.authWarning('No saved email found for biometric login');
+          final result = await getCurrentUser(NoParams());
+
+          result.fold(
+            (failure) {
+              AppLogger.authError(
+                'Failed to get current user after biometric auth: ${failure.toString()}',
               );
               emit(
                 const AuthError(
                   message:
-                      'No se encontró usuario para autenticación biométrica',
+                      'Error al obtener usuario después de autenticación biométrica',
                 ),
               );
-            }
-          },
-        );
+            },
+            (user) {
+              if (user != null) {
+                AppLogger.authInfo(
+                  'Biometric login successful for current user: ${user.email}',
+                );
+                final timestamp = DateTime.now().millisecondsSinceEpoch;
+                emit(AuthAuthenticated(user: user, loginTimestamp: timestamp));
+              } else {
+                AppLogger.authWarning(
+                  'No user found after biometric authentication',
+                );
+                emit(
+                  const AuthError(
+                    message: 'No se encontró usuario para autenticación biométrica',
+                  ),
+                );
+              }
+            },
+          );
+        }
       } else {
         AppLogger.authWarning('Biometric authentication failed');
         emit(const AuthError(message: 'Autenticación biométrica fallida'));
