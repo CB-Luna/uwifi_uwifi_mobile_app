@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/utils/app_logger.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../onboarding/presentation/pages/onboarding_page.dart';
@@ -51,9 +52,7 @@ class _AuthWrapperWidgetState extends State<AuthWrapperWidget> {
     // Solo verificar el estado del onboarding para usuarios nuevos
     // El método resetOnboardingForNewUser ya verifica si el usuario ha completado el onboarding antes
     if (isNewUser) {
-      AppLogger.onboardingInfo(
-        'New user detected, checking onboarding status',
-      );
+      AppLogger.onboardingInfo('New user detected, checking onboarding status');
       try {
         // Este método solo reseteará si el usuario no ha completado el onboarding antes
         await _authService.resetOnboardingForNewUser();
@@ -101,7 +100,7 @@ class _AuthWrapperWidgetState extends State<AuthWrapperWidget> {
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 16),
-                    Text('Verificando autenticación...'),
+                    Text('Verifying authentication...'),
                   ],
                 ),
               ),
@@ -152,7 +151,7 @@ class _AuthWrapperWidgetState extends State<AuthWrapperWidget> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Cargando configuración...'),
+                  Text('Loading configuration...'),
                 ],
               ),
             ),
@@ -202,7 +201,7 @@ class _AuthWrapperWidgetState extends State<AuthWrapperWidget> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error de autenticación',
+              'Authentication error',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
@@ -216,7 +215,7 @@ class _AuthWrapperWidgetState extends State<AuthWrapperWidget> {
               onPressed: () {
                 context.read<AuthBloc>().add(CheckAuthStatus());
               },
-              child: const Text('Reintentar'),
+              child: const Text('Retry'),
             ),
           ],
         ),

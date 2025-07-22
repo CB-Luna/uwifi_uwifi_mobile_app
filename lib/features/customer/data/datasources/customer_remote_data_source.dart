@@ -20,56 +20,56 @@ class CustomerRemoteDataSourceImpl implements CustomerRemoteDataSource {
   Future<CustomerDetailsModel> getCustomerDetails(int customerId) async {
     try {
       AppLogger.navInfo(
-        'Obteniendo detalles del cliente para customerId: $customerId',
+        'Getting customer details for customerId: $customerId',
       );
 
-      // Preparar el cuerpo de la solicitud
+      // Prepare the request body
       final requestBody = {'customer_id': customerId};
 
-      // Realizar la solicitud POST a la función RPC
+      // Make the POST request to the RPC function
       final response = await supabaseClient.rpc(
         'get_customer_details',
         params: requestBody,
       );
 
-      AppLogger.navInfo('Respuesta recibida: $response');
+      AppLogger.navInfo('Response received: $response');
 
       if (response == null) {
         AppLogger.navError(
-          'Error al obtener detalles del cliente: respuesta nula',
+          'Error getting customer details: null response',
         );
-        throw ServerException('Error al obtener detalles del cliente');
+        throw ServerException('Error getting customer details');
       }
 
-      // La respuesta ya es la lista de resultados
+      // The response is already the list of results
       if (response is List) {
-        // Si la respuesta es directamente una lista
+        // If the response is directly a list
         final List<dynamic> responseData = response;
         
         if (responseData.isEmpty) {
-          throw ServerException('No se encontraron detalles para el cliente');
+          throw ServerException('No details found for the customer');
         }
         
-        // Convertir la respuesta a un modelo
+        // Convert the response to a model
         return CustomerDetailsModel.fromJson(responseData[0]);
       } else {
-        // Si la respuesta es un mapa u otro tipo
-        AppLogger.navInfo('Tipo de respuesta: ${response.runtimeType}');
+        // If the response is a map or other type
+        AppLogger.navInfo('Response type: ${response.runtimeType}');
         
-        // Intentar convertir la respuesta a un modelo directamente
+        // Try to convert the response directly to a model
         try {
           if (response is Map<String, dynamic>) {
             return CustomerDetailsModel.fromJson(response);
           } else {
-            throw ServerException('Formato de respuesta inesperado');
+            throw ServerException('Unexpected response format');
           }
         } catch (e) {
-          AppLogger.navError('Error al parsear la respuesta: $e');
-          throw ServerException('Error al parsear la respuesta: $e');
+          AppLogger.navError('Error parsing the response: $e');
+          throw ServerException('Error parsing the response: $e');
         }
       }
     } catch (e) {
-      AppLogger.navError('Error en getCustomerDetails: $e');
+      AppLogger.navError('Error in getCustomerDetails: $e');
       throw ServerException(e.toString());
     }
   }

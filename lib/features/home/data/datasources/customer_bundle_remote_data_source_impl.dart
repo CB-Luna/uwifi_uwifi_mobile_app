@@ -16,7 +16,7 @@ class CustomerBundleRemoteDataSourceImpl implements CustomerBundleRemoteDataSour
   Future<List<CustomerBundleModel>> getCustomerBundle(int customerId) async {
     try {
       AppLogger.navInfo(
-        'Solicitando bundle del cliente: $customerId',
+        'Requesting customer bundle: $customerId',
       );
 
       final response = await supabaseClient.rpc(
@@ -24,25 +24,25 @@ class CustomerBundleRemoteDataSourceImpl implements CustomerBundleRemoteDataSour
         params: {'customer_id': customerId},
       );
 
-      // Verificar si la respuesta es válida
+      // Verify if the response is valid
       if (response == null) {
-        AppLogger.navError('Error: respuesta nula al obtener bundle del cliente');
-        throw ServerException('Error: respuesta nula al obtener bundle del cliente');
+        AppLogger.navError('Error: null response when getting customer bundle');
+        throw ServerException('Error: null response when getting customer bundle');
       }
 
-      AppLogger.navInfo('Respuesta de bundle del cliente: ${jsonEncode(response)}');
+      AppLogger.navInfo('Customer bundle response: ${jsonEncode(response)}');
 
-      // Convertir la respuesta a una lista de modelos
+      // Convert the response to a list of models
       if (response is List) {
         return response
             .map((item) => CustomerBundleModel.fromJson(item))
             .toList();
       } else {
-        AppLogger.navError('Error: formato de respuesta inesperado');
-        throw ServerException('Error: formato de respuesta inesperado');
+        AppLogger.navError('Error: unexpected response format');
+        throw ServerException('Error: unexpected response format');
       }
     } catch (e) {
-      AppLogger.navError('Error al obtener bundle del cliente: $e');
+      AppLogger.navError('Error getting customer bundle: $e');
       throw ServerException(e.toString());
     }
   }

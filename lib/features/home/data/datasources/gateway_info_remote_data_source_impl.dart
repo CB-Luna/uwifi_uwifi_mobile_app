@@ -17,7 +17,7 @@ class GatewayInfoRemoteDataSourceImpl implements GatewayInfoRemoteDataSource {
   Future<GatewayInfoModel> getGatewayInfo(String serialNumber) async {
     try {
       AppLogger.navInfo(
-        'Solicitando información del gateway con serial: $serialNumber',
+        'Requesting gateway information with serial: $serialNumber',
       );
 
       final response = await client.post(
@@ -27,17 +27,17 @@ class GatewayInfoRemoteDataSourceImpl implements GatewayInfoRemoteDataSource {
       );
 
       if (response.statusCode != 200) {
-        AppLogger.navError('Error al obtener información del gateway: ${response.body}');
-        throw ServerException('Error al obtener información del gateway: ${response.statusCode}');
+        AppLogger.navError('Error getting gateway information: ${response.body}');
+        throw ServerException('Error getting gateway information: ${response.statusCode}');
       }
 
-      AppLogger.navInfo('Información del gateway obtenida con éxito');
+      AppLogger.navInfo('Gateway information obtained successfully');
       return GatewayInfoModel.fromJson(
         jsonDecode(response.body),
         serialNumber: serialNumber,
       );
     } catch (e) {
-      AppLogger.navError('Error al obtener información del gateway: $e');
+      AppLogger.navError('Error getting gateway information: $e');
       throw ServerException(e.toString());
     }
   }

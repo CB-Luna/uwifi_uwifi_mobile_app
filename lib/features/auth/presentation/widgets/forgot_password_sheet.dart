@@ -18,7 +18,7 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet>
   final _emailController = TextEditingController();
   bool _isLoading = false;
 
-  // Controlador para animaciones adicionales
+  // Controller for additional animations
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -26,7 +26,7 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet>
   void initState() {
     super.initState();
 
-    // Inicializar controlador de animación
+    // Initialize animation controller
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
@@ -37,10 +37,10 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet>
       curve: Curves.easeOutBack,
     );
 
-    // Iniciar animación automáticamente
+    // Start animation automatically
     _animationController.forward();
 
-    // Resetear el estado del BLoC al abrir el modal
+    // Reset BLoC state when opening the modal
     context.read<ResetPasswordBloc>().add(ResetPasswordReset());
   }
 
@@ -55,19 +55,19 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet>
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Por favor ingresa tu email'),
+          content: Text('Please enter your email'),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    // Registrar el intento de restablecimiento de contraseña
+    // Log password reset attempt
     AppLogger.authInfo(
-      'Solicitando restablecimiento de contraseña para: ${_emailController.text}',
+      'Requesting password reset for: ${_emailController.text}',
     );
 
-    // Usar el BLoC para manejar la solicitud de restablecimiento de contraseña
+    // Use BLoC to handle password reset request
     context.read<ResetPasswordBloc>().add(
       ResetPasswordRequested(_emailController.text.trim()),
     );
@@ -86,11 +86,11 @@ class _ForgotPasswordSheetState extends State<ForgotPasswordSheet>
             _isLoading = false;
           });
 
-          // Mostrar mensaje de éxito y cerrar el bottom sheet
+          // Show success message and close bottom sheet
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'Se ha enviado un correo para restablecer tu contraseña',
+                'An email has been sent to reset your password',
               ),
               backgroundColor: Colors.green,
             ),

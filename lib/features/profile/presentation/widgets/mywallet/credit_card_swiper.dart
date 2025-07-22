@@ -23,13 +23,13 @@ class CreditCardSwiper extends StatefulWidget {
 class _CreditCardSwiperState extends State<CreditCardSwiper> {
   final CardSwiperController controller = CardSwiperController();
   
-  // Variable para rastrear el índice de la tarjeta frontal actual
+  // Variable to track the current front card index
   int _currentFrontCardIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    // Inicializar la tarjeta frontal como la primera tarjeta (índice 0)
+    // Initialize the front card as the first card (index 0)
     _currentFrontCardIndex = 0;
   }
 
@@ -57,42 +57,42 @@ class _CreditCardSwiperState extends State<CreditCardSwiper> {
         controller: controller,
         cardsCount: widget.cards.length,
         cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
-          // Determinar si es la tarjeta frontal basado en la posición actual
-          // La tarjeta está al frente cuando está completamente centrada (percentThreshold cercano a 0)
+          // Determine if it's the front card based on the current position
+          // The card is at the front when it's completely centered (percentThreshold close to 0)
           final bool isFrontCard = (percentThresholdX.abs() < 0.1) && (_currentFrontCardIndex == index);
           
           return CreditCardWidget(
             card: widget.cards[index],
             onSetDefault: widget.onSetDefault,
             onDelete: widget.onDelete,
-            isFrontCard: isFrontCard, // Pasar el parámetro para indicar si es la tarjeta frontal
+            isFrontCard: isFrontCard, // Pass the parameter to indicate if it's the front card
           );
         },
-        // Mostrar hasta 3 tarjetas en el mazo (o menos si no hay suficientes)
+        // Show up to 3 cards in the deck (or fewer if there aren't enough)
         numberOfCardsDisplayed: widget.cards.length > 3
             ? 3
             : widget.cards.length,
-        // Desplazamiento para crear efecto escalonado (como en las imágenes de referencia)
+        // Offset to create staggered effect (as in the reference images)
         backCardOffset: const Offset(0, -30),
-        // Escala para tarjetas traseras (más pequeñas)
+        // Scale for back cards (smaller)
         scale: 0.92,
-        // Padding para dar espacio al mazo
+        // Padding to give space to the deck
         padding: const EdgeInsets.all(16.0),
-        // Permitir deslizar horizontalmente
+        // Allow horizontal swiping
         allowedSwipeDirection: const AllowedSwipeDirection.symmetric(
           horizontal: true,
         ),
-        // Duración de la animación al deslizar
+        // Duration of the swipe animation
         duration: const Duration(milliseconds: 300),
-        // Sensibilidad del deslizamiento (40%)
+        // Swipe sensitivity (40%)
         threshold: 40,
         onSwipe: (previousIndex, currentIndex, direction) {
-          // Actualizar el índice de la tarjeta frontal cuando el usuario desliza
+          // Update the front card index when the user swipes
           setState(() {
-            // Asegurarnos de manejar el caso en que currentIndex sea null
+            // Make sure to handle the case where currentIndex is null
             _currentFrontCardIndex = currentIndex ?? 0;
           });
-          return true; // Permitir siempre el deslizamiento
+          return true; // Always allow swiping
         },
       ),
     );

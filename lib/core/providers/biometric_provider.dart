@@ -25,7 +25,7 @@ class BiometricProvider extends ChangeNotifier {
     _initBiometrics();
   }
 
-  // Inicializar el estado de la biometría
+  // Initialize biometric state
   Future<void> _initBiometrics() async {
     _isLoading = true;
     notifyListeners();
@@ -39,7 +39,7 @@ class BiometricProvider extends ChangeNotifier {
         _isEnabled = await _preferencesService.isBiometricEnabled();
       }
     } catch (e) {
-      AppLogger.navError('Error al inicializar biometría: $e');
+      AppLogger.navError('Error initializing biometrics: $e');
       _isAvailable = false;
       _isEnabled = false;
     } finally {
@@ -51,15 +51,15 @@ class BiometricProvider extends ChangeNotifier {
   // Verificar disponibilidad de biometría
   Future<void> _checkBiometricAvailability() async {
     try {
-      // Verificar si el dispositivo soporta biometría
+      // Check if the device supports biometrics
       final canCheckBiometrics = await _localAuth.canCheckBiometrics;
       final isDeviceSupported = await _localAuth.isDeviceSupported();
 
       if (canCheckBiometrics && isDeviceSupported) {
-        // Obtener tipos de biometría disponibles
+        // Get available biometric types
         final availableBiometrics = await _localAuth.getAvailableBiometrics();
 
-        // Determinar el tipo de biometría
+        // Determine the biometric type
         if (availableBiometrics.contains(BiometricType.face)) {
           _biometricType = 'Face ID';
         } else if (availableBiometrics.contains(BiometricType.fingerprint)) {
@@ -73,64 +73,64 @@ class BiometricProvider extends ChangeNotifier {
         _isAvailable = false;
       }
     } catch (e) {
-      AppLogger.navError('Error al verificar disponibilidad biométrica: $e');
+      AppLogger.navError('Error verifying biometric availability: $e');
       _isAvailable = false;
     }
   }
 
-  // Ya no necesitamos establecer el contexto, ya que no lo usamos
+  // We no longer need to set the context, since we don't use it
 
-  // Habilitar o deshabilitar biometría
+  // Enable or disable biometrics
   Future<bool> toggleBiometric(bool enable, {String? userEmail}) async {
     try {
-      AppLogger.authInfo('toggleBiometric llamado con enable=$enable, userEmail=$userEmail');
+      AppLogger.authInfo('toggleBiometric called with enable=$enable, userEmail=$userEmail');
       
       if (enable) {
-        // Si estamos habilitando, verificar autenticación primero
-        AppLogger.authInfo('Solicitando autenticación biométrica para habilitar');
+        // If we're enabling, verify authentication first
+        AppLogger.authInfo('Requesting biometric authentication to enable');
         final authenticated = await authenticate();
         
         if (!authenticated) {
-          AppLogger.authWarning('Autenticación biométrica fallida al habilitar');
+          AppLogger.authWarning('Biometric authentication failed when enabling');
           return false;
         }
         
-        AppLogger.authInfo('Autenticación biométrica exitosa al habilitar');
+        AppLogger.authInfo('Biometric authentication successful when enabling');
         
-        // Si se proporciona un email, guardarlo para autenticación biométrica
+        // If an email is provided, save it for biometric authentication
         if (userEmail != null) {
-          AppLogger.authInfo('Guardando email para autenticación biométrica: $userEmail');
+          AppLogger.authInfo('Saving email for biometric authentication: $userEmail');
           final emailSaved = await _preferencesService.saveBiometricUserEmail(userEmail);
-          AppLogger.authInfo('Email guardado con éxito: $emailSaved');
+          AppLogger.authInfo('Email saved successfully: $emailSaved');
         } else {
-          AppLogger.authWarning('No se proporcionó email para guardar en preferencias biométricas');
+          AppLogger.authWarning('No email provided to save in biometric preferences');
         }
       } else {
-        // Si estamos deshabilitando, limpiar el email guardado
-        AppLogger.authInfo('Deshabilitando biometría, limpiando email guardado');
+        // If we're disabling, clear the saved email
+        AppLogger.authInfo('Disabling biometrics, clearing saved email');
         await _preferencesService.clearBiometricUserEmail();
       }
 
-      // Guardar preferencia
-      AppLogger.authInfo('Guardando preferencia biométrica: $enable');
+      // Save preference
+      AppLogger.authInfo('Saving biometric preference: $enable');
       final success = await _preferencesService.saveBiometricEnabled(enable);
       
       if (success) {
         _isEnabled = enable;
         notifyListeners();
-        AppLogger.authInfo('Preferencia biométrica actualizada con éxito: $enable');
+        AppLogger.authInfo('Biometric preference successfully updated: $enable');
       } else {
-        AppLogger.authWarning('Error al guardar preferencia biométrica');
+        AppLogger.authWarning('Error saving biometric preference');
       }
       
       return success;
     } catch (e) {
-      AppLogger.navError('Error al cambiar estado de biometría: $e');
+      AppLogger.navError('Error changing biometric state: $e');
       return false;
     }
   }
 
-  // Autenticar usando biometría
+  // Authenticate using biometrics
   Future<bool> authenticate({
     String reason = 'Authenticate to continue',
   }) async {

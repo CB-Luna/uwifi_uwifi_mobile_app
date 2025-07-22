@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// Clase base para todos los fallos
+/// Base class for all failures
 abstract class Failure extends Equatable {
   final String message;
 
@@ -10,37 +10,37 @@ abstract class Failure extends Equatable {
   List<Object?> get props => [message];
 }
 
-/// Fallo cuando ocurre un error en el servidor
+/// Failure when an error occurs on the server
 class ServerFailure extends Failure {
-  const ServerFailure([super.message = 'Error en el servidor']);
+  const ServerFailure([super.message = 'Server error']);
 }
 
-/// Fallo cuando ocurre un error en la caché local
+/// Failure when an error occurs in the local cache
 class CacheFailure extends Failure {
-  const CacheFailure([super.message = 'Error en la caché']);
+  const CacheFailure([super.message = 'Cache error']);
 }
 
-/// Fallo cuando no hay conexión a internet
+/// Failure when there is no internet connection
 class NetworkFailure extends Failure {
-  const NetworkFailure([super.message = 'No hay conexión a internet']);
+  const NetworkFailure([super.message = 'No internet connection']);
 }
 
-/// Fallo cuando no se encuentra un recurso solicitado
+/// Failure when a requested resource is not found
 class NotFoundFailure extends Failure {
-  const NotFoundFailure([super.message = 'Recurso no encontrado']);
+  const NotFoundFailure([super.message = 'Resource not found']);
 }
 
-/// Fallo cuando un usuario no está autenticado
+/// Failure when a user is not authenticated
 class UnauthorizedFailure extends Failure {
-  const UnauthorizedFailure([super.message = 'Usuario no autorizado']);
+  const UnauthorizedFailure([super.message = 'User not authorized']);
 }
 
-/// Fallo durante el proceso de autenticación
+/// Failure during the authentication process
 class AuthenticationFailure extends Failure {
-  const AuthenticationFailure([super.message = 'Error de autenticación']);
+  const AuthenticationFailure([super.message = 'Authentication error']);
 }
 
-/// Alias para AuthenticationFailure para mantener compatibilidad
+/// Alias for AuthenticationFailure to maintain compatibility
 class AuthFailure extends Failure {
-  const AuthFailure([super.message = 'Error de autenticación']);
+  const AuthFailure([super.message = 'Authentication error']);
 }

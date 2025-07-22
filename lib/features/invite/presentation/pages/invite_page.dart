@@ -12,7 +12,7 @@ import '../widgets/how_it_works_widget.dart';
 import '../widgets/invite_header_widget.dart';
 import '../widgets/referral_link_widget.dart';
 
-/// Página principal de invitaciones
+/// Main invitations page
 class InvitePage extends StatefulWidget {
   const InvitePage({super.key});
 
@@ -25,7 +25,7 @@ class _InvitePageState extends State<InvitePage> {
   void initState() {
     super.initState();
 
-    // Primero cargamos los detalles del cliente para asegurar que tengamos el sharedLinkId
+    // First load customer details to ensure we have the sharedLinkId
     _loadCustomerDetails();
   }
 
@@ -37,22 +37,22 @@ class _InvitePageState extends State<InvitePage> {
 
       if (customerIdInt > 0) {
         AppLogger.navInfo(
-          'InvitePage: Cargando detalles del cliente ID: $customerIdInt',
+          'InvitePage: Loading customer details ID: $customerIdInt',
         );
-        // Cargamos los detalles del cliente
+        // Load customer details
         context.read<CustomerDetailsBloc>().add(
           FetchCustomerDetails(customerIdInt),
         );
       } else {
         AppLogger.navError(
-          'InvitePage: No se pudo obtener un customerId válido',
+          'InvitePage: Could not get a valid customerId',
         );
-        // Si no hay un customerId válido, cargamos los datos de referido directamente
+        // If there is no valid customerId, load referral data directly
         context.read<InviteBloc>().add(const LoadUserReferralEvent());
       }
     } else {
-      AppLogger.navError('InvitePage: Usuario no autenticado o sin customerId');
-      // Si no hay usuario autenticado, cargamos los datos de referido directamente
+      AppLogger.navError('InvitePage: User not authenticated or without customerId');
+      // If there is no authenticated user, load referral data directly
       context.read<InviteBloc>().add(const LoadUserReferralEvent());
     }
   }
@@ -68,18 +68,18 @@ class _InvitePageState extends State<InvitePage> {
             if (customerState is CustomerDetailsLoaded) {
               final customerDetails = customerState.customerDetails;
               AppLogger.navInfo(
-                'InvitePage: CustomerDetails cargado con sharedLinkId: ${customerDetails.sharedLinkId}',
+                'InvitePage: CustomerDetails loaded with sharedLinkId: ${customerDetails.sharedLinkId}',
               );
-              // Una vez que tenemos los detalles del cliente, cargamos los datos de referido
-              // pasando explícitamente el CustomerDetails al evento
+              // Once we have customer details, load referral data
+              // explicitly passing CustomerDetails to the event
               context.read<InviteBloc>().add(
                 LoadUserReferralEvent(customerDetails: customerDetails),
               );
             } else if (customerState is CustomerDetailsError) {
               AppLogger.navError(
-                'InvitePage: Error al cargar CustomerDetails: ${customerState.message}',
+                'InvitePage: Error loading CustomerDetails: ${customerState.message}',
               );
-              // Si hay error, cargamos los datos de referido sin CustomerDetails
+              // If there's an error, load referral data without CustomerDetails
               context.read<InviteBloc>().add(const LoadUserReferralEvent());
             }
           },
@@ -87,9 +87,9 @@ class _InvitePageState extends State<InvitePage> {
           child: BlocConsumer<InviteBloc, InviteState>(
             listener: (context, state) {
               if (state is InviteShared) {
-                _showSuccessSnackBar('Enlace compartido exitosamente');
+                _showSuccessSnackBar('Link shared successfully');
               } else if (state is InviteLinkCopied) {
-                _showSuccessSnackBar('Enlace copiado al portapapeles');
+                _showSuccessSnackBar('Link copied to clipboard');
               } else if (state is InviteError) {
                 _showErrorSnackBar(state.message);
               }
@@ -103,18 +103,18 @@ class _InvitePageState extends State<InvitePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header con gradiente
+                      // Header with gradient
                       const InviteHeaderWidget(),
                       const SizedBox(height: 24),
 
-                      // Widget del enlace de referido
+                      // Referral link widget
                       ReferralLinkWidget(
                         referralLink: state.referral.referralLink,
                         referralCode: state.referral.referralCode,
                       ),
                       const SizedBox(height: 32),
 
-                      // Sección "Cómo funciona"
+                      // "How it works" section
                       const HowItWorksWidget(),
                     ],
                   ),
@@ -131,7 +131,7 @@ class _InvitePageState extends State<InvitePage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Error al cargar invitaciones',
+                        'Error loading invitations',
                         style: Theme.of(context).textTheme.headlineSmall,
                         textAlign: TextAlign.center,
                       ),
@@ -146,25 +146,25 @@ class _InvitePageState extends State<InvitePage> {
                       const SizedBox(height: 24),
                       ElevatedButton(
                         onPressed: () {
-                          // Intentamos obtener los detalles del cliente actuales
+                          // Try to get current customer details
                           final customerState = context
                               .read<CustomerDetailsBloc>()
                               .state;
                           if (customerState is CustomerDetailsLoaded) {
-                            // Si tenemos los detalles, los pasamos al evento
+                            // If we have details, pass them to the event
                             context.read<InviteBloc>().add(
                               LoadUserReferralEvent(
                                 customerDetails: customerState.customerDetails,
                               ),
                             );
                           } else {
-                            // Si no tenemos los detalles, cargamos sin ellos
+                            // If we don't have details, load without them
                             context.read<InviteBloc>().add(
                               const LoadUserReferralEvent(),
                             );
                           }
                         },
-                        child: const Text('Reintentar'),
+                        child: const Text('Retry'),
                       ),
                     ],
                   ),

@@ -41,7 +41,7 @@ class GenresBloc extends Bloc<GenresEvent, GenresState> {
     LoadGenreEvent event,
     Emitter<GenresState> emit,
   ) async {
-    // Si ya tenemos géneros cargados, buscar en la lista actual
+    // If we already have loaded genres, search in the current list
     if (state is GenresLoaded) {
       final currentGenres = (state as GenresLoaded).genres;
       final genre = currentGenres.firstWhere(

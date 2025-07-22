@@ -44,20 +44,20 @@ class _LoginFormState extends State<LoginForm> {
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Por favor ingresa tu email';
+      return 'Please enter your email';
     }
     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-      return 'Por favor ingresa un email válido';
+      return 'Please enter a valid email';
     }
     return null;
   }
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Por favor ingresa tu contraseña';
+      return 'Please enter your password';
     }
     if (value.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres';
+      return 'Password must be at least 6 characters';
     }
     return null;
   }
@@ -88,7 +88,7 @@ class _LoginFormState extends State<LoginForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Campo de email
+                // Email field
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -103,7 +103,7 @@ class _LoginFormState extends State<LoginForm> {
                 ),
                 const SizedBox(height: 16),
 
-                // Campo de contraseña
+                // Password field
                 TextFormField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
@@ -111,7 +111,7 @@ class _LoginFormState extends State<LoginForm> {
                   enabled: state is! AuthLoading,
                   onFieldSubmitted: (_) => _handleLogin(),
                   decoration: InputDecoration(
-                    labelText: 'Contraseña',
+                    labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
@@ -131,7 +131,7 @@ class _LoginFormState extends State<LoginForm> {
                 ),
                 const SizedBox(height: 24),
 
-                // Botón de login
+                // Login button
                 ElevatedButton(
                   onPressed: state is AuthLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
@@ -151,7 +151,7 @@ class _LoginFormState extends State<LoginForm> {
                           ),
                         )
                       : const Text(
-                          'Iniciar Sesión',
+                          'Login',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -160,7 +160,7 @@ class _LoginFormState extends State<LoginForm> {
                 ),
                 const SizedBox(height: 16),
 
-                // Enlace de contraseña olvidada
+                // Forgot password link
                 TextButton(
                   onPressed: state is AuthLoading
                       ? null
@@ -168,13 +168,13 @@ class _LoginFormState extends State<LoginForm> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                'Funcionalidad próximamente disponible',
+                                'Feature coming soon',
                               ),
                             ),
                           );
                         },
                   child: const Text(
-                    '¿Olvidaste tu contraseña?',
+                    'Forgot your password?',
                     style: TextStyle(color: Colors.blue),
                   ),
                 ),

@@ -13,7 +13,7 @@ class UserCircle extends StatelessWidget {
   factory UserCircle.fromAffiliatedUser(AffiliatedUser user) {
     return UserCircle(
       initials: user.initials,
-      // Usar gris para usuarios afiliados, verde para no afiliados
+      // Use gray for affiliated users, green for non-affiliated
       color: user.isAffiliate ? Colors.grey.shade400 : Colors.green,
       user: user,
     );

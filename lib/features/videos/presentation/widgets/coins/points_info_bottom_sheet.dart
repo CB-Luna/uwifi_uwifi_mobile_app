@@ -4,8 +4,8 @@ import '../../../../../core/utils/app_logger.dart';
 import '../../../domain/entities/ad.dart';
 import '../../pages/video_completion_handler.dart';
 
-/// ✅ Widget especializado para mostrar información de puntos del usuario
-/// Modal bottom sheet con diseño minimalista y barra de progreso
+/// ✅ Specialized widget to display user points information
+/// Modal bottom sheet with minimalist design and progress bar
 class PointsInfoBottomSheet extends StatelessWidget {
   final Ad video;
   final int userPoints;
@@ -16,14 +16,14 @@ class PointsInfoBottomSheet extends StatelessWidget {
     super.key,
   });
 
-  /// Método estático para mostrar el bottom sheet
+  /// Static method to show the bottom sheet
   static void show(BuildContext context, Ad video) {
-    // Registrar evento en el logger
+    // Log event in the logger
     AppLogger.videoInfo(
-      '📊 Mostrando PointsInfoBottomSheet para video: ${video.id}',
+      '📊 Showing PointsInfoBottomSheet for video: ${video.id}',
     );
 
-    // Obtener los puntos actuales del usuario
+    // Get current user points
     final currentPoints = VideoCompletionHandler.currentUserPoints;
 
     showModalBottomSheet(
@@ -46,14 +46,14 @@ class PointsInfoBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header con título y botón de cerrar
+          // Header with title and close button
           Row(
             children: [
               _buildPointsIcon(),
               const SizedBox(width: 12),
-              // Título y subtítulo
+              // Title and subtitle
               Expanded(child: _buildHeaderContent()),
-              // Botón de cerrar
+              // Close button
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.black54),
                 onPressed: () => Navigator.pop(context),
@@ -63,17 +63,17 @@ class PointsInfoBottomSheet extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Puntos actuales
+          // Current points
           _buildCurrentPoints(),
 
           const SizedBox(height: 24),
 
-          // Barra de progreso
+          // Progress bar
           _buildProgressBar(),
 
           const SizedBox(height: 16),
 
-          // Texto informativo
+          // Informative text
           _buildInfoText(),
 
           const SizedBox(height: 24),
@@ -85,7 +85,7 @@ class PointsInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar el icono de puntos
+  // Widget to display the points icon
   Widget _buildPointsIcon() {
     return Container(
       width: 48,
@@ -109,7 +109,7 @@ class PointsInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar el contenido del encabezado
+  // Widget to display the header content
   Widget _buildHeaderContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,14 +125,14 @@ class PointsInfoBottomSheet extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Gana puntos viendo videos',
+          'Earn points by watching videos',
           style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
       ],
     );
   }
 
-  // Widget para mostrar los puntos actuales
+  // Widget to display current points
   Widget _buildCurrentPoints() {
     return Column(
       children: [
@@ -159,15 +159,15 @@ class PointsInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar la barra de progreso
+  // Widget to display the progress bar
   Widget _buildProgressBar() {
-    // Valores de ejemplo para la barra de progreso
+    // Example values for the progress bar
     const maxValue = 38;
     final progress = userPoints >= maxValue ? 1.0 : userPoints / maxValue;
 
     return Column(
       children: [
-        // Barra de progreso
+        // Progress bar
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
@@ -178,7 +178,7 @@ class PointsInfoBottomSheet extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        // Valores de la barra
+        // Bar values
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -204,10 +204,10 @@ class PointsInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar texto informativo
+  // Widget to display informative text
   Widget _buildInfoText() {
     return Text(
-      'Ve más videos para ganar puntos y canjearlos por recompensas',
+      'Watch more videos to earn points and redeem them for rewards',
       style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
       textAlign: TextAlign.center,
     );

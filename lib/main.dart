@@ -51,14 +51,14 @@ class MyApp extends StatelessWidget {
             return authBloc;
           },
         ),
-        // ✅ Agregar VideosBloc a nivel global para evitar conflictos de contexto
+        // ✅ Add VideosBloc at global level to avoid context conflicts
         BlocProvider<VideosBloc>(
           create: (context) {
             AppLogger.videoInfo('Creating global VideosBloc instance');
             return di.getIt<VideosBloc>();
           },
         ),
-        // ✅ Agregar GenresBloc a nivel global para el manejo de categorías
+        // ✅ Add GenresBloc at global level for categories management
         BlocProvider<GenresBloc>(
           create: (context) {
             final genresBloc = di.getIt<GenresBloc>();
@@ -68,21 +68,21 @@ class MyApp extends StatelessWidget {
             return genresBloc;
           },
         ),
-        // ✅ Agregar VideoExplorerBloc a nivel global para evitar errores de provider
+        // ✅ Add VideoExplorerBloc at global level to avoid provider errors
         BlocProvider<VideoExplorerBloc>(
           create: (context) {
             AppLogger.videoInfo('Creating global VideoExplorerBloc instance');
             return di.getIt<VideoExplorerBloc>();
           },
         ),
-        // ✅ Agregar InviteBloc a nivel global para el feature de invitaciones
+        // ✅ Add InviteBloc at global level for the invitations feature
         BlocProvider<InviteBloc>(
           create: (context) {
             AppLogger.authInfo('Creating global InviteBloc instance');
             return di.getIt<InviteBloc>();
           },
         ),
-        // ✅ Agregar WalletBloc a nivel global para el feature de wallet
+        // ✅ Add WalletBloc at global level for the wallet feature
         BlocProvider<WalletBloc>(create: (_) => di.getIt<WalletBloc>()),
         BlocProvider<PaymentBloc>(create: (_) => di.getIt<PaymentBloc>()),
         BlocProvider<TransactionBloc>(
@@ -91,15 +91,15 @@ class MyApp extends StatelessWidget {
         BlocProvider<ResetPasswordBloc>(
           create: (_) => di.getIt<ResetPasswordBloc>(),
         ),
-        // Añadir DataUsageBloc para el feature de uso de datos
+        // Add DataUsageBloc for the data usage feature
         BlocProvider<DataUsageBloc>(
           create: (_) => di.getIt<DataUsageBloc>(),
         ),
-        // Añadir TrafficBloc para el feature de uso de datos en gráfico de barras
+        // Add TrafficBloc for the data usage in bar chart feature
         BlocProvider<TrafficBloc>(
           create: (_) => di.getIt<TrafficBloc>(),
         ),
-        // Añadir CustomerDetailsBloc para el feature de detalles del cliente
+        // Add CustomerDetailsBloc for the customer details feature
         BlocProvider<CustomerDetailsBloc>(
           create: (_) => di.getIt<CustomerDetailsBloc>(),
         ),
@@ -111,8 +111,8 @@ class MyApp extends StatelessWidget {
         ],
         child: Builder(
           builder: (context) {
-            // ✅ Usar Builder para asegurar acceso correcto al contexto de BLoCs
-            // Envolver la aplicación con CustomerDetailsListener para cargar los detalles del cliente después del login
+            // ✅ Use Builder to ensure correct access to BLoC context
+            // Wrap the application with CustomerDetailsListener to load customer details after login
             return CustomerDetailsListener(
               child: MaterialApp(
                 title: AppConstants.appName,
@@ -136,7 +136,7 @@ class MyApp extends StatelessWidget {
                     ),
                   ),
                 ),
-                // ✅ Usar home en lugar de initialRoute para evitar conflictos del Navigator
+                // ✅ Use home instead of initialRoute to avoid Navigator conflicts
                 home: const AuthWrapperWidget(),
                 onGenerateRoute: AppRouter.generateRoute,
               ),

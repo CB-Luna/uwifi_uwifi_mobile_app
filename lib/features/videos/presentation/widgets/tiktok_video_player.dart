@@ -76,7 +76,7 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
         _initializeVideo();
       }
     } else if (currentStateChanged && !widget.isCurrentVideo) {
-      // Si ya no es el video actual, pausarlo
+      // If it's no longer the current video, pause it
       _pauseVideo();
     }
   }

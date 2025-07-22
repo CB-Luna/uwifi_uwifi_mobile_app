@@ -96,10 +96,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, User?>> getUserByEmail(String email) async {
     if (await networkInfo.isConnected) {
       try {
-        // Intentamos obtener el usuario por email desde el remoteDataSource
+        // Try to get the user by email from the remoteDataSource
         final user = await remoteDataSource.getUserByEmail(email);
         if (user != null) {
-          // Si encontramos el usuario, lo guardamos en caché
+          // If we find the user, save it in cache
           await localDataSource.cacheUser(user);
         }
         return Right(user);
@@ -107,10 +107,10 @@ class AuthRepositoryImpl implements AuthRepository {
         return Left(AuthenticationFailure(e.toString()));
       }
     } else {
-      // Si no hay conexión, intentamos obtener el usuario de la caché
+      // If there's no connection, try to get the user from cache
       try {
         final cachedUser = await localDataSource.getCachedUser();
-        // Solo devolvemos el usuario en caché si coincide con el email solicitado
+        // Only return the cached user if it matches the requested email
         if (cachedUser != null && cachedUser.email == email) {
           return Right(cachedUser);
         } else {

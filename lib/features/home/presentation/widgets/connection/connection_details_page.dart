@@ -33,22 +33,22 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
     if (authState is AuthAuthenticated) {
       final user = authState.user;
 
-      // Verificar si el usuario tiene customerId
+      // Check if the user has customerId
       if (user.customerId != null) {
         AppLogger.navInfo(
-          'Cargando información para customerId: ${user.customerId}',
+          'Loading information for customerId: ${user.customerId}',
         );
-        // Cargar los datos de uso al iniciar la página
+        // Load usage data when initializing the page
         context.read<DataUsageBloc>().add(
           GetDataUsageEvent(customerId: user.customerId.toString()),
         );
 
-        // Cargar la información de conexión
+        // Load connection information
         context.read<ConnectionBloc>().add(
           GetConnectionInfoEvent(user.customerId!),
         );
       } else {
-        AppLogger.navError('Error: El usuario no tiene customerId asignado');
+        AppLogger.navError('Error: User does not have an assigned customerId');
       }
     }
   }
@@ -66,7 +66,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header con imagen, estado, nombre y botón Settings
+            // Header with image, status, name and Settings button
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               padding: const EdgeInsets.all(12),
@@ -83,7 +83,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
               ),
               child: Row(
                 children: [
-                  // Contenedor de la imagen del gateway
+                  // Gateway image container
                   Container(
                     width: 90,
                     height: 120,
@@ -102,7 +102,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Contenido del lado derecho
+                  // Right side content
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,7 +167,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                         const SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: () {
-                            // Obtener el ID del cliente desde el estado de autenticación
+                            // Get the customer ID from the authentication state
                             final authState = context.read<AuthBloc>().state;
                             if (authState is AuthAuthenticated &&
                                 authState.user.customerId != null) {
@@ -369,7 +369,7 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                             }
                             return const Center(
                               child: Text(
-                                'No se pudo obtener el ID del cliente',
+                                'Could not get customer ID',
                               ),
                             );
                           },

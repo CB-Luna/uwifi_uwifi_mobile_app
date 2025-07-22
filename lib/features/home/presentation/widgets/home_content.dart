@@ -22,7 +22,7 @@ class HomeContent extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Sección de conexión WiFi
+              // WiFi connection section
               BlocProvider<ConnectionBloc>(
                 create: (_) => di.getIt<ConnectionBloc>(),
                 child: const ConnectionCard(),
@@ -30,7 +30,7 @@ class HomeContent extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Sección de suscripción
+              // Subscription section
               MultiBlocProvider(
                 providers: [
                   BlocProvider<BillingBloc>(
@@ -45,10 +45,10 @@ class HomeContent extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Carrusel de servicios (Free Service y Referral)
+              // Services carousel (Free Service and Referral)
               const ServiceCarousel(),
 
-              // Espacio para la barra de navegación
+              // Space for navigation bar
               const SizedBox(height: 80),
             ],
           ),

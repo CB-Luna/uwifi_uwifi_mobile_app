@@ -17,7 +17,7 @@ import '../widgets/progressindicator/smart_video_progress_indicator.dart';
 import '../widgets/tiktok_video_player.dart';
 import 'video_completion_handler.dart';
 
-/// Página principal del feed de videos estilo TikTok/Instagram - LIMPIA Y FUNCIONAL
+/// Main TikTok/Instagram style video feed page - CLEAN AND FUNCTIONAL
 class TikTokVideoFeedPage extends StatefulWidget {
   const TikTokVideoFeedPage({super.key});
 
@@ -48,10 +48,10 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     _videoManager = TikTokVideoManager();
     _videoManager.addListener(_onVideoManagerChanged);
 
-    // ✅ INICIALIZAR el sistema de puntos
+    // ✅ INITIALIZE the points system
     VideoCompletionHandler.loadUserPointsFromStorage();
 
-    // Cargar videos iniciales
+    // Load initial videos
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_manualSelectionActive) {
         context.read<VideosBloc>().add(const LoadVideosPaginatedEvent());
@@ -62,7 +62,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
   void _onVideoManagerChanged() {
     if (!mounted) return;
 
-    // Solo actualizar si el índice realmente cambió
+    // Only update if the index actually changed
     if (_currentIndex != _videoManager.currentIndex) {
       Future.microtask(() {
         if (mounted && _videoManager.currentIndex != _currentIndex) {
@@ -71,7 +71,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
               _currentIndex = _videoManager.currentIndex;
             });
 
-            // Sincronizar PageController
+            // Synchronize PageController
             if (_pageController.hasClients && mounted) {
               _pageController.animateToPage(
                 _currentIndex,
@@ -459,12 +459,12 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
       if (videoList.isNotEmpty && _currentIndex < videoList.length) {
         final currentVideo = videoList[_currentIndex];
 
-        // ✅ USAR VideoCompletionHandler para manejar la finalización del video
+        // ✅ USE VideoCompletionHandler to handle video completion
         VideoCompletionHandler.handleVideoCompletion(
           context,
           currentVideo, // Pasar el video completo con sus puntos específicos
           onAnimationComplete: () {
-            // Después de la animación, avanzar al siguiente video
+            // After animation, advance to next video
             _advanceToNextVideo(videoList, videosState);
           },
         );
@@ -474,17 +474,17 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     });
   }
 
-  // Manejar selección manual de video
+  // Handle manual video selection
   void _handleVideoSelection(Ad video, List<Ad> playlist, int startIndex) {
     _manualSelectionActive = true;
 
-    // Pausar video actual
+    // Pause current video
     if (_currentVideoController != null &&
         _currentVideoController!.value.isInitialized) {
       _currentVideoController!.pause();
     }
 
-    // Recrear PageController
+    // Recreate PageController
     _pageController.dispose();
     _pageController = PageController(initialPage: startIndex);
 
@@ -503,7 +503,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     );
   }
 
-  // Avanzar al siguiente video
+  // Advance to next video
   void _advanceToNextVideo(List<Ad> videoList, dynamic videosState) {
     if (videoList.isNotEmpty) {
       if (_currentIndex < videoList.length - 1) {
@@ -522,7 +522,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
 
         _videoManager.goToVideo(nextIndex);
 
-        // Cargar más videos si estamos cerca del final
+        // Load more videos if we're near the end
         if (nextIndex >= videoList.length - 2) {
           AppLogger.videoInfo('🔄 Near end, loading more videos preemptively');
           if (videosState is VideosLoaded) {
@@ -535,7 +535,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
           }
         }
       } else {
-        // Si es el último video, cargar más o hacer loop
+        // If it's the last video, load more or loop
         AppLogger.videoInfo('🔄 Reached end, trying to load more videos');
 
         if (videosState is VideosLoaded) {
@@ -547,7 +547,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
           );
         }
 
-        // Loop al primer video
+        // Loop back to first video
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             setState(() {
@@ -567,7 +567,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     }
   }
 
-  // Obtener color del estilo actual
+  // Get color of current style
   Color _getStyleColor() {
     switch (_currentProgressStyle) {
       case ProgressIndicatorStyle.glassmorphism:
@@ -581,7 +581,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     }
   }
 
-  // Obtener nombre abreviado del estilo actual
+  // Get abbreviated name of current style
   String _getStyleName() {
     switch (_currentProgressStyle) {
       case ProgressIndicatorStyle.glassmorphism:

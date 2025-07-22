@@ -24,10 +24,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   void _loadConnectionInfo() {
-    // Obtener el ID del cliente desde el estado de autenticación
+    // Get customer ID from authentication state
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated && authState.user.customerId != null) {
-      // GetConnectionInfoEvent espera un int no nulo
+      // GetConnectionInfoEvent expects a non-null int
       final customerId = authState.user.customerId!;
       context.read<ConnectionBloc>().add(GetConnectionInfoEvent(customerId));
     }
@@ -51,7 +51,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
       ),
       child: Row(
         children: [
-          // Contenedor de la imagen del gateway
+          // Gateway image container
           Container(
             width: 120,
             height: 180,
@@ -72,15 +72,15 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
           const SizedBox(width: 20),
 
-          // Contenido del lado derecho
+          // Right side content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Estado de conexión y nombre del WiFi
+                // Connection status and WiFi name
                 BlocBuilder<ConnectionBloc, connection_state.ConnectionState>(
                   builder: (context, state) {
-                    // Determinar el estado de conexión y el nombre del WiFi
+                    // Determine connection status and WiFi name
                     String connectionStatus = 'Loading...';
                     String wifiName = 'Searching...';
                     Color statusColor = Colors.grey;
@@ -107,7 +107,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Estado de conexión
+                        // Connection status
                         Text(
                           connectionStatus,
                           style: TextStyle(
@@ -119,7 +119,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
                         const SizedBox(height: 8),
 
-                        // Nombre del WiFi
+                        // WiFi name
                         Text(
                           wifiName,
                           style: const TextStyle(
@@ -135,10 +135,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
                 const SizedBox(height: 16),
 
-                // Botón de detalles
+                // Details button
                 ElevatedButton(
                   onPressed: () {
-                    // Obtener el ID del cliente desde el estado de autenticación
+                    // Get customer ID from authentication state
                     final authState = context.read<AuthBloc>().state;
                     if (authState is AuthAuthenticated && authState.user.customerId != null) {
                       final customerId = authState.user.customerId!;

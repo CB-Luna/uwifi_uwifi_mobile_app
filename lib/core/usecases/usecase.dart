@@ -3,12 +3,12 @@ import 'package:equatable/equatable.dart';
 
 import '../errors/failures.dart';
 
-/// Interfaz base para todos los casos de uso
+/// Base interface for all use cases
 abstract class UseCase<Type, Params> {
   Future<Either<Failure, Type>> call(Params params);
 }
 
-/// Clase que representa parámetros vacíos
+/// Class that represents empty parameters
 class NoParams extends Equatable {
   @override
   List<Object> get props => [];

@@ -3,59 +3,59 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uwifiapp/core/utils/app_logger.dart';
 import '../../domain/entities/ad.dart';
 
-/// Manejador para la finalización de videos y sistema de puntos
+/// Handler for video completion and points system
 class VideoCompletionHandler {
   static const String _userPointsKey = 'user_points';
   static int _currentUserPoints = 0;
 
-  /// Cargar puntos del usuario desde el almacenamiento local
+  /// Load user points from local storage
   static Future<void> loadUserPointsFromStorage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _currentUserPoints = prefs.getInt(_userPointsKey) ?? 0;
       AppLogger.videoInfo(
-        '💰 Puntos del usuario cargados: $_currentUserPoints',
+        '💰 User points loaded: $_currentUserPoints',
       );
     } catch (e) {
-      AppLogger.videoError('❌ Error cargando puntos del usuario: $e');
+      AppLogger.videoError('❌ Error loading user points: $e');
       _currentUserPoints = 0;
     }
   }
 
-  /// Obtener puntos actuales del usuario
+  /// Get current user points
   static int get currentUserPoints => _currentUserPoints;
 
-  /// Guardar puntos del usuario en el almacenamiento local
+  /// Save user points to local storage
   static Future<void> _saveUserPoints() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_userPointsKey, _currentUserPoints);
-      AppLogger.videoInfo('💾 Puntos guardados: $_currentUserPoints');
+      AppLogger.videoInfo('💾 Points saved: $_currentUserPoints');
     } catch (e) {
-      AppLogger.videoError('❌ Error guardando puntos: $e');
+      AppLogger.videoError('❌ Error saving points: $e');
     }
   }
 
-  /// Manejar la finalización de un video y otorgar puntos (SOLO UNA VEZ)
+  /// Handle video completion and award points (ONLY ONCE)
   static Future<void> handleVideoCompletion(
     BuildContext context,
     Ad video, {
     VoidCallback? onAnimationComplete,
   }) async {
     try {
-      // Determinar puntos a otorgar (usar los puntos específicos del video o un valor por defecto)
+      // Determine points to award (use specific video points or default value)
       final pointsToAdd = video.points > 0
           ? video.points
-          : 10; // Valor por defecto de 10 puntos
+          : 10; // Default value of 10 points
 
-      // ✅ SOLO acumular puntos UNA VEZ cuando realmente termina el video
+      // ✅ ONLY accumulate points ONCE when the video actually ends
       await _awardPoints(pointsToAdd, video.title);
 
       AppLogger.videoInfo(
-        '🎉 Video completado: "${video.title}" - Puntos otorgados: $pointsToAdd - Total: $_currentUserPoints',
+        '🎉 Video completed: "${video.title}" - Points awarded: $pointsToAdd - Total: $_currentUserPoints',
       );
 
-      // Mostrar animación de puntos ganados
+      // Show earned points animation
       if (context.mounted) {
         await _showPointsEarnedAnimation(context, pointsToAdd);
       }
@@ -64,12 +64,12 @@ class VideoCompletionHandler {
       onAnimationComplete?.call();
     } catch (e) {
       AppLogger.videoError('❌ Error en handleVideoCompletion: $e');
-      // En caso de error, ejecutar el callback de cualquier manera
+      // In case of error, execute the callback anyway
       onAnimationComplete?.call();
     }
   }
 
-  /// Mostrar SOLO la animación de puntos (sin acumular)
+  /// Show ONLY the points animation (without accumulating)
   static Future<void> showPointsAnimation(
     BuildContext context,
     int points, {
@@ -77,10 +77,10 @@ class VideoCompletionHandler {
   }) async {
     try {
       AppLogger.videoInfo(
-        '🎬 Mostrando animación de $points puntos (sin acumular)',
+        '🎬 Showing animation of $points points (without accumulating)',
       );
 
-      // Solo mostrar animación, sin acumular puntos
+      // Only show animation, without accumulating points
       if (context.mounted) {
         await _showPointsEarnedAnimation(context, points);
       }
@@ -93,16 +93,16 @@ class VideoCompletionHandler {
     }
   }
 
-  /// Método privado para acumular puntos (solo se llama una vez por video)
+  /// Private method to accumulate points (only called once per video)
   static Future<void> _awardPoints(int points, String videoTitle) async {
-    // Agregar puntos al total del usuario
+    // Add points to user's total
     _currentUserPoints += points;
 
-    // Guardar puntos actualizados
+    // Save updated points
     await _saveUserPoints();
   }
 
-  /// Mostrar animación de puntos ganados
+  /// Show earned points animation
   static Future<void> _showPointsEarnedAnimation(
     BuildContext context,
     int pointsEarned,
@@ -123,18 +123,18 @@ class VideoCompletionHandler {
 
     overlay.insert(overlayEntry);
 
-    // Esperar a que termine la animación
+    // Wait for animation to finish
     await Future.delayed(const Duration(milliseconds: 2000));
   }
 
-  /// Resetear puntos del usuario (para pruebas o funcionalidad admin)
+  /// Reset user points (for testing or admin functionality)
   static Future<void> resetUserPoints() async {
     _currentUserPoints = 0;
     await _saveUserPoints();
     AppLogger.videoInfo('🔄 Puntos del usuario reseteados');
   }
 
-  /// Agregar puntos manualmente (para otras funcionalidades)
+  /// Add points manually (for other functionalities)
   static Future<void> addPoints(int points) async {
     _currentUserPoints += points;
     await _saveUserPoints();
@@ -144,7 +144,7 @@ class VideoCompletionHandler {
   }
 }
 
-/// Widget de animación para mostrar puntos ganados
+/// Animation widget to show earned points
 class _PointsEarnedWidget extends StatefulWidget {
   final int points;
   final VoidCallback onAnimationComplete;
@@ -188,7 +188,7 @@ class _PointsEarnedWidgetState extends State<_PointsEarnedWidget>
       vsync: this,
     );
 
-    // Animaciones
+    // Animations
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.2).animate(
       CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
     );
@@ -205,7 +205,7 @@ class _PointsEarnedWidgetState extends State<_PointsEarnedWidget>
       end: const Offset(0.0, -0.5),
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
-    // Iniciar animaciones
+    // Start animations
     _startAnimations();
   }
 

@@ -10,7 +10,7 @@ class AddUserPage extends StatefulWidget {
 class _AddUserPageState extends State<AddUserPage> {
   final formKey = GlobalKey<FormState>();
 
-  // Controladores para los campos de texto
+  // Controllers for text fields
   final nameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
@@ -18,7 +18,7 @@ class _AddUserPageState extends State<AddUserPage> {
 
   @override
   void dispose() {
-    // Liberar los controladores cuando se destruye el widget
+    // Release controllers when the widget is destroyed
     nameController.dispose();
     lastNameController.dispose();
     emailController.dispose();
@@ -26,7 +26,7 @@ class _AddUserPageState extends State<AddUserPage> {
     super.dispose();
   }
 
-  // Validadores para cada campo
+  // Validators for each field
   String? validateName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter a name';
@@ -51,7 +51,7 @@ class _AddUserPageState extends State<AddUserPage> {
     if (value == null || value.isEmpty) {
       return 'Please enter an email';
     }
-    // Expresión regular para validar email
+    // Regular expression to validate email
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
       return 'Please enter a valid email';
@@ -63,8 +63,8 @@ class _AddUserPageState extends State<AddUserPage> {
     if (value == null || value.isEmpty) {
       return 'Please enter a phone number';
     }
-    // Validar que solo contenga números, espacios, guiones y paréntesis
-    // y tenga al menos 10 dígitos numéricos
+    // Validate that it only contains numbers, spaces, hyphens and parentheses
+    // and has at least 10 numeric digits
     final cleanValue = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
     if (cleanValue.length < 10 || !RegExp(r'^[0-9]+$').hasMatch(cleanValue)) {
       return 'Please enter a valid phone number (min. 10 digits)';
@@ -72,10 +72,10 @@ class _AddUserPageState extends State<AddUserPage> {
     return null;
   }
 
-  // Método para manejar el envío del formulario
+  // Method to handle form submission
   void _handleSubmit() {
     if (formKey.currentState!.validate()) {
-      // Si el formulario es válido, mostrar un snackbar de éxito
+      // If the form is valid, show a success snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Invitation sent successfully!'),
@@ -83,8 +83,8 @@ class _AddUserPageState extends State<AddUserPage> {
         ),
       );
 
-      // Aquí iría la lógica para enviar la invitación
-      // Por ahora solo cerramos la página después de un breve delay
+      // Here would go the logic to send the invitation
+      // For now we just close the page after a brief delay
       Future.delayed(const Duration(seconds: 2), () {
         Navigator.of(context).pop();
       });
@@ -116,7 +116,7 @@ class _AddUserPageState extends State<AddUserPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Avatar/Ilustración
+                // Avatar/Illustration
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,

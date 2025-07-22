@@ -97,7 +97,7 @@ class VideosBloc extends Bloc<VideosEvent, VideosState> {
         // significa que hemos llegado al final
         final hasReachedEnd = videos.isEmpty || videos.length < event.limit;
 
-        // Si ya teníamos videos cargados y no es primera página
+        // If we already had loaded videos and it's not the first page
         if (state is VideosLoaded && event.page > 1) {
           final currentState = state as VideosLoaded;
           final allVideos = [...currentState.videos, ...videos];

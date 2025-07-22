@@ -19,7 +19,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   final RebootGateway rebootGateway;
   final SecureStorageService secureStorage;
   
-  // Cache para mantener la información entre recargas
+  // Cache to maintain information between reloads
   GatewayInfo? _cachedGatewayInfo;
 
   ConnectionBloc({
@@ -41,7 +41,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     Emitter<ConnectionState> emit,
   ) async {
     try {
-      // Preservar estado anterior si existe
+      // Preserve previous state if it exists
       final currentState = state;
       if (currentState is ConnectionLoaded) {
         _cachedGatewayInfo = currentState.gatewayInfo;
@@ -53,52 +53,52 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
       }
 
       AppLogger.navInfo(
-        'Solicitando información de conexión para customerId: ${event.customerId}',
+        'Requesting connection information for customerId: ${event.customerId}',
       );
 
-      // Paso 1: Obtener el bundle del cliente
+      // Step 1: Get customer bundle
       final bundleResult = await getCustomerBundle(event.customerId);
 
       await bundleResult.fold(
         (failure) async {
           AppLogger.navError(
-            'Error al obtener el bundle del cliente: ${failure.message}',
+            'Error getting customer bundle: ${failure.message}',
           );
           emit(ConnectionError(message: failure.message));
         },
         (bundles) async {
           if (bundles.isEmpty) {
-            AppLogger.navError('No se encontraron bundles para el cliente');
-            emit(const ConnectionError(message: 'No se encontraron bundles'));
+            AppLogger.navError('No bundles found for customer');
+            emit(const ConnectionError(message: 'No bundles found'));
             return;
           }
 
-          // Tomar el primer bundle (asumimos que es el principal)
+          // Take the first bundle (we assume it's the main one)
           final bundle = bundles.first;
           
-          // Verificar si tenemos un número de serie
+          // Check if we have a serial number
           if (bundle.gatewaySerialNumber.isEmpty) {
-            AppLogger.navError('El bundle no tiene número de serie');
+            AppLogger.navError('Bundle has no serial number');
             
-            // Si tenemos información en caché, la usamos
+            // If we have cached information, we use it
             if (_cachedGatewayInfo != null) {
               emit(ConnectionLoaded(gatewayInfo: _cachedGatewayInfo!));
             } else {
-              emit(const ConnectionError(message: 'Dispositivo sin número de serie'));
+              emit(const ConnectionError(message: 'Device without serial number'));
             }
             return;
           }
 
-          // Paso 2: Obtener la información del gateway usando el número de serie
+          // Step 2: Get gateway information using serial number
           final gatewayInfoResult = await getGatewayInfo(bundle.gatewaySerialNumber);
 
           await gatewayInfoResult.fold(
             (failure) async {
               AppLogger.navError(
-                'Error al obtener información del gateway: ${failure.message}',
+                'Error getting gateway information: ${failure.message}',
               );
               
-              // Si tenemos información en caché, la usamos
+              // If we have cached information, use it
               if (_cachedGatewayInfo != null) {
                 emit(ConnectionLoaded(gatewayInfo: _cachedGatewayInfo!));
               } else {
@@ -164,7 +164,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     }
     
     AppLogger.navInfo(
-      'Actualizando nombre de red WiFi: ${event.isNetwork24G ? "2.4GHz" : "5GHz"} a ${event.newName}',
+      'Updating WiFi network name: ${event.isNetwork24G ? "2.4GHz" : "5GHz"} to ${event.newName}',
     );
     
     final params = UpdateWifiNetworkNameParams(
@@ -178,14 +178,14 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     result.fold(
       (failure) {
         AppLogger.navError(
-          'Error al actualizar nombre de red WiFi: ${failure.message}',
+          'Error updating WiFi network name: ${failure.message}',
         );
         emit(ConnectionError(message: failure.message));
       },
       (success) {
-        AppLogger.navInfo('Nombre de red WiFi actualizado con éxito');
+        AppLogger.navInfo('WiFi network name updated successfully');
         
-        // Actualizar la información en caché con el nuevo nombre
+        // Update cached information with the new name
         GatewayInfo updatedInfo;
         if (event.isNetwork24G) {
           updatedInfo = previousInfo!.copyWith(wifi24GName: event.newName);
@@ -216,7 +216,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     }
     
     AppLogger.navInfo(
-      'Actualizando contraseña WiFi: ${event.isNetwork24G ? "2.4GHz" : "5GHz"}',
+      'Updating WiFi password: ${event.isNetwork24G ? "2.4GHz" : "5GHz"}',
     );
     
     final params = UpdateWifiPasswordParams(
@@ -230,14 +230,14 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     result.fold(
       (failure) {
         AppLogger.navError(
-          'Error al actualizar contraseña WiFi: ${failure.message}',
+          'Error updating WiFi password: ${failure.message}',
         );
         emit(ConnectionError(message: failure.message));
       },
       (success) {
-        AppLogger.navInfo('Contraseña WiFi actualizada con éxito');
+        AppLogger.navInfo('WiFi password updated successfully');
         
-        // Actualizar la información en caché con la nueva contraseña
+        // Update cached information with the new password
         GatewayInfo updatedInfo;
         if (event.isNetwork24G) {
           updatedInfo = previousInfo!.copyWith(wifi24GPassword: event.newPassword);
@@ -268,7 +268,7 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     }
     
     AppLogger.navInfo(
-      'Reiniciando gateway con número de serie: ${event.serialNumber}',
+      'Rebooting gateway with serial number: ${event.serialNumber}',
     );
     
     final params = RebootGatewayParams(
@@ -280,14 +280,14 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     result.fold(
       (failure) {
         AppLogger.navError(
-          'Error al reiniciar el gateway: ${failure.message}',
+          'Error rebooting gateway: ${failure.message}',
         );
         emit(ConnectionError(message: failure.message));
       },
       (success) {
-        AppLogger.navInfo('Gateway reiniciado con éxito');
+        AppLogger.navInfo('Gateway rebooted successfully');
         
-        // Mantenemos la misma información del gateway ya que el reinicio no cambia sus datos
+        // We keep the same gateway information since rebooting doesn't change its data
         if (previousInfo != null) {
           emit(ConnectionLoaded(gatewayInfo: previousInfo));
         } else {

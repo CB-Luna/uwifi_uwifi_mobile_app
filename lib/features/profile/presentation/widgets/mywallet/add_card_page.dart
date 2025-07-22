@@ -206,7 +206,7 @@ class _AddCardPageState extends State<AddCardPage> {
                               ),
                               const SizedBox(width: 12),
 
-                              // Campo para año de expiración
+                              // Field for expiration year
                               Expanded(
                                 child: _buildCustomTextField(
                                   hintText: 'Exp Year',
@@ -367,7 +367,7 @@ class _AddCardPageState extends State<AddCardPage> {
     });
   }
 
-  // Método para manejar cuando el CVV pierde el foco
+  // Method to handle when CVV loses focus
   void onCvvBlur() {
     setState(() {
       isCvvFocused = false;
@@ -378,7 +378,7 @@ class _AddCardPageState extends State<AddCardPage> {
     if (_customerId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Error: No se pudo obtener el ID del cliente'),
+          content: Text('Error: Could not obtain customer ID'),
         ),
       );
       return;

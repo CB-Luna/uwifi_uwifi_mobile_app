@@ -4,8 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/utils/app_logger.dart';
 import '../../../domain/entities/ad.dart';
 
-/// ✅ Widget especializado para mostrar información detallada del video
-/// Modal bottom sheet con diseño minimalista y botón para visitar URL
+/// ✅ Specialized widget to display detailed video information
+/// Modal bottom sheet with minimalist design and button to visit URL
 class VideoInfoBottomSheet extends StatelessWidget {
   final Ad ad;
 
@@ -70,7 +70,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar el avatar/logo
+  // Widget to display the avatar/logo
   Widget _buildAvatar() {
     return Container(
       width: 40,
@@ -96,7 +96,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar el título y subtítulo
+  // Widget to display title and subtitle
   Widget _buildHeaderContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +119,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar el mensaje principal
+  // Widget to display the main message
   Widget _buildMessage() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,7 +143,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Widget para el botón de visitar URL
+  // Widget for the visit URL button
   Widget _buildVisitUrlButton(BuildContext context) {
     return Visibility(
       visible: ad.urlAd != null && ad.urlAd!.isNotEmpty,
@@ -151,7 +151,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () async {
-            // Asegurarse de que la URL tenga el formato correcto
+            // Make sure the URL has the correct format
             String urlString = ad.urlAd ?? '';
             if (!urlString.startsWith('http://') &&
                 !urlString.startsWith('https://')) {
@@ -160,20 +160,20 @@ class VideoInfoBottomSheet extends StatelessWidget {
 
             try {
               final url = Uri.parse(urlString);
-              // Usar launchUrl con opciones específicas para garantizar que se abra en el navegador externo
+              // Use launchUrl with specific options to ensure it opens in the external browser
               await launchUrl(url, mode: LaunchMode.externalApplication).then((
                 success,
               ) {
                 if (!success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('No se pudo abrir la URL')),
+                    const SnackBar(content: Text('Could not open URL')),
                   );
                 }
               });
             } catch (e) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error al abrir URL: $e')),
+                  SnackBar(content: Text('Error opening URL: $e')),
                 );
               }
             }
@@ -195,7 +195,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Método para formatear la duración en formato mm:ss
+  // Method to format duration in mm:ss format
   String _formatDuration(int seconds) {
     final minutes = seconds ~/ 60;
     final remainingSeconds = seconds % 60;

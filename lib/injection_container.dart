@@ -143,7 +143,7 @@ final getIt = GetIt.instance;
 
 Future<void> init() async {
   //! Features - Videos
-  // Bloc - Cambiado a LazySingleton para asegurar una sola instancia
+  // Bloc - Changed to LazySingleton to ensure a single instance
   getIt.registerLazySingleton(
     () => VideosBloc(
       getVideos: getIt(),
@@ -158,7 +158,7 @@ Future<void> init() async {
 
   getIt.registerLazySingleton(() => GenresBloc(getGenres: getIt()));
 
-  // ✅ NUEVO: VideoExplorerBloc para el sistema refactorizado
+  // ✅ NEW: VideoExplorerBloc for the refactored system
   getIt.registerFactory(
     () => VideoExplorerBloc(
       getAdsUseCase: getIt(),
@@ -177,7 +177,7 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => UnlikeVideo(getIt()));
   getIt.registerLazySingleton(() => GetGenres(getIt()));
 
-  // ✅ NUEVOS: Use cases para el sistema de exploración refactorizado
+  // ✅ NEW: Use cases for the refactored exploration system
   getIt.registerLazySingleton(() => GetAds(getIt()));
   getIt.registerLazySingleton(() => GetAdsWithParams(getIt()));
   getIt.registerLazySingleton(() => GetGenresWithVideos(getIt()));
@@ -551,7 +551,7 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => BiometricPreferencesService(preferences: getIt<SharedPreferences>()));
   getIt.registerFactory(() => BiometricProvider(preferences: getIt<SharedPreferences>()));
 
-  // Registrar http.Client para las llamadas HTTP
+  // Register http.Client for HTTP calls
   getIt.registerLazySingleton(() => http.Client());
 
   // Supabase client will be registered after initialization

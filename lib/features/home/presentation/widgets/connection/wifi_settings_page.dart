@@ -18,14 +18,14 @@ class WifiSettingsPage extends StatefulWidget {
 }
 
 class _WifiSettingsPageState extends State<WifiSettingsPage> {
-  // Controladores para los campos de texto en los diálogos
+  // Controllers for text fields in dialogs
   final TextEditingController _newSsidController = TextEditingController();
   final TextEditingController _confirmSsidController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  // Variables para controlar la visibilidad de las contraseñas
+  // Variables to control password visibility
   final bool _showNewPassword = false;
   final bool _showConfirmPassword = false;
   bool _showWifi24GPassword = false;
@@ -47,10 +47,10 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
   }
 
   void _loadConnectionInfo() {
-    // Obtener el ID del cliente desde el estado de autenticación
+    // Get customer ID from authentication state
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated && authState.user.customerId != null) {
-      // GetConnectionInfoEvent espera un int no nulo
+      // GetConnectionInfoEvent expects a non-null int
       final customerId = authState.user.customerId!;
       context.read<ConnectionBloc>().add(GetConnectionInfoEvent(customerId));
     }
@@ -79,7 +79,7 @@ class _WifiSettingsPageState extends State<WifiSettingsPage> {
               ),
             ),
             const SizedBox(height: 16),
-            // Mostrar tarjetas WiFi con datos dinámicos
+            // Show WiFi cards with dynamic data
             BlocBuilder<ConnectionBloc, connection_state.ConnectionState>(
               builder: (context, state) {
                 String wifi24GName = 'Loading...';

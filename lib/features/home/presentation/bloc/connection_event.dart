@@ -19,7 +19,7 @@ class GetConnectionInfoEvent extends ConnectionEvent {
 class UpdateWifiNetworkNameEvent extends ConnectionEvent {
   final String serialNumber;
   final String newName;
-  final bool isNetwork24G; // true para 2.4GHz, false para 5GHz
+  final bool isNetwork24G; // true for 2.4GHz, false for 5GHz
 
   const UpdateWifiNetworkNameEvent({
     required this.serialNumber,
@@ -34,7 +34,7 @@ class UpdateWifiNetworkNameEvent extends ConnectionEvent {
 class UpdateWifiPasswordEvent extends ConnectionEvent {
   final String serialNumber;
   final String newPassword;
-  final bool isNetwork24G; // true para 2.4GHz, false para 5GHz
+  final bool isNetwork24G; // true for 2.4GHz, false for 5GHz
 
   const UpdateWifiPasswordEvent({
     required this.serialNumber,

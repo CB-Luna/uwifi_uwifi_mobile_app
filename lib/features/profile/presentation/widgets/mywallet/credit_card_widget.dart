@@ -22,7 +22,7 @@ class CreditCardWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        // Agregar borde blanco solo a la tarjeta frontal
+        // Add white border only to the front card
         image: DecorationImage(
           image: const AssetImage('assets/images/profile/CreditCardUI.png'),
           fit: BoxFit.cover,
