@@ -19,6 +19,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -39,8 +40,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _handleLogin() {
-    if (_validateEmail(_emailController.text) == null &&
-        _validatePassword(_passwordController.text) == null) {
+    // Validar el formulario usando el formKey
+    if (_formKey.currentState?.validate() ?? false) {
       AppLogger.authInfo('Login form validated, attempting login');
 
       context.read<AuthBloc>().add(
@@ -86,11 +87,14 @@ class _LoginPageState extends State<LoginPage> {
       barrierColor: Colors.black54,
       // Configuramos para que aparezca más arriba en la pantalla
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.85, // Limita la altura al 85% de la pantalla
+        maxHeight:
+            MediaQuery.of(context).size.height *
+            0.85, // Limita la altura al 85% de la pantalla
       ),
       builder: (context) => DraggableScrollableSheet(
         // Hacemos que inicialmente ocupe más espacio vertical
-        initialChildSize: 0.7, // Antes era aproximadamente 0.5 (valor por defecto)
+        initialChildSize:
+            0.7, // Antes era aproximadamente 0.5 (valor por defecto)
         minChildSize: 0.5, // Mínimo tamaño al deslizar hacia abajo
         maxChildSize: 0.95, // Máximo tamaño al expandir
         expand: false,
@@ -106,20 +110,17 @@ class _LoginPageState extends State<LoginPage> {
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Por favor ingresa tu email';
+      return 'Please enter your email';
     }
     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-      return 'Por favor ingresa un email válido';
+      return 'Please enter a valid email';
     }
     return null;
   }
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Por favor ingresa tu contraseña';
-    }
-    if (value.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres';
+      return 'Please enter your password';
     }
     return null;
   }
@@ -164,224 +165,260 @@ class _LoginPageState extends State<LoginPage> {
 
                     Padding(
                       padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Welcome to U!',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Welcome to U!',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Fill out the information below in order to access your account.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Fill out the information below in order to access your account.',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 32),
+                            const SizedBox(height: 32),
 
-                          // Email field
-                          TextField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: InputDecoration(
-                              labelText: 'Email',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
+                            // Email field
+                            TextFormField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: _validateEmail,
+                              decoration: InputDecoration(
+                                labelText: 'Email',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: Colors.green.shade400,
+                                  ),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: Colors.red.shade400,
+                                  ),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: Colors.red.shade400,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
                                 ),
                               ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.green.shade400,
+                              enabled: state is! AuthLoading,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Password field
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: !_isPasswordVisible,
+                              validator: _validatePassword,
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: Colors.green.shade400,
+                                  ),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: Colors.red.shade400,
+                                  ),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: Colors.red.shade400,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _isPasswordVisible
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: Colors.grey,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _isPasswordVisible = !_isPasswordVisible;
+                                    });
+                                  },
                                 ),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
+                              enabled: state is! AuthLoading,
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Login button
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: state is AuthLoading
+                                    ? null
+                                    : _handleLogin,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green.shade400,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: state is AuthLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      )
+                                    : const Text('Log In'),
                               ),
                             ),
-                            enabled: state is! AuthLoading,
-                          ),
-                          const SizedBox(height: 16),
 
-                          // Password field
-                          TextField(
-                            controller: _passwordController,
-                            obscureText: !_isPasswordVisible,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.green.shade400,
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _isPasswordVisible
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                  color: Colors.grey,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isPasswordVisible = !_isPasswordVisible;
-                                  });
-                                },
-                              ),
-                            ),
-                            enabled: state is! AuthLoading,
-                          ),
-                          const SizedBox(height: 24),
+                            // Biometric login button - usando Consumer para acceder al BiometricProvider
+                            Consumer<BiometricProvider>(
+                              builder: (context, biometricProvider, child) {
+                                // Crear un FutureBuilder para verificar si la biometría está habilitada
+                                return FutureBuilder<bool>(
+                                  future: _biometricAuthService
+                                      .isBiometricEnabled(),
+                                  builder: (context, snapshot) {
+                                    // Solo mostrar el botón si la biometría está disponible Y habilitada
+                                    final bool isEnabled =
+                                        snapshot.data ?? false;
+                                    if (!biometricProvider.isAvailable ||
+                                        !isEnabled) {
+                                      return const SizedBox.shrink();
+                                    }
 
-                          // Login button
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: state is AuthLoading
-                                  ? null
-                                  : _handleLogin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green.shade400,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: state is AuthLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
-                                      ),
-                                    )
-                                  : const Text('Log In'),
-                            ),
-                          ),
-
-                          // Biometric login button - usando Consumer para acceder al BiometricProvider
-                          Consumer<BiometricProvider>(
-                            builder: (context, biometricProvider, child) {
-                              // Crear un FutureBuilder para verificar si la biometría está habilitada
-                              return FutureBuilder<bool>(
-                                future: _biometricAuthService.isBiometricEnabled(),
-                                builder: (context, snapshot) {
-                                  // Solo mostrar el botón si la biometría está disponible Y habilitada
-                                  final bool isEnabled = snapshot.data ?? false;
-                                  if (!biometricProvider.isAvailable || !isEnabled) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  
-                                  return Column(
-                                    children: [
-                                      const SizedBox(height: 16),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        height: 50,
-                                        child: OutlinedButton(
-                                          onPressed: state is AuthLoading
-                                              ? null
-                                              : _handleBiometricLogin,
-                                          style: OutlinedButton.styleFrom(
-                                            side: BorderSide(
-                                              color: Colors.green.shade400,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(
-                                                25,
+                                    return Column(
+                                      children: [
+                                        const SizedBox(height: 16),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          height: 50,
+                                          child: OutlinedButton(
+                                            onPressed: state is AuthLoading
+                                                ? null
+                                                : _handleBiometricLogin,
+                                            style: OutlinedButton.styleFrom(
+                                              side: BorderSide(
+                                                color: Colors.green.shade400,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(25),
                                               ),
                                             ),
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                'Log in with ${biometricProvider.biometricType}',
-                                                style: TextStyle(
-                                                  color: Colors.green.shade400,
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'Log in with ${biometricProvider.biometricType}',
+                                                  style: TextStyle(
+                                                    color:
+                                                        Colors.green.shade400,
+                                                  ),
                                                 ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              biometricProvider.biometricType
-                                                      .contains('Face')
-                                                  ? Image.asset(
-                                                      'assets/images/login/face-id.png',
-                                                      height: 24,
-                                                      width: 24,
-                                                    )
-                                                  : Icon(
-                                                      Icons.fingerprint,
-                                                      color: Colors.green.shade400,
-                                                      size: 24,
-                                                    ),
-                                            ],
+                                                const SizedBox(width: 8),
+                                                biometricProvider.biometricType
+                                                        .contains('Face')
+                                                    ? Image.asset(
+                                                        'assets/images/login/face-id.png',
+                                                        height: 24,
+                                                        width: 24,
+                                                      )
+                                                    : Icon(
+                                                        Icons.fingerprint,
+                                                        color: Colors
+                                                            .green
+                                                            .shade400,
+                                                        size: 24,
+                                                      ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          ),
-
-                          const SizedBox(height: 24),
-                          // Forgot password
-                          Center(
-                            child: TextButton(
-                              onPressed: () {
-                                _showForgotPasswordSheet(context);
+                                      ],
+                                    );
+                                  },
+                                );
                               },
-                              child: Text(
-                                'Forgot Password?',
-                                style: TextStyle(color: Colors.purple.shade700),
+                            ),
+
+                            const SizedBox(height: 24),
+                            // Forgot password
+                            Center(
+                              child: TextButton(
+                                onPressed: () {
+                                  _showForgotPasswordSheet(context);
+                                },
+                                child: Text(
+                                  'Forgot Password?',
+                                  style: TextStyle(
+                                    color: Colors.purple.shade700,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
 
-                          // Ad banner
-                          const SizedBox(height: 24),
-                          Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(8),
+                            // Ad banner
+                            const SizedBox(height: 24),
+                            Container(
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text('AdMob Banner'),
                             ),
-                            alignment: Alignment.center,
-                            child: const Text('AdMob Banner'),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
