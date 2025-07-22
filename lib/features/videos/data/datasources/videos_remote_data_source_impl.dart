@@ -44,7 +44,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
       final response = await supabaseClient
           .from('ad')
           .select(
-            'id, title, overview, poster_path, genre_id, video, duration_video, priority, created_at, points, video_status',
+            'id, title, overview, poster_path, genre_id, video, duration_video, priority, created_at, points, video_status, partner, url_ad',
           )
           .eq('video_status', true) // Solo videos activos
           .order('priority');
@@ -67,7 +67,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
       var query = supabaseClient
           .from('ad')
           .select(
-            'id, title, overview, poster_path, genre_id, video, duration_video, priority, created_at, points, video_status',
+            'id, title, overview, poster_path, genre_id, video, duration_video, priority, created_at, points, video_status, partner, url_ad',
           );
 
       // Filtrar solo videos activos

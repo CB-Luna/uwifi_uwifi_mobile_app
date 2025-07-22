@@ -6,7 +6,11 @@ class AdModel extends Ad {
     required super.id,
     required super.title,
     required super.description,
-    required super.videoUrl, required super.genreId, required super.priority, required super.createdAt, super.overview = '',
+    required super.videoUrl,
+    required super.genreId,
+    required super.priority,
+    required super.createdAt,
+    super.overview = '',
     super.thumbnailUrl,
     super.updatedAt,
     super.visible = true,
@@ -15,6 +19,8 @@ class AdModel extends Ad {
     super.duration = 0,
     super.durationVideo = 0,
     super.points = 0,
+    super.partner,
+    super.urlAd,
   });
 
   /// Crea una instancia desde un mapa de datos (JSON de Supabase)
@@ -43,6 +49,8 @@ class AdModel extends Ad {
       durationVideo:
           json['duration_video'] ?? 0, // Campo duration_video de Supabase
       points: json['points'] ?? 0, // Campo points de Supabase
+      partner: json['partner'] ?? '',
+      urlAd: json['url_ad'] ?? '',
     );
   }
 
@@ -66,6 +74,8 @@ class AdModel extends Ad {
       'duration': duration,
       'duration_video': durationVideo,
       'points': points,
+      'partner': partner,
+      'url_ad': urlAd,
     };
   }
 
@@ -88,6 +98,8 @@ class AdModel extends Ad {
     int? duration,
     int? durationVideo,
     int? points,
+    String? partner,
+    String? urlAd,
   }) {
     return AdModel(
       id: id ?? this.id,
@@ -106,6 +118,8 @@ class AdModel extends Ad {
       duration: duration ?? this.duration,
       durationVideo: durationVideo ?? this.durationVideo,
       points: points ?? this.points,
+      partner: partner ?? this.partner,
+      urlAd: urlAd ?? this.urlAd,
     );
   }
 }

@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:video_player/video_player.dart';
 import 'package:uwifiapp/core/utils/app_logger.dart';
+import 'package:video_player/video_player.dart';
+
+import '../../domain/entities/ad.dart';
 import '../bloc/videos_bloc.dart';
 import '../bloc/videos_event.dart';
 import '../bloc/videos_state.dart';
-import '../widgets/tiktok_video_player.dart';
-import '../widgets/progressindicator/smart_video_progress_indicator.dart';
+import '../managers/tiktok_video_manager.dart';
 import '../widgets/categories/video_explorer_button.dart';
+import '../widgets/categories/video_info_bottom_sheet.dart';
 import '../widgets/coins/coins_action_widget.dart';
 import '../widgets/likes/like_action_widget.dart';
-import '../widgets/categories/video_info_bottom_sheet.dart';
-import '../managers/tiktok_video_manager.dart';
-import '../../domain/entities/ad.dart';
+import '../widgets/progressindicator/smart_video_progress_indicator.dart';
+import '../widgets/tiktok_video_player.dart';
 import 'video_completion_handler.dart';
 
 /// Página principal del feed de videos estilo TikTok/Instagram - LIMPIA Y FUNCIONAL

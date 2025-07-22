@@ -18,12 +18,18 @@ class Ad extends Equatable {
   final int duration; // duración en segundos (campo duration)
   final int durationVideo; // duración del video (campo duration_video)
   final int points; // puntos del video (campo points)
+  final String? partner;
+  final String? urlAd;
 
   const Ad({
     required this.id,
     required this.title,
     required this.description,
-    required this.videoUrl, required this.genreId, required this.priority, required this.createdAt, this.overview = '',
+    required this.videoUrl,
+    required this.genreId,
+    required this.priority,
+    required this.createdAt,
+    this.overview = '',
     this.thumbnailUrl,
     this.updatedAt,
     this.visible = true,
@@ -32,6 +38,8 @@ class Ad extends Equatable {
     this.duration = 0,
     this.durationVideo = 0,
     this.points = 0,
+    this.partner,
+    this.urlAd,
   });
 
   @override
@@ -52,6 +60,8 @@ class Ad extends Equatable {
     duration,
     durationVideo,
     points,
+    partner,
+    urlAd,
   ];
 
   /// Crea una copia con algunos campos modificados
@@ -72,6 +82,8 @@ class Ad extends Equatable {
     int? duration,
     int? durationVideo,
     int? points,
+    String? partner,
+    String? urlAd,
   }) {
     return Ad(
       id: id ?? this.id,
@@ -90,6 +102,8 @@ class Ad extends Equatable {
       duration: duration ?? this.duration,
       durationVideo: durationVideo ?? this.durationVideo,
       points: points ?? this.points,
+      partner: partner ?? this.partner,
+      urlAd: urlAd ?? this.urlAd,
     );
   }
 }
