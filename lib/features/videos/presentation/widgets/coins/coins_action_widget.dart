@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../domain/entities/ad.dart';
-import 'coins_animation_manager.dart';
+import 'points_info_bottom_sheet.dart';
 
 /// Widget que maneja la funcionalidad de puntos/monedas con animaciones de gaming
 class CoinsActionWidget extends StatefulWidget {
@@ -93,19 +93,22 @@ class _CoinsActionWidgetState extends State<CoinsActionWidget>
       _isProcessing = true;
     });
 
-    // ✅ USAR la lógica centralizada del CoinsAnimationManager
-    CoinsAnimationManager.handleManualCoinsClaim(
-      context,
-      widget
-          .video, // Pasamos el video completo para usar sus puntos específicos
-      onComplete: () {
-        setState(() {
-          _isProcessing = false;
-        });
-        // Callback opcional para notificar que se ganaron monedas
-        widget.onCoinsEarned?.call();
-      },
-    );
+    // Mostrar el bottom sheet con la información de puntos
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (context.mounted) {
+      // Mostrar el nuevo PointsInfoBottomSheet
+      PointsInfoBottomSheet.show(context, widget.video);
+    }
+    
+    // Restaurar el estado después de un breve retraso
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) {
+      setState(() {
+        _isProcessing = false;
+      });
+      // Callback opcional para notificar la acción
+      widget.onCoinsEarned?.call();
+    }
   }
 
   @override

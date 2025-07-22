@@ -2,7 +2,7 @@
     <!-- Permiso para acceder a Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="uwifiapp"
+        android:label="U-wifi"
         android:name="androidx.multidex.MultiDexApplication"
         android:icon="@mipmap/ic_launcher">
         <activity
