@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/utils/app_logger.dart';
+import '../../../../../features/profile/presentation/bloc/wallet_bloc.dart';
+import '../../../../../features/profile/presentation/bloc/wallet_state.dart';
 import '../../../domain/entities/ad.dart';
 import '../../pages/video_completion_handler.dart';
 
@@ -23,15 +26,23 @@ class PointsInfoBottomSheet extends StatelessWidget {
       '📊 Showing PointsInfoBottomSheet for video: ${video.id}',
     );
 
-    // Get current user points
-    final currentPoints = VideoCompletionHandler.currentUserPoints;
+    // Get current user points from local storage as fallback
+    final localPoints = VideoCompletionHandler.currentUserPoints;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) =>
-          PointsInfoBottomSheet(video: video, userPoints: currentPoints),
+      builder: (context) => BlocBuilder<WalletBloc, WalletState>(
+        builder: (context, state) {
+          // Use total points from WalletBloc if available, otherwise use local points
+          final totalPoints = state is WalletLoaded && state.customerPoints != null
+              ? state.customerPoints!.totalPointsEarned
+              : localPoints;
+              
+          return PointsInfoBottomSheet(video: video, userPoints: totalPoints);
+        },
+      ),
     );
   }
 

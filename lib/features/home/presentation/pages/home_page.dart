@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/utils/app_logger.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../invite/presentation/pages/invite_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 // ignore: unused_import
 import '../../../videos/presentation/bloc/videos_bloc.dart'; // Necesario para filtrado por categorías
 import '../../../videos/presentation/pages/tiktok_video_feed_page.dart';
-import '../../../invite/presentation/pages/invite_page.dart';
-import '../../../profile/presentation/pages/profile_page.dart';
 import '../widgets/home_content.dart';
 import '../widgets/navigation/floating_nav_bar.dart';
 
@@ -23,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   late PageController _pageController;
   late List<Widget> _pages;
 
-  final List<String> _titles = ['Ver Videos', 'Home', 'Invite', 'Profile'];
+  final List<String> _titles = ['Watch Videos', 'Home', 'Invite', 'Profile'];
 
   @override
   void initState() {

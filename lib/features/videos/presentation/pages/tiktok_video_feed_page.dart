@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uwifiapp/core/utils/app_logger.dart';
 import 'package:video_player/video_player.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
+import 'package:uwifiapp/features/profile/presentation/bloc/wallet_bloc.dart';
+import 'package:uwifiapp/features/profile/presentation/bloc/wallet_event.dart';
 
 import '../../domain/entities/ad.dart';
 import '../bloc/videos_bloc.dart';
@@ -51,10 +55,22 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     // ✅ INITIALIZE the points system
     VideoCompletionHandler.loadUserPointsFromStorage();
 
-    // Load initial videos
+    // Load initial videos and wallet data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_manualSelectionActive) {
         context.read<VideosBloc>().add(const LoadVideosPaginatedEvent());
+        
+        // Get customer ID and load wallet data
+        final authState = context.read<AuthBloc>().state;
+        if (authState is AuthAuthenticated) {
+          if (authState.user.customerId != null) {
+            final customerId = authState.user.customerId.toString();
+            AppLogger.videoInfo('🪙 Loading wallet points with customerId: $customerId (numeric ID)');
+            context.read<WalletBloc>().add(GetCustomerPointsEvent(customerId: customerId));
+          } else {
+            AppLogger.videoError('❌ User has no customerId assigned. Using UUID may cause errors.');
+          }
+        }
       }
     });
   }
@@ -97,6 +113,21 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get current customer ID from AuthBloc
+    final authState = context.read<AuthBloc>().state;
+    String? customerId;
+    
+    if (authState is AuthAuthenticated) {
+      if (authState.user.customerId != null) {
+        customerId = authState.user.customerId.toString();
+        AppLogger.videoInfo('🪙 Loading wallet points with customerId: $customerId (numeric ID)');
+        // Load wallet data with the customer ID
+        context.read<WalletBloc>().add(GetCustomerPointsEvent(customerId: customerId));
+      } else {
+        AppLogger.videoError('❌ User has no customerId assigned in build method. Cannot load points.');
+      }
+    }
+    
     return Scaffold(
       backgroundColor: Colors.black,
       body: BlocBuilder<VideosBloc, VideosState>(
