@@ -1,14 +1,22 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uwifiapp/core/utils/app_logger.dart';
 import 'package:video_player/video_player.dart';
-import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
-import 'package:uwifiapp/features/profile/presentation/bloc/wallet_bloc.dart';
-import 'package:uwifiapp/features/profile/presentation/bloc/wallet_event.dart';
 
+import '../../../../injection_container.dart' as di;
+
+import '../../../../core/utils/app_logger.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../profile/presentation/bloc/wallet_bloc.dart';
+import '../../../profile/presentation/bloc/wallet_event.dart';
 import '../../domain/entities/ad.dart';
+import '../bloc/genres_bloc.dart';
+import '../bloc/genres_event.dart';
+import '../bloc/genres_state.dart';
+import '../bloc/video_explorer_bloc.dart';
+import '../widgets/categories/video_explorer_page.dart';
 import '../bloc/videos_bloc.dart';
 import '../bloc/videos_event.dart';
 import '../bloc/videos_state.dart';
@@ -44,6 +52,13 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
 
   // Key para forzar recreación del PageView
   Key _pageViewKey = UniqueKey();
+  
+  // Variables para la navegación entre categorías
+  List<String> _categoryIds = [];
+  List<String> _categoryNames = [];
+  bool _isSwipingCategory = false;
+  double _horizontalDragStartPosition = 0;
+  double _horizontalDragEndPosition = 0;
 
   @override
   void initState() {
@@ -71,8 +86,40 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
             AppLogger.videoError('❌ User has no customerId assigned. Using UUID may cause errors.');
           }
         }
+        
+        // Cargar las categorías disponibles
+        _loadCategories();
       }
     });
+  }
+  
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _videoManager.removeListener(_onVideoManagerChanged);
+    _videoManager.dispose();
+    _currentVideoController?.dispose();
+    super.dispose();
+  }
+  
+  // Método para cargar las categorías disponibles
+  void _loadCategories() {
+    final genresState = context.read<GenresBloc>().state;
+    if (genresState is GenresLoaded) {
+      setState(() {
+        _categoryIds = genresState.genres.map((genre) => genre.id.toString()).toList();
+        _categoryNames = genresState.genres.map((genre) => genre.name).toList();
+        
+        // Añadir "Todos" como primera categoría si no existe
+        if (!_categoryNames.contains('Todos')) {
+          _categoryIds.insert(0, '0');
+          _categoryNames.insert(0, 'Todos');
+        }
+      });
+    } else {
+      // Si las categorías no están cargadas, solicitar cargarlas
+      context.read<GenresBloc>().add(const LoadGenresEvent());
+    }
   }
 
   void _onVideoManagerChanged() {
@@ -104,14 +151,6 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
   }
 
   @override
-  void dispose() {
-    _videoManager.removeListener(_onVideoManagerChanged);
-    _videoManager.dispose();
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     // Get current customer ID from AuthBloc
     final authState = context.read<AuthBloc>().state;
@@ -128,348 +167,317 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
       }
     }
     
+    // Verificar si hay nuevas categorías disponibles
+    final genresState = context.watch<GenresBloc>().state;
+    if (genresState is GenresLoaded && _categoryIds.isEmpty) {
+      _loadCategories();
+    }
+    
     return Scaffold(
       backgroundColor: Colors.black,
-      body: BlocBuilder<VideosBloc, VideosState>(
-        builder: (context, state) {
-          if (state is VideosLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            );
+      body: GestureDetector(
+        onHorizontalDragStart: (details) {
+          _horizontalDragStartPosition = details.globalPosition.dx;
+        },
+        onHorizontalDragUpdate: (details) {
+          _horizontalDragEndPosition = details.globalPosition.dx;
+        },
+        onHorizontalDragEnd: (details) {
+          // Solo procesar el gesto si tenemos categorías cargadas
+          if (_categoryIds.isEmpty) return;
+          
+          // Calcular la distancia del deslizamiento
+          final dragDistance = _horizontalDragEndPosition - _horizontalDragStartPosition;
+          
+          // Si el deslizamiento es significativo (más de 50px)
+          if (dragDistance.abs() > 50) {
+            // Evitar múltiples cambios de categoría mientras se procesa uno
+            if (_isSwipingCategory) return;
+            _isSwipingCategory = true;
+            
+            // Determinar la dirección del deslizamiento
+            if (dragDistance > 0) {
+              // Deslizamiento hacia la derecha (categoría anterior)
+              _navigateToPreviousCategory();
+            } else {
+              // Deslizamiento hacia la izquierda (categoría siguiente)
+              _navigateToNextCategory();
+            }
+            
+            // Restablecer el flag después de un tiempo
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                setState(() {
+                  _isSwipingCategory = false;
+                });
+              }
+            });
           }
-
-          if (state is VideosError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error, color: Colors.white, size: 48),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error: ${state.message}',
-                    style: const TextStyle(color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<VideosBloc>().add(const LoadVideosEvent());
-                    },
-                    child: const Text('Reintentar'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (state is VideosLoaded) {
-            final videos =
-                _manualSelectionActive && _videoManager.videos.isNotEmpty
-                ? _videoManager.videos
-                : state.videos;
-
-            AppLogger.videoInfo(
-              '🎬 Using video list: ${_manualSelectionActive ? "VideoManager" : "BLoC"} with ${videos.length} videos',
-            );
-
-            // Actualizar VideoManager si es necesario
-            bool categoryChanged =
-                state.currentCategory != null &&
-                (_videoManager.videos.isEmpty ||
-                    videos.isNotEmpty &&
-                        videos.first.genreId !=
-                            _videoManager.videos.first.genreId);
-
-            bool shouldUpdate =
-                !_manualSelectionActive &&
-                (videos.length != _videoManager.videos.length ||
-                    categoryChanged ||
-                    (videos.isNotEmpty &&
-                        _videoManager.videos.isNotEmpty &&
-                        videos.first.id != _videoManager.videos.first.id));
-
-            if (shouldUpdate) {
-              Future.microtask(() {
-                if (!mounted) return;
-
-                try {
-                  AppLogger.videoInfo(
-                    '📥 Updating VideoManager with ${videos.length} new videos${categoryChanged ? ' (Categoría cambiada)' : ''}',
-                  );
-
-                  if (categoryChanged && _currentVideoController != null) {
-                    _currentVideoController = null;
-                  }
-
-                  _videoManager.updateVideos(videos);
-
-                  if (categoryChanged && mounted) {
-                    setState(() {
-                      _currentIndex = 0;
-                    });
-
-                    if (_pageController.hasClients && mounted) {
-                      _pageController.jumpToPage(0);
-                    }
-                  }
-                } catch (e) {
-                  AppLogger.videoError('❌ Error updating VideoManager: $e');
-                }
-              });
+        },
+        child: BlocBuilder<VideosBloc, VideosState>(
+          builder: (context, state) {
+            if (state is VideosLoading) {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
             }
 
-            if (videos.isEmpty) {
-              return const Center(
+            if (state is VideosError) {
+              return Center(
                 child: Text(
-                  'No hay videos disponibles',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  'Error: ${state.message}',
+                  style: const TextStyle(color: Colors.white),
                 ),
               );
             }
 
-            return Stack(
-              children: [
-                // PageView principal con videos
-                PageView.builder(
-                  key: _pageViewKey,
-                  controller: _pageController,
-                  scrollDirection: Axis.vertical,
-                  itemCount: videos.length,
-                  onPageChanged: (index) async {
-                    setState(() {
-                      _currentIndex = index;
-                    });
+            if (state is VideosLoaded) {
+              final videos = state.videos;
 
-                    // Resetear flag de selección manual después de navegar
-                    if (_manualSelectionActive && index >= 3) {
-                      _manualSelectionActive = false;
-                      AppLogger.videoInfo('🔄 Resetting manual selection flag');
-                    }
+              return Stack(
+                children: [
+                  // PageView principal con videos
+                  PageView.builder(
+                    key: _pageViewKey,
+                    controller: _pageController,
+                    scrollDirection: Axis.vertical,
+                    itemCount: videos.length,
+                    onPageChanged: (index) async {
+                      setState(() {
+                        _currentIndex = index;
+                      });
 
-                    // Lazy loading
-                    if (index >= videos.length - 3 && !_manualSelectionActive) {
-                      AppLogger.videoInfo(
-                        '🔄 [LAZY LOADING] Loading more videos',
+                      // Resetear flag de selección manual después de navegar
+                      if (_manualSelectionActive && index >= 3) {
+                        _manualSelectionActive = false;
+                        AppLogger.videoInfo('🔄 Resetting manual selection flag');
+                      }
+
+                      // Lazy loading
+                      if (index >= videos.length - 3 && !_manualSelectionActive) {
+                        AppLogger.videoInfo(
+                          '🔄 [LAZY LOADING] Loading more videos',
+                        );
+                        context.read<VideosBloc>().add(
+                          LoadVideosPaginatedEvent(
+                            page: state.currentPage + 1,
+                            categoryId: state.currentCategory,
+                          ),
+                        );
+                      }
+
+                      // Sincronizar con VideoManager
+                      await _videoManager.goToVideo(index);
+                    },
+                    itemBuilder: (context, index) {
+                      final video = videos[index];
+
+                      return TikTokVideoPlayer(
+                        videoUrl: video.videoUrl,
+                        isCurrentVideo: index == _currentIndex,
+                        // ✅ CALLBACK MEJORADO: Usar VideoCompletionHandler
+                        onVideoFinished: () => _handleVideoFinished(),
+                        onMoreInfoPressed: () {
+                          VideoInfoBottomSheet.show(context, video);
+                        },
+                        onControllerChanged: (controller) {
+                          if (index == _currentIndex) {
+                            setState(() {
+                              _currentVideoController = controller;
+                            });
+                          }
+                        },
                       );
-                      context.read<VideosBloc>().add(
-                        LoadVideosPaginatedEvent(
-                          page: state.currentPage + 1,
-                          categoryId: state.currentCategory,
+                    },
+                  ),
+
+                  // UI Elements
+                  Positioned(
+                    right: 16,
+                    top: MediaQuery.of(context).size.height * 0.30,
+                    child: Column(
+                      key: const ValueKey('action_buttons'),
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Widget de Exploración de Videos
+                        VideoExplorerButton(
+                          onVideoSelected: (video, playlist, startIndex) {
+                            _handleVideoSelection(video, playlist, startIndex);
+                          },
                         ),
-                      );
-                    }
+                        const SizedBox(height: 16),
 
-                    // Sincronizar con VideoManager
-                    await _videoManager.goToVideo(index);
-                  },
-                  itemBuilder: (context, index) {
-                    final video = videos[index];
+                        // Widget de Monedas
+                        Builder(
+                          builder: (context) {
+                            final currentVideo = _currentIndex < videos.length
+                                ? videos[_currentIndex]
+                                : videos.first;
 
-                    return TikTokVideoPlayer(
-                      videoUrl: video.videoUrl,
-                      isCurrentVideo: index == _currentIndex,
-                      // ✅ CALLBACK MEJORADO: Usar VideoCompletionHandler
-                      onVideoFinished: () => _handleVideoFinished(),
-                      onMoreInfoPressed: () {
-                        VideoInfoBottomSheet.show(context, video);
-                      },
-                      onControllerChanged: (controller) {
-                        if (index == _currentIndex) {
-                          setState(() {
-                            _currentVideoController = controller;
-                          });
-                        }
-                      },
-                    );
-                  },
-                ),
+                            return CoinsActionWidget(
+                              key: const ValueKey('coins_widget'),
+                              video: currentVideo,
+                              onCoinsEarned: () {
+                                // Callback opcional
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
 
-                // UI Elements
-                Positioned(
-                  right: 16,
-                  top: MediaQuery.of(context).size.height * 0.30,
-                  child: Column(
-                    key: const ValueKey('action_buttons'),
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Widget de Exploración de Videos
-                      VideoExplorerButton(
-                        onVideoSelected: (video, playlist, startIndex) {
-                          _handleVideoSelection(video, playlist, startIndex);
-                        },
-                      ),
-                      const SizedBox(height: 16),
+                        // Widget de Likes
+                        Builder(
+                          builder: (context) {
+                            final currentVideo =
+                                videos.isNotEmpty && _currentIndex < videos.length
+                                ? videos[_currentIndex]
+                                : videos.first;
 
-                      // Widget de Monedas
-                      Builder(
-                        builder: (context) {
-                          final currentVideo = _currentIndex < videos.length
-                              ? videos[_currentIndex]
-                              : videos.first;
+                            return LikeActionWidget(
+                              key: const ValueKey('likes_widget'),
+                              video: currentVideo,
+                              videoManager: _videoManager,
+                              onLikeToggled: () {
+                                // Callback opcional
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
 
-                          return CoinsActionWidget(
-                            key: const ValueKey('coins_widget'),
-                            video: currentVideo,
-                            onCoinsEarned: () {
-                              // Callback opcional
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
+                        // Botón selector de estilos
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.lightImpact();
+                            setState(() {
+                              final styles = ProgressIndicatorStyle.values;
+                              final currentIndex = styles.indexOf(
+                                _currentProgressStyle,
+                              );
+                              final nextIndex =
+                                  (currentIndex + 1) % styles.length;
+                              _currentProgressStyle = styles[nextIndex];
+                            });
+                            AppLogger.videoInfo(
+                              '🎨 Cambiando estilo a: ${_currentProgressStyle.name}',
+                            );
+                          },
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(76),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1.5),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _getStyleColor(),
+                                border: Border.all(color: Colors.white),
+                              ),
+                              child: const Icon(
+                                Icons.palette,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _getStyleName(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                      // Widget de Likes
-                      Builder(
+                  // Indicador de progreso
+                  Positioned(
+                    top: 40,
+                    right: 16,
+                    child:
+                        _currentVideoController != null &&
+                            _currentVideoController!.value.isInitialized
+                        ? SmartVideoProgressIndicator(
+                            key: ValueKey(
+                              'smart_progress_indicator_${_currentProgressStyle.name}_$_currentIndex',
+                            ),
+                            controller: _currentVideoController,
+                            size: 84,
+                            strokeWidth: 5,
+                            initialStyle: _currentProgressStyle,
+                          )
+                        : const SizedBox(width: 84, height: 84),
+                  ),
+
+                  // Botón "More Information"
+                  Positioned(
+                    key: const ValueKey('more_info_button'),
+                    bottom: 100,
+                    left: 20,
+                    right: 20,
+                    child: Center(
+                      child: Builder(
                         builder: (context) {
                           final currentVideo =
                               videos.isNotEmpty && _currentIndex < videos.length
                               ? videos[_currentIndex]
-                              : videos.first;
+                              : null;
 
-                          return LikeActionWidget(
-                            key: const ValueKey('likes_widget'),
-                            video: currentVideo,
-                            videoManager: _videoManager,
-                            onLikeToggled: () {
-                              // Callback opcional
-                            },
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Botón selector de estilos
-                      GestureDetector(
-                        onTap: () {
-                          HapticFeedback.lightImpact();
-                          setState(() {
-                            final styles = ProgressIndicatorStyle.values;
-                            final currentIndex = styles.indexOf(
-                              _currentProgressStyle,
-                            );
-                            final nextIndex =
-                                (currentIndex + 1) % styles.length;
-                            _currentProgressStyle = styles[nextIndex];
-                          });
-                          AppLogger.videoInfo(
-                            '🎨 Cambiando estilo a: ${_currentProgressStyle.name}',
-                          );
-                        },
-                        child: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(76),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1.5),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _getStyleColor(),
-                              border: Border.all(color: Colors.white),
-                            ),
-                            child: const Icon(
-                              Icons.palette,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _getStyleName(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Indicador de progreso
-                Positioned(
-                  top: 40,
-                  right: 16,
-                  child:
-                      _currentVideoController != null &&
-                          _currentVideoController!.value.isInitialized
-                      ? SmartVideoProgressIndicator(
-                          key: ValueKey(
-                            'smart_progress_indicator_${_currentProgressStyle.name}_$_currentIndex',
-                          ),
-                          controller: _currentVideoController,
-                          size: 84,
-                          strokeWidth: 5,
-                          initialStyle: _currentProgressStyle,
-                        )
-                      : const SizedBox(width: 84, height: 84),
-                ),
-
-                // Botón "More Information"
-                Positioned(
-                  key: const ValueKey('more_info_button'),
-                  bottom: 100,
-                  left: 20,
-                  right: 20,
-                  child: Center(
-                    child: Builder(
-                      builder: (context) {
-                        final currentVideo =
-                            videos.isNotEmpty && _currentIndex < videos.length
-                            ? videos[_currentIndex]
-                            : null;
-
-                        return Opacity(
-                          opacity: currentVideo != null ? 1.0 : 0.0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.black.withAlpha(38),
-                              borderRadius: BorderRadius.circular(25),
-                              border: Border.all(color: Colors.green, width: 2),
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: currentVideo != null
-                                    ? () => VideoInfoBottomSheet.show(
-                                        context,
-                                        currentVideo,
-                                      )
-                                    : null,
+                          return Opacity(
+                            opacity: currentVideo != null ? 1.0 : 0.0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(38),
                                 borderRadius: BorderRadius.circular(25),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 12,
-                                  ),
-                                  child: const Text(
-                                    'More Information',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                                border: Border.all(color: Colors.green, width: 2),
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: currentVideo != null
+                                      ? () => VideoInfoBottomSheet.show(
+                                          context,
+                                          currentVideo,
+                                        )
+                                      : null,
+                                  borderRadius: BorderRadius.circular(25),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                    child: const Text(
+                                      'More Information',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          }
-
-          return const SizedBox.shrink();
-        },
+                ],
+              );
+            } else {
+              return const SizedBox.shrink();
+            }
+          },
+        ),
       ),
     );
   }
@@ -533,6 +541,45 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
       '🎬 Video seleccionado desde explorador: ${video.title} (índice: $startIndex)',
     );
   }
+  
+  // Método para mostrar el explorador de videos
+  void _showVideoExplorer() {
+    HapticFeedback.mediumImpact();
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.8),
+      builder: (context) => BlocProvider(
+        create: (context) => di.getIt<VideoExplorerBloc>(),
+        child: VideoExplorerPage(
+          onVideoSelected: (video, playlist, startIndex) {
+            _handleVideoSelection(video, playlist, startIndex);
+          },
+          onClose: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+
+  // Método para navegar a la categoría anterior
+  void _navigateToPreviousCategory() {
+    if (_categoryIds.isEmpty) return;
+    
+    // En lugar de cambiar directamente, mostrar el explorador de videos
+    _showVideoExplorer();
+  }
+  
+  // Método para navegar a la siguiente categoría
+  void _navigateToNextCategory() {
+    if (_categoryIds.isEmpty) return;
+    
+    // En lugar de cambiar directamente, mostrar el explorador de videos
+    _showVideoExplorer();
+  }
+
+
 
   // Advance to next video
   void _advanceToNextVideo(List<Ad> videoList, dynamic videosState) {

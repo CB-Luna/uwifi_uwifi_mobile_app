@@ -102,13 +102,34 @@ class VideoInfoBottomSheet extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          ad.partner != null && ad.partner!.isNotEmpty ? ad.partner! : 'U-Wifi',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
+        // Partner name with verification badge
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                ad.partner != null && ad.partner!.isNotEmpty
+                    ? ad.partner!
+                    : 'U-Wifi',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 4),
+            // Verification badge icon
+            Container(
+              padding: const EdgeInsets.all(1),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white),
+              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 12),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Text(
