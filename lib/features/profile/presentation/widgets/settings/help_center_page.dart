@@ -176,7 +176,7 @@ class _HelpCenterPageState extends State<HelpCenterPage>
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const SubmitTicketPage(),
+                        builder: (context) => const SubmitTicketPageProvider(),
                       ),
                     );
                   },

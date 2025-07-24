@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../../core/presentation/widgets/loading_indicator.dart';
+import '../../../../../features/support/presentation/bloc/ticket_category_bloc.dart';
+import '../../../../../features/support/presentation/bloc/ticket_category_event.dart';
+import '../../../../../features/support/presentation/bloc/ticket_category_state.dart';
+import '../../../../../injection_container.dart' as di;
 
 class SubmitTicketPage extends StatefulWidget {
   const SubmitTicketPage({super.key});
@@ -7,25 +14,27 @@ class SubmitTicketPage extends StatefulWidget {
   State<SubmitTicketPage> createState() => _SubmitTicketPageState();
 }
 
+// Widget para proporcionar el BLoC
+class SubmitTicketPageProvider extends StatelessWidget {
+  const SubmitTicketPageProvider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) =>
+          di.getIt<TicketCategoryBloc>()
+            ..add(const LoadTicketCategoriesEvent()),
+      child: const SubmitTicketPage(),
+    );
+  }
+}
+
 class _SubmitTicketPageState extends State<SubmitTicketPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
-  String? _selectedIssueType;
+  int? _selectedCategoryId;
   // String? _uploadedPhotoPath; // Aquí iría la lógica real de subida de foto
-
-  final List<String> _issueTypes = [
-    'WiFi Connection',
-    'Equipment',
-    'Coverage',
-    'Incorrect Billing',
-    'Unauthorized Changes to Service Plan',
-    'Promos and Offers',
-    'Unsatisfactory Customer Services',
-    'RMA',
-    'U-app points',
-    'Free-U Questions',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -76,31 +85,85 @@ class _SubmitTicketPageState extends State<SubmitTicketPage> {
                     v == null || v.isEmpty ? 'Please enter a title' : null,
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedIssueType,
-                items: _issueTypes
-                    .map(
-                      (type) =>
-                          DropdownMenuItem(value: type, child: Text(type)),
-                    )
-                    .toList(),
-                onChanged: (val) => setState(() => _selectedIssueType = val),
-                decoration: InputDecoration(
-                  hintText: 'Issue type',
-                  filled: true,
-                  fillColor: const Color(0xFFF1F3F8),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                ),
-                validator: (v) => v == null || v.isEmpty
-                    ? 'Please select an issue type'
-                    : null,
+              BlocBuilder<TicketCategoryBloc, TicketCategoryState>(
+                builder: (context, state) {
+                  if (state is TicketCategoryLoading) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Center(child: LoadingIndicator()),
+                    );
+                  } else if (state is TicketCategoryError) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Error: ${state.message}',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                          const SizedBox(height: 8),
+                          OutlinedButton(
+                            onPressed: () => context
+                                .read<TicketCategoryBloc>()
+                                .add(const LoadTicketCategoriesEvent()),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else if (state is TicketCategoryLoaded) {
+                    final categories = state.categories.toList();
+
+                    return DropdownButtonFormField<int>(
+                      value: _selectedCategoryId,
+                      items: categories
+                          .map(
+                            (category) => DropdownMenuItem(
+                              value: category.id,
+                              child: Text(category.issueName),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (val) =>
+                          setState(() => _selectedCategoryId = val),
+                      decoration: InputDecoration(
+                        hintText: 'Issue type',
+                        filled: true,
+                        fillColor: const Color(0xFFF1F3F8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ),
+                      validator: (v) =>
+                          v == null ? 'Please select an issue type' : null,
+                    );
+                  } else {
+                    // Estado inicial, mostrar un dropdown vacío
+                    return DropdownButtonFormField<int>(
+                      items: const [],
+                      onChanged: null,
+                      decoration: InputDecoration(
+                        hintText: 'Loading issue types...',
+                        filled: true,
+                        fillColor: const Color(0xFFF1F3F8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ),
+                    );
+                  }
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(

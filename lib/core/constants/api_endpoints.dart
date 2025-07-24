@@ -35,6 +35,9 @@ class ApiEndpoints {
   static const String deleteCreditCard = '$airflowBaseUrl/delete-credit-card';
   static const String registerNewCreditCard =
       '$airflowBaseUrl/register-new-creditcard';
+      
+  // Support endpoints
+  static const String supportTicketCategories = '$supabaseBaseUrl/get_support_ticket_categories';
 
   // API Keys
   static const String zequenceApiKey =

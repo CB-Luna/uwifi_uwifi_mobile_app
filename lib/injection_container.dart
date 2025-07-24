@@ -139,12 +139,19 @@ import 'features/videos/presentation/bloc/genres_bloc.dart';
 import 'features/videos/presentation/bloc/video_explorer_bloc.dart';
 import 'features/videos/presentation/bloc/videos_bloc.dart';
 
+// Support feature imports
+import 'features/support/data/datasources/ticket_category_remote_data_source.dart';
+import 'features/support/data/repositories/ticket_category_repository_impl.dart';
+import 'features/support/domain/repositories/ticket_category_repository.dart';
+import 'features/support/domain/usecases/get_ticket_categories.dart';
+import 'features/support/presentation/bloc/ticket_category_bloc.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> init() async {
   //! Features - Videos
   // Bloc - Changed to LazySingleton to ensure a single instance
-  getIt.registerLazySingleton(
+  getIt.registerFactory(
     () => VideosBloc(
       getVideos: getIt(),
       getVideosPaginated: getIt(),
@@ -154,6 +161,30 @@ Future<void> init() async {
       likeVideo: getIt(),
       unlikeVideo: getIt(),
     ),
+  );
+
+  //! Features - Support
+  // Bloc
+  getIt.registerFactory(
+    () => TicketCategoryBloc(
+      getTicketCategories: getIt(),
+    ),
+  );
+
+  // Use cases
+  getIt.registerLazySingleton(() => GetTicketCategories(getIt()));
+
+  // Repository
+  getIt.registerLazySingleton<TicketCategoryRepository>(
+    () => TicketCategoryRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
+  // Data sources
+  getIt.registerLazySingleton<TicketCategoryRemoteDataSource>(
+    () => TicketCategoryRemoteDataSourceImpl(supabaseClient: getIt()),
   );
 
   getIt.registerLazySingleton(() => GenresBloc(getGenres: getIt()));
