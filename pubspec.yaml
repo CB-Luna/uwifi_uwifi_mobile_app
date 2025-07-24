@@ -38,6 +38,7 @@ dependencies:
   syncfusion_flutter_gauges: ^30.1.40
   url_launcher: ^6.2.5
   video_player: ^2.8.2
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_lints: ^6.0.0

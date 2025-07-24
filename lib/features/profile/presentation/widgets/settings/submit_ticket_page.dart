@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/presentation/widgets/loading_indicator.dart';
+import '../../../../../core/utils/app_logger.dart';
 import '../../../../../features/support/presentation/bloc/ticket_category_bloc.dart';
 import '../../../../../features/support/presentation/bloc/ticket_category_event.dart';
 import '../../../../../features/support/presentation/bloc/ticket_category_state.dart';
@@ -34,7 +38,9 @@ class _SubmitTicketPageState extends State<SubmitTicketPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   int? _selectedCategoryId;
-  // String? _uploadedPhotoPath; // Aquí iría la lógica real de subida de foto
+  final ImagePicker _imagePicker = ImagePicker();
+  XFile? _selectedImage;
+  bool _isUploading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -188,35 +194,91 @@ class _SubmitTicketPageState extends State<SubmitTicketPage> {
                     : null,
               ),
               const SizedBox(height: 18),
-              const Text('Have a  pictures or screenshot? Upload it here!'),
+              const Text('Have a picture or screenshot? Upload it here!'),
               const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () {}, // Aquí iría la lógica de subir foto
-                icon: const Icon(Icons.add_a_photo_outlined),
-                label: const Text('Upload Photo'),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.grey),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 18,
-                  ),
-                  foregroundColor: Colors.black87,
-                  backgroundColor: Colors.white,
+              _selectedImage != null
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(_selectedImage!.path),
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton.icon(
+                              onPressed: _removeImage,
+                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              label: const Text('Remove', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickImage(ImageSource.gallery),
+                            icon: const Icon(Icons.photo_library_outlined),
+                            label: const Text('Gallery'),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.grey),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                                horizontal: 18,
+                              ),
+                              foregroundColor: Colors.black87,
+                              backgroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickImage(ImageSource.camera),
+                            icon: const Icon(Icons.add_a_photo_outlined),
+                            label: const Text('Camera'),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.grey),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                                horizontal: 18,
+                              ),
+                              foregroundColor: Colors.black87,
+                              backgroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+              if (_isUploading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: LinearProgressIndicator(),
                 ),
-              ),
+              const SizedBox(height: 16),
+              
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
-                      // Aquí iría la lógica de envío
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Ticket submitted!')),
-                      );
+                      _submitTicket();
                     }
                   },
                   icon: const Icon(Icons.event_note, color: Colors.green),
@@ -242,5 +304,87 @@ class _SubmitTicketPageState extends State<SubmitTicketPage> {
         ),
       ),
     );
+  }
+  
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedImage = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 80,
+      );
+      
+      if (pickedImage != null) {
+        setState(() {
+          _selectedImage = pickedImage;
+        });
+        AppLogger.navInfo('Image selected: ${pickedImage.path}');
+      }
+    } catch (e) {
+      AppLogger.navError('Error picking image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting image: $e')),
+      );
+    }
+  }
+  
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+    });
+  }
+  
+  Future<void> _submitTicket() async {
+    if (_selectedCategoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an issue type')),
+      );
+      return;
+    }
+    
+    setState(() {
+      _isUploading = true;
+    });
+    
+    try {
+      // Simular carga
+      await Future.delayed(const Duration(seconds: 1));
+      
+      // Aquí iría la lógica real de envío del ticket y la imagen
+      // Por ejemplo:
+      // 1. Subir la imagen a un almacenamiento (si existe)
+      // 2. Obtener la URL de la imagen
+      // 3. Crear el ticket con la información y la URL de la imagen
+      
+      AppLogger.navInfo('Ticket submitted with title: ${_titleController.text}');
+      if (_selectedImage != null) {
+        AppLogger.navInfo('Image attached: ${_selectedImage!.path}');
+      }
+      
+      // Mostrar mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ticket submitted successfully!')),
+      );
+      
+      // Limpiar el formulario
+      _titleController.clear();
+      _descController.clear();
+      setState(() {
+        _selectedCategoryId = null;
+        _selectedImage = null;
+        _isUploading = false;
+      });
+      
+      // Opcional: volver a la pantalla anterior
+      // Navigator.of(context).pop();
+    } catch (e) {
+      AppLogger.navError('Error submitting ticket: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error submitting ticket: $e')),
+      );
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
+    }
   }
 }
