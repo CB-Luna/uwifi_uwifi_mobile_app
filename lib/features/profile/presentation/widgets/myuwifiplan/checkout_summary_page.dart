@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/utils/app_logger.dart';
+import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../customer/presentation/bloc/customer_details_bloc.dart';
 import '../../../../home/domain/entities/active_service.dart';
 import '../../../domain/entities/credit_card.dart';
+import '../../bloc/wallet_bloc.dart';
+import '../../bloc/wallet_event.dart';
+import '../../bloc/wallet_state.dart';
 
 class CheckoutSummaryPage extends StatefulWidget {
   final List<ActiveService> services;
@@ -10,8 +17,8 @@ class CheckoutSummaryPage extends StatefulWidget {
 
   const CheckoutSummaryPage({
     required this.services,
-    required this.selectedCard,
     super.key,
+    this.selectedCard,
   });
 
   @override
@@ -19,22 +26,75 @@ class CheckoutSummaryPage extends StatefulWidget {
 }
 
 class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
-  bool autoPayment = false;
+  late CreditCard selectedCard;
+  bool _localAutoPay = false;
   bool isProcessing = false;
+  int totalPoints = 0;
 
   @override
   void initState() {
     super.initState();
+    selectedCard = widget.selectedCard!;
     // Verificar los servicios recibidos
-    AppLogger.info('CheckoutSummaryPage - Servicios recibidos: ${widget.services.length}');
-    
+    AppLogger.info(
+      'CheckoutSummaryPage - Servicios recibidos: ${widget.services.length}',
+    );
+
     // Calcular el monto total
     double totalAmount = 0;
     for (var service in widget.services) {
       totalAmount += service.value;
-      AppLogger.info('Servicio: ${service.name}, Valor: \$${service.value.toStringAsFixed(2)}');
+      AppLogger.info(
+        'Servicio: ${service.name}, Valor: \$${service.value.toStringAsFixed(2)}',
+      );
     }
-    AppLogger.info('Monto total calculado: \$${totalAmount.toStringAsFixed(2)}');
+    AppLogger.info(
+      'Monto total calculado: \$${totalAmount.toStringAsFixed(2)}',
+    );
+
+    // Cargar los puntos acumulados del usuario
+    _loadWalletData();
+
+    // Cargar el estado de AutoPay
+    _loadCustomerDetails();
+  }
+
+  // Método para cargar los datos de wallet (puntos acumulados)
+  void _loadWalletData() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated && authState.user.customerId != null) {
+      final customerId = authState.user.customerId.toString();
+      context.read<WalletBloc>().add(
+        GetCustomerPointsEvent(customerId: customerId),
+      );
+    }
+  }
+
+  // Método para cargar los detalles del cliente (estado de AutoPay)
+  void _loadCustomerDetails() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated && authState.user.customerId != null) {
+      final customerId = int.tryParse(authState.user.id) ?? 0;
+      if (customerId > 0) {
+        context.read<CustomerDetailsBloc>().add(
+          FetchCustomerDetails(customerId),
+        );
+      }
+    }
+  }
+
+  // Método para manejar el cambio de estado del switch de AutoPay
+  void _onAutoPayChanged(bool value) {
+    // Actualizamos el estado local inmediatamente para que la UI se actualice
+    setState(() {
+      _localAutoPay = value;
+    });
+
+    // En el checkout no enviamos el evento al backend inmediatamente
+    // El estado se enviará cuando el usuario confirme el pago
+    AppLogger.info(
+      'AutoPay cambiado a: $value (se aplicará al confirmar el pago)',
+    );
   }
 
   // Método para calcular el monto total de los servicios
@@ -44,6 +104,49 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
       total += service.value;
     }
     return total;
+  }
+
+  // Método para procesar el pago
+  void _processPayment() async {
+    setState(() {
+      isProcessing = true;
+    });
+
+    // Simulamos un proceso de pago
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Aquí se aplicaría el estado de AutoPay si fuera necesario
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated && authState.user.customerId != null) {
+      AppLogger.info('Aplicando configuración de AutoPay: $_localAutoPay');
+      // En una implementación real, aquí enviaríamos el evento al BillingBloc
+    }
+
+    // Aplicar los puntos acumulados si están disponibles
+    if (totalPoints > 0) {
+      AppLogger.info('Aplicando $totalPoints puntos al pago');
+      // En una implementación real, aquí enviaríamos el evento para usar los puntos
+    }
+
+    // Mostramos un diálogo de éxito
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¡Pago exitoso!'),
+        content: const Text('Tu pago ha sido procesado correctamente.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+
+    // Regresamos a la página principal
+    if (!mounted) return;
+    Navigator.of(context).pop(true); // Retornamos true para indicar éxito
   }
 
   // Método para obtener el icono de la tarjeta según el token
@@ -151,7 +254,8 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: widget.services.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final service = widget.services[index];
                       return Row(
@@ -171,7 +275,10 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                                 ),
                                 Text(
                                   service.type,
-                                  style: const TextStyle(color: Colors.black54, fontSize: 12),
+                                  style: const TextStyle(
+                                    color: Colors.black54,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
@@ -214,21 +321,53 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                     'Accumulated U-points',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  const Row(
-                    children: [
-                      Text(
-                        '\$0.00',
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(' in U-points'),
-                    ],
-                  ),
-                  const Text(
-                    'These points will be deducted from the total payable.',
-                    style: TextStyle(color: Colors.black54, fontSize: 12),
+                  // Mostrar puntos acumulados dinámicamente
+                  BlocBuilder<WalletBloc, WalletState>(
+                    builder: (context, state) {
+                      if (state is WalletLoaded &&
+                          state.customerPoints != null) {
+                        totalPoints = state.customerPoints!.totalPointsEarned;
+                        // Convertir puntos a valor monetario (1000 puntos = $10)
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  totalPoints.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const Text(' in U-points'),
+                              ],
+                            ),
+                            const Text(
+                              'These points will be deducted from the total payable.',
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return const Row(
+                          children: [
+                            Text(
+                              '\$0.00',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(' in U-points'),
+                          ],
+                        );
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -278,19 +417,51 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                   ),
 
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Enable auto-payment?',
-                        style: TextStyle(color: Colors.black87),
-                      ),
-                      Switch(
-                        value: autoPayment,
-                        onChanged: (val) => setState(() => autoPayment = val),
-                        activeColor: Colors.green,
-                      ),
-                    ],
+                  // Switch de AutoPay
+                  BlocBuilder<CustomerDetailsBloc, CustomerDetailsState>(
+                    builder: (context, state) {
+                      if (state is CustomerDetailsLoaded &&
+                          state.customerDetails.billingCycle != null) {
+                        // Actualizar el estado local con el valor del backend si es la primera carga
+                        if (!isProcessing) {
+                          _localAutoPay = state
+                              .customerDetails
+                              .billingCycle!
+                              .automaticCharge;
+                        }
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Enable auto-payment?',
+                              style: TextStyle(color: Colors.black87),
+                            ),
+                            Switch(
+                              value: _localAutoPay,
+                              onChanged: _onAutoPayChanged,
+                              activeColor: Colors.green,
+                            ),
+                          ],
+                        );
+                      } else {
+                        // Estado por defecto si no hay datos cargados
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Enable auto-payment?',
+                              style: TextStyle(color: Colors.black87),
+                            ),
+                            Switch(
+                              value: _localAutoPay,
+                              onChanged: _onAutoPayChanged,
+                              activeColor: Colors.green,
+                            ),
+                          ],
+                        );
+                      }
+                    },
                   ),
                 ],
               ),
@@ -299,46 +470,7 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: isProcessing
-                    ? null
-                    : () {
-                        setState(() {
-                          isProcessing = true;
-                        });
-
-                        // Aquí iría la lógica para procesar el pago
-                        // Por ahora solo simulamos un proceso
-                        Future.delayed(const Duration(seconds: 2), () {
-                          // Mostrar un diálogo de éxito
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Payment Successful'),
-                              content: const Text(
-                                'Your payment has been processed successfully.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    // Cerrar el diálogo y volver a la página principal
-                                    Navigator.of(context).pop();
-                                    // Navegar hacia atrás hasta la página principal
-                                    Navigator.of(
-                                      context,
-                                    ).popUntil((route) => route.isFirst);
-                                  },
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            ),
-                          );
-
-                          setState(() {
-                            isProcessing = false;
-                          });
-                        });
-                      },
+                onPressed: isProcessing ? null : _processPayment,
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.green),
                   shape: RoundedRectangleBorder(
