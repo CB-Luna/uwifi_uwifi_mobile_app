@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uwifiapp/features/home/domain/entities/active_service.dart';
 
 import '../../../../../core/utils/app_logger.dart';
 import '../../../../../injection_container.dart' as di;
@@ -18,8 +19,8 @@ import 'change_card_sheet.dart';
 import 'checkout_summary_page.dart';
 
 class PlanPayNowPage extends StatelessWidget {
-  final double amount;
-  const PlanPayNowPage({super.key, this.amount = 76.0});
+  final List<ActiveService> services;
+  const PlanPayNowPage({required this.services, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,14 +31,14 @@ class PlanPayNowPage extends StatelessWidget {
         // Usar el PaymentBloc existente en lugar de crear uno nuevo
         BlocProvider.value(value: BlocProvider.of<PaymentBloc>(context)),
       ],
-      child: _PlanPayNowPageContent(amount: amount),
+      child: _PlanPayNowPageContent(services: services),
     );
   }
 }
 
 class _PlanPayNowPageContent extends StatefulWidget {
-  final double amount;
-  const _PlanPayNowPageContent({required this.amount});
+  final List<ActiveService> services;
+  const _PlanPayNowPageContent({required this.services});
 
   @override
   State<_PlanPayNowPageContent> createState() => _PlanPayNowPageContentState();
@@ -128,9 +129,13 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
 
       // Cargar métodos de pago
       final paymentBloc = context.read<PaymentBloc>();
-      AppLogger.info('Estado actual de PaymentBloc: ${paymentBloc.state.runtimeType}');
+      AppLogger.info(
+        'Estado actual de PaymentBloc: ${paymentBloc.state.runtimeType}',
+      );
       paymentBloc.add(GetCreditCardsEvent(customerId));
-      AppLogger.info('Solicitando tarjetas de crédito para customerId: $customerId');
+      AppLogger.info(
+        'Solicitando tarjetas de crédito para customerId: $customerId',
+      );
     } else {
       AppLogger.navError('Error: Usuario no autenticado o sin customerId');
     }
@@ -159,73 +164,136 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            // Encabezado de servicios
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Current Plan',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    BlocBuilder<ServiceBloc, ServiceState>(
-                      builder: (context, state) {
-                        String serviceName = 'U-Wifi Internet';
-
-                        if (state is ServiceLoaded &&
-                            state.services.isNotEmpty) {
-                          serviceName = state.services.first.name;
-                        }
-
-                        return Chip(
-                          label: Text(
-                            serviceName,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          backgroundColor: const Color(0xFFF3F5F8),
-                          labelPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 2,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                Text(
+                  'Your Services',
+                  style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Text(
-                      'Total',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    BlocBuilder<ServiceBloc, ServiceState>(
-                      builder: (context, state) {
-                        String priceText =
-                            '\$${widget.amount.toStringAsFixed(2)}';
-
-                        if (state is ServiceLoaded &&
-                            state.services.isNotEmpty) {
-                          final service = state.services.first;
-                          priceText = '\$${service.value.toStringAsFixed(2)}';
-                        }
-
-                        return Text(
-                          priceText,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 26,
-                            color: Colors.black87,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                Text(
+                  'Price',
+                  style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Lista de servicios
+            BlocBuilder<ServiceBloc, ServiceState>(
+              builder: (context, state) {
+                if (state is ServiceLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.green),
+                  );
+                } else if (state is ServiceLoaded && state.services.isNotEmpty) {
+                  // Calcular el total
+                  double totalAmount = 0;
+                  for (var service in state.services) {
+                    totalAmount += service.value;
+                  }
+                  
+                  return Column(
+                    children: [
+                      // Lista de servicios
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: state.services.length,
+                        separatorBuilder: (context, index) => const Divider(height: 16),
+                        itemBuilder: (context, index) {
+                          final service = state.services[index];
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Nombre del servicio
+                              Expanded(
+                                flex: 3,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      service.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    if (service.description.isNotEmpty)
+                                      Text(
+                                        service.description,
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 14,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    Chip(
+                                      label: Text(
+                                        service.type,
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      backgroundColor: const Color(0xFFF3F5F8),
+                                      labelPadding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 0,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Precio del servicio
+                              Expanded(
+                                flex: 1,
+                                child: Text(
+                                  '\$${service.value.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      
+                      // Total
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Total',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Text(
+                            '\$${totalAmount.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                } else {
+                  return const Center(
+                    child: Text('No services available'),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 32),
             const Text(
@@ -236,11 +304,15 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
             BlocBuilder<PaymentBloc, PaymentState>(
               buildWhen: (previous, current) {
                 // Reconstruir siempre que cambie el estado
-                AppLogger.info('PaymentBloc estado anterior: ${previous.runtimeType}, nuevo: ${current.runtimeType}');
+                AppLogger.info(
+                  'PaymentBloc estado anterior: ${previous.runtimeType}, nuevo: ${current.runtimeType}',
+                );
                 return true;
               },
               builder: (context, state) {
-                AppLogger.info('Construyendo UI con estado PaymentBloc: ${state.runtimeType}');
+                AppLogger.info(
+                  'Construyendo UI con estado PaymentBloc: ${state.runtimeType}',
+                );
                 if (state is PaymentLoading) {
                   return const Center(
                     child: CircularProgressIndicator(color: Colors.green),
@@ -253,11 +325,15 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                     defaultCard = state.creditCards.firstWhere(
                       (card) => card.isDefault,
                     );
-                    AppLogger.info('Tarjeta predeterminada encontrada: ${defaultCard.id}');
+                    AppLogger.info(
+                      'Tarjeta predeterminada encontrada: ${defaultCard.id}',
+                    );
                   } catch (e) {
                     // Si no hay tarjeta predeterminada, usar la primera
                     defaultCard = state.creditCards.first;
-                    AppLogger.info('No hay tarjeta predeterminada, usando la primera: ${defaultCard.id}');
+                    AppLogger.info(
+                      'No hay tarjeta predeterminada, usando la primera: ${defaultCard.id}',
+                    );
                   }
 
                   return Column(
@@ -369,21 +445,26 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                             // Obtener el customerId y las tarjetas disponibles
                             final authState = context.read<AuthBloc>().state;
                             String? customerId;
-                            if (authState is AuthAuthenticated && authState.user.customerId != null) {
+                            if (authState is AuthAuthenticated &&
+                                authState.user.customerId != null) {
                               customerId = authState.user.customerId.toString();
                             }
-                            
+
                             // Obtener las tarjetas del estado actual del PaymentBloc
-                            final paymentState = context.read<PaymentBloc>().state;
+                            final paymentState = context
+                                .read<PaymentBloc>()
+                                .state;
                             List<CreditCard> creditCards = [];
                             CreditCard? defaultCard;
-                            
+
                             if (paymentState is PaymentLoaded) {
                               creditCards = paymentState.creditCards;
-                              
+
                               // Buscar la tarjeta predeterminada
                               try {
-                                defaultCard = creditCards.firstWhere((card) => card.isDefault);
+                                defaultCard = creditCards.firstWhere(
+                                  (card) => card.isDefault,
+                                );
                               } catch (e) {
                                 // Si no hay tarjeta predeterminada y hay tarjetas, usar la primera
                                 if (creditCards.isNotEmpty) {
@@ -393,16 +474,24 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                             } else {
                               // Si no hay tarjetas cargadas, intentar cargarlas
                               if (customerId != null) {
-                                context.read<PaymentBloc>().add(GetCreditCardsEvent(customerId));
+                                context.read<PaymentBloc>().add(
+                                  GetCreditCardsEvent(customerId),
+                                );
                                 // Esperar un momento para que se carguen las tarjetas
-                                await Future.delayed(const Duration(milliseconds: 300));
-                                
+                                await Future.delayed(
+                                  const Duration(milliseconds: 300),
+                                );
+
                                 // Intentar obtener las tarjetas nuevamente
-                                final updatedState = context.read<PaymentBloc>().state;
+                                final updatedState = context
+                                    .read<PaymentBloc>()
+                                    .state;
                                 if (updatedState is PaymentLoaded) {
                                   creditCards = updatedState.creditCards;
                                   try {
-                                    defaultCard = creditCards.firstWhere((card) => card.isDefault);
+                                    defaultCard = creditCards.firstWhere(
+                                      (card) => card.isDefault,
+                                    );
                                   } catch (e) {
                                     if (creditCards.isNotEmpty) {
                                       defaultCard = creditCards.first;
@@ -411,7 +500,7 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                                 }
                               }
                             }
-                            
+
                             // Mostrar el modal de selección de tarjeta
                             await showModalBottomSheet(
                               context: context,
@@ -439,19 +528,25 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                                 ),
                               ),
                             );
-                            
+
                             // Forzar actualización de la UI después de cerrar el modal
                             if (customerId != null) {
                               // Recargar las tarjetas para obtener los cambios
-                              context.read<PaymentBloc>().add(GetCreditCardsEvent(customerId));
-                              
+                              context.read<PaymentBloc>().add(
+                                GetCreditCardsEvent(customerId),
+                              );
+
                               // Esperar un momento para que se actualice el estado
-                              await Future.delayed(const Duration(milliseconds: 300));
-                              
+                              await Future.delayed(
+                                const Duration(milliseconds: 300),
+                              );
+
                               // Forzar reconstrucción del widget
                               if (mounted) {
                                 setState(() {});
-                                AppLogger.info('Forzando reconstrucción del widget después de cambiar tarjeta');
+                                AppLogger.info(
+                                  'Forzando reconstrucción del widget después de cambiar tarjeta',
+                                );
                               }
                             }
                           },
@@ -540,13 +635,23 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () {
-                  // Obtener el servicio actual del ServiceBloc
+                  // Obtener los servicios del ServiceBloc
                   final serviceState = context.read<ServiceBloc>().state;
-                  String serviceName = 'U-wifi Plan';
-
-                  if (serviceState is ServiceLoaded &&
-                      serviceState.services.isNotEmpty) {
-                    serviceName = serviceState.services.first.name;
+                  
+                  // Registrar información sobre los servicios para depuración
+                  if (serviceState is ServiceLoaded && serviceState.services.isNotEmpty) {
+                    AppLogger.info('Número de servicios a procesar: ${serviceState.services.length}');
+                    
+                    // Calcular el monto total para el log (solo para depuración)
+                    double totalAmount = 0;
+                    for (var service in serviceState.services) {
+                      totalAmount += service.value;
+                      AppLogger.info('Servicio: ${service.name}, Valor: \$${service.value.toStringAsFixed(2)}');
+                    }
+                    
+                    AppLogger.info('Monto total calculado: \$${totalAmount.toStringAsFixed(2)}');
+                  } else {
+                    AppLogger.info('No hay servicios disponibles o estado no cargado');
                   }
 
                   // Obtener la tarjeta predeterminada del PaymentBloc
@@ -568,8 +673,9 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => CheckoutSummaryPage(
-                        amount: widget.amount,
-                        serviceName: serviceName,
+                        services: serviceState is ServiceLoaded && serviceState.services.isNotEmpty
+                            ? serviceState.services
+                            : [],
                         selectedCard: defaultCard,
                       ),
                     ),

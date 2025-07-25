@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:uwifiapp/features/home/domain/entities/active_service.dart';
 
 import '../../../../../core/utils/app_logger.dart';
 import '../../../../../injection_container.dart' as di;
@@ -443,9 +444,21 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
                       const Spacer(),
                       OutlinedButton(
                         onPressed: () {
+                          // Obtener el valor del servicio actual
+                          List<ActiveService> activeServices =
+                              []; // Valor por defecto
+                          final serviceState = context
+                              .read<ServiceBloc>()
+                              .state;
+                          if (serviceState is ServiceLoaded &&
+                              serviceState.services.isNotEmpty) {
+                            activeServices = serviceState.services;
+                          }
+
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => const PlanPayNowPage(),
+                              builder: (context) =>
+                                  PlanPayNowPage(services: activeServices),
                             ),
                           );
                         },
