@@ -180,7 +180,7 @@ class ProfilePage extends StatelessWidget {
                               const SizedBox(height: 12),
                               _ProfileOption(
                                 icon: Icons.wifi_tethering,
-                                label: 'My U-wifi Plan',
+                                label: 'My U-Wifi Plan',
                                 onTap: () {
                                   Navigator.of(
                                     context,

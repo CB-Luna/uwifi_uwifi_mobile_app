@@ -192,7 +192,7 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'My U-wifi Plan',
+          'My U-Wifi Plan',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
