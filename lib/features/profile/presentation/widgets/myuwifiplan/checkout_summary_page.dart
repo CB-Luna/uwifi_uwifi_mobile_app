@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../../../domain/entities/credit_card.dart';
+
 class CheckoutSummaryPage extends StatefulWidget {
-  const CheckoutSummaryPage({super.key});
+  final double amount;
+  final String serviceName;
+  final CreditCard? selectedCard;
+  
+  const CheckoutSummaryPage({
+    super.key,
+    required this.amount,
+    required this.serviceName,
+    required this.selectedCard,
+  });
 
   @override
   State<CheckoutSummaryPage> createState() => _CheckoutSummaryPageState();
@@ -9,6 +20,81 @@ class CheckoutSummaryPage extends StatefulWidget {
 
 class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
   bool autoPayment = false;
+  bool isProcessing = false;
+  
+  // Método para obtener el icono de la tarjeta según el token
+  Widget _getCardIcon(String token) {
+    // Determinar el tipo de tarjeta basado en el token
+    String cardType = 'visa'; // Por defecto
+    
+    if (token.startsWith('4')) {
+      cardType = 'visa';
+    } else if (token.startsWith('5')) {
+      cardType = 'mastercard';
+    } else if (token.startsWith('3')) {
+      cardType = 'amex';
+    } else if (token.startsWith('6')) {
+      cardType = 'discover';
+    }
+    
+    // Retornar el logo correspondiente
+    switch (cardType) {
+      case 'visa':
+        return Image.asset(
+          'assets/images/cards/visa.png',
+          width: 40,
+          height: 25,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.credit_card,
+            color: Colors.black87,
+            size: 25,
+          ),
+        );
+      case 'mastercard':
+        return Image.asset(
+          'assets/images/cards/mastercard.png',
+          width: 40,
+          height: 25,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.credit_card,
+            color: Colors.black87,
+            size: 25,
+          ),
+        );
+      case 'amex':
+        return Image.asset(
+          'assets/images/cards/amex.png',
+          width: 40,
+          height: 25,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.credit_card,
+            color: Colors.black87,
+            size: 25,
+          ),
+        );
+      case 'discover':
+        return Image.asset(
+          'assets/images/cards/discover.png',
+          width: 40,
+          height: 25,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.credit_card,
+            color: Colors.black87,
+            size: 25,
+          ),
+        );
+      default:
+        return const Icon(
+          Icons.credit_card,
+          color: Colors.black87,
+          size: 25,
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,19 +138,19 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                     style: TextStyle(color: Colors.black54),
                   ),
                   const SizedBox(height: 16),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'U-wifi 5G Plan',
-                        style: TextStyle(
+                        widget.serviceName,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
                       ),
                       Text(
-                        '\$76.00',
-                        style: TextStyle(
+                        '\$${widget.amount.toStringAsFixed(2)}',
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
@@ -75,6 +161,26 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                     'Monthly Plan',
                     style: TextStyle(color: Colors.black54),
                   ),
+                  
+                  // Información de la tarjeta seleccionada
+                  if (widget.selectedCard != null) ...[  
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Payment Method',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      children: [
+                        _getCardIcon(widget.selectedCard!.token),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Card ending in ${widget.selectedCard!.token.substring(widget.selectedCard!.token.length - 4)}',
+                          style: const TextStyle(color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ],
+                  
                   const Divider(),
                   const SizedBox(height: 16),
                   const Text(
@@ -103,11 +209,11 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const Divider(),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Subtotal', style: TextStyle(color: Colors.black54)),
-                      Text('\$76.00', style: TextStyle(color: Colors.black54)),
+                      const Text('Subtotal', style: TextStyle(color: Colors.black54)),
+                      Text('\$${widget.amount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.black54)),
                     ],
                   ),
                   const Row(
@@ -118,10 +224,10 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         'Total',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -129,14 +235,15 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                         ),
                       ),
                       Text(
-                        '\$76.00',
-                        style: TextStyle(
+                        '\$${widget.amount.toStringAsFixed(2)}',
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
                       ),
                     ],
                   ),
+                  
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -159,7 +266,40 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: isProcessing ? null : () {
+                  setState(() {
+                    isProcessing = true;
+                  });
+                  
+                  // Aquí iría la lógica para procesar el pago
+                  // Por ahora solo simulamos un proceso
+                  Future.delayed(const Duration(seconds: 2), () {
+                    // Mostrar un diálogo de éxito
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Payment Successful'),
+                        content: const Text('Your payment has been processed successfully.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              // Cerrar el diálogo y volver a la página principal
+                              Navigator.of(context).pop();
+                              // Navegar hacia atrás hasta la página principal
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                            },
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                    
+                    setState(() {
+                      isProcessing = false;
+                    });
+                  });
+                },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.green),
                   shape: RoundedRectangleBorder(
@@ -167,14 +307,23 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 18),
                 ),
-                child: const Text(
-                  'Make Payment',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                child: isProcessing
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.green,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Make Payment',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
               ),
             ),
             const Spacer(),

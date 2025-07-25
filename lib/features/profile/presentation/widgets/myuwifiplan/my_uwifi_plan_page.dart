@@ -161,10 +161,12 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
         // Después de mostrar la confirmación, recargamos los datos del backend
         // para asegurar que todo esté sincronizado
         _loadBillingData();
-        
+
         // También recargamos los detalles del cliente para mantener todo sincronizado
         if (customerIdInt > 0) {
-          context.read<CustomerDetailsBloc>().add(FetchCustomerDetails(customerIdInt));
+          context.read<CustomerDetailsBloc>().add(
+            FetchCustomerDetails(customerIdInt),
+          );
         }
       } else {
         // Si no hay customerId, mostramos un error
@@ -412,7 +414,10 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
                           // Actualizar el estado local cuando cambia el estado del bloc
                           if (state is CustomerDetailsLoaded &&
                               state.customerDetails.billingCycle != null) {
-                            _localAutoPay = state.customerDetails.billingCycle!.automaticCharge;
+                            _localAutoPay = state
+                                .customerDetails
+                                .billingCycle!
+                                .automaticCharge;
                           }
                         },
                         builder: (context, state) {
@@ -420,7 +425,10 @@ class _MyUwifiPlanPageContentState extends State<_MyUwifiPlanPageContent> {
                           if (state is CustomerDetailsLoaded &&
                               state.customerDetails.billingCycle != null &&
                               !_localAutoPay) {
-                            _localAutoPay = state.customerDetails.billingCycle!.automaticCharge;
+                            _localAutoPay = state
+                                .customerDetails
+                                .billingCycle!
+                                .automaticCharge;
                           }
 
                           // Usar el estado local para el valor del switch
