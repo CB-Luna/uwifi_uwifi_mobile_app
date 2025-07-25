@@ -86,6 +86,7 @@ class _AddUserPageState extends State<AddUserPage> {
       // Here would go the logic to send the invitation
       // For now we just close the page after a brief delay
       Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
         Navigator.of(context).pop();
       });
     }

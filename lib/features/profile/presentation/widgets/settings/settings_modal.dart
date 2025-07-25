@@ -311,9 +311,16 @@ class _SettingsModalState extends State<SettingsModal> {
                           ),
                           onPressed: () {
                             Navigator.of(context).pop();
+                            
+                            // Obtenemos el AuthBloc del contexto actual
+                            final authBloc = BlocProvider.of<AuthBloc>(context, listen: false);
+                            
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => const HelpCenterPage(),
+                                builder: (context) => BlocProvider.value(
+                                  value: authBloc,
+                                  child: const HelpCenterPage(),
+                                ),
                               ),
                             );
                           },

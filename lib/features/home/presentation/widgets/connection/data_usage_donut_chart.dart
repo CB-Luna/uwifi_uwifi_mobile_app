@@ -162,7 +162,7 @@ class DataUsageDonutChart extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           'Upload: ${uploadGB.toStringAsFixed(2)} GB',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: uploadColor,
                             fontWeight: FontWeight.w500,
                             fontSize: 12,

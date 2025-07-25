@@ -141,10 +141,17 @@ import 'features/videos/presentation/bloc/videos_bloc.dart';
 
 // Support feature imports
 import 'features/support/data/datasources/ticket_category_remote_data_source.dart';
+import 'features/support/data/datasources/support_ticket_remote_data_source.dart';
+import 'features/support/data/datasources/support_ticket_remote_data_source_impl.dart';
 import 'features/support/data/repositories/ticket_category_repository_impl.dart';
+import 'features/support/data/repositories/support_ticket_repository_impl.dart';
 import 'features/support/domain/repositories/ticket_category_repository.dart';
+import 'features/support/domain/repositories/support_ticket_repository.dart';
 import 'features/support/domain/usecases/get_ticket_categories.dart';
+import 'features/support/domain/usecases/create_support_ticket.dart';
+import 'features/support/domain/usecases/upload_ticket_files.dart';
 import 'features/support/presentation/bloc/ticket_category_bloc.dart';
+import 'features/support/presentation/bloc/support_ticket_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -170,21 +177,33 @@ Future<void> init() async {
       getTicketCategories: getIt(),
     ),
   );
-
-  // Use cases
   getIt.registerLazySingleton(() => GetTicketCategories(getIt()));
-
-  // Repository
   getIt.registerLazySingleton<TicketCategoryRepository>(
     () => TicketCategoryRepositoryImpl(
       remoteDataSource: getIt(),
       networkInfo: getIt(),
     ),
   );
-
-  // Data sources
   getIt.registerLazySingleton<TicketCategoryRemoteDataSource>(
     () => TicketCategoryRemoteDataSourceImpl(supabaseClient: getIt()),
+  );
+
+  getIt.registerFactory(
+    () => SupportTicketBloc(
+      uploadTicketFiles: getIt(),
+      createSupportTicket: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton(() => UploadTicketFiles(getIt()));
+  getIt.registerLazySingleton(() => CreateSupportTicket(getIt()));
+  getIt.registerLazySingleton<SupportTicketRepository>(
+    () => SupportTicketRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+  getIt.registerLazySingleton<SupportTicketRemoteDataSource>(
+    () => SupportTicketRemoteDataSourceImpl(supabaseClient: getIt()),
   );
 
   getIt.registerLazySingleton(() => GenresBloc(getGenres: getIt()));

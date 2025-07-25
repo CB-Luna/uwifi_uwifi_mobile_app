@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../../core/utils/app_logger.dart';
+import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import 'account_security_faq_page.dart';
 import 'submit_ticket_page.dart';
 
@@ -174,11 +178,26 @@ class _HelpCenterPageState extends State<HelpCenterPage>
                   icon: Icons.confirmation_number_outlined,
                   label: 'Create a ticket',
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SubmitTicketPageProvider(),
-                      ),
-                    );
+                    // Verificamos si podemos obtener el AuthBloc del contexto actual
+                    try {
+                      final authBloc = BlocProvider.of<AuthBloc>(context, listen: false);
+                      AppLogger.navInfo('HelpCenterPage: Estado de AuthBloc: ${authBloc.state.runtimeType}');
+                      
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => BlocProvider.value(
+                            value: authBloc,
+                            child: const SubmitTicketPageProvider(),
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      AppLogger.navError('Error al obtener AuthBloc en HelpCenterPage: $e');
+                      // Si no podemos obtener el AuthBloc, mostramos un mensaje de error
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Error: No se pudo acceder a la información de autenticación')),
+                      );
+                    }
                   },
                 ),
                 const SizedBox(height: 10),
