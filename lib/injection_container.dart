@@ -68,6 +68,7 @@ import 'features/home/domain/repositories/gateway_repository.dart';
 import 'features/home/domain/repositories/service_repository.dart';
 import 'features/home/domain/repositories/traffic_repository.dart';
 import 'features/home/domain/repositories/transaction_repository.dart';
+import 'features/home/domain/usecases/create_manual_billing.dart';
 import 'features/home/domain/usecases/get_current_billing_period.dart';
 import 'features/home/domain/usecases/get_customer_active_services.dart';
 import 'features/home/domain/usecases/get_customer_balance.dart';
@@ -341,6 +342,7 @@ Future<void> init() async {
       getCurrentBillingPeriod: getIt(),
       getCustomerBalance: getIt(),
       updateAutomaticCharge: getIt(),
+      createManualBilling: getIt(),
     ),
   );
 
@@ -348,6 +350,7 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => GetCurrentBillingPeriod(getIt()));
   getIt.registerLazySingleton(() => GetCustomerBalance(getIt()));
   getIt.registerLazySingleton(() => UpdateAutomaticCharge(getIt()));
+  getIt.registerLazySingleton(() => CreateManualBilling(getIt()));
 
   // Repository
   getIt.registerLazySingleton<BillingRepository>(

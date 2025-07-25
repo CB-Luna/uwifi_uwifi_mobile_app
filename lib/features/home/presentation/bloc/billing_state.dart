@@ -48,3 +48,14 @@ class BillingError extends BillingState {
   @override
   List<Object?> get props => [message];
 }
+
+class BillingProcessing extends BillingState {}
+
+class BillingSuccess extends BillingState {
+  final String message;
+
+  const BillingSuccess({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}

@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:uwifiapp/core/utils/app_logger.dart';
 
+import '../../domain/usecases/create_manual_billing.dart';
 import '../../domain/usecases/get_current_billing_period.dart';
 import '../../domain/usecases/get_customer_balance.dart';
 import '../../domain/usecases/update_automatic_charge.dart';
@@ -11,15 +12,18 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
   final GetCurrentBillingPeriod getCurrentBillingPeriod;
   final GetCustomerBalance getCustomerBalance;
   final UpdateAutomaticCharge updateAutomaticCharge;
+  final CreateManualBilling createManualBilling;
 
   BillingBloc({
     required this.getCurrentBillingPeriod,
     required this.getCustomerBalance,
     required this.updateAutomaticCharge,
+    required this.createManualBilling,
   }) : super(BillingInitial()) {
     on<GetBillingPeriodEvent>(_onGetBillingPeriod);
     on<GetCustomerBalanceEvent>(_onGetCustomerBalance);
     on<UpdateAutomaticChargeEvent>(_onUpdateAutomaticCharge);
+    on<CreateManualBillingEvent>(_onCreateManualBilling);
   }
 
   Future<void> _onGetBillingPeriod(
@@ -99,5 +103,41 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
         },
       );
     }
+  }
+
+  Future<void> _onCreateManualBilling(
+    CreateManualBillingEvent event,
+    Emitter<BillingState> emit,
+  ) async {
+    emit(BillingProcessing());
+    
+    AppLogger.navInfo(
+      'Creando facturación manual para customerId: ${event.customerId}, fecha: ${event.billingDate}, descuento: ${event.discount}, autoPay: ${event.autoPayment}',
+    );
+    
+    final params = CreateManualBillingParams(
+      customerId: event.customerId,
+      billingDate: event.billingDate,
+      discount: event.discount,
+      autoPayment: event.autoPayment,
+    );
+    
+    final result = await createManualBilling(params);
+    
+    result.fold(
+      (failure) {
+        AppLogger.navError('Error al crear facturación manual: ${failure.message}');
+        emit(BillingError(message: failure.message));
+      },
+      (success) {
+        AppLogger.navInfo('Facturación manual creada exitosamente');
+        emit(BillingSuccess(message: 'Pago procesado exitosamente'));
+        
+        // Después de crear la facturación, recargar el periodo de facturación
+        // si tenemos un customerId en formato string
+        final customerIdStr = event.customerId.toString();
+        add(GetBillingPeriodEvent(customerId: customerIdStr));
+      },
+    );
   }
 }

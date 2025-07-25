@@ -66,4 +66,27 @@ class BillingRepositoryImpl implements BillingRepository {
       return const Left(NetworkFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, bool>> createManualBilling({
+    required int customerId,
+    required String billingDate,
+    required double discount,
+    required bool autoPayment,
+  }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        return await remoteDataSource.createManualBilling(
+          customerId: customerId,
+          billingDate: billingDate,
+          discount: discount,
+          autoPayment: autoPayment,
+        );
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure());
+    }
+  }
 }

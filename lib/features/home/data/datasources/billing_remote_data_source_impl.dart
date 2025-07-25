@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:dartz/dartz.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uwifiapp/core/constants/api_endpoints.dart';
 import 'package:uwifiapp/core/utils/app_logger.dart';
 
 import '../../../../core/errors/failures.dart';
@@ -110,6 +113,60 @@ class BillingRemoteDataSourceImpl implements BillingRemoteDataSource {
     } catch (e) {
       return Left(
         ServerFailure('Error al actualizar el estado de AutoPay: $e'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> createManualBilling({
+    required int customerId,
+    required String billingDate,
+    required double discount,
+    required bool autoPayment,
+  }) async {
+    try {
+      // Preparar el cuerpo de la solicitud
+      final requestBody = {
+        'customer_id': customerId,
+        'billing_date': billingDate,
+        'discount': discount,
+        'auto_payment': autoPayment,
+      };
+
+      // Log para depuración
+      AppLogger.navInfo(
+        'Creando facturación manual para customerId: $customerId, fecha: $billingDate, descuento: $discount, autoPay: $autoPayment',
+      );
+
+      // Realizar la solicitud HTTP POST al endpoint de Airflow
+      final response = await http.post(
+        Uri.parse(ApiEndpoints.createManualBilling),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode != 200) {
+        return Left(
+          ServerFailure('Error al crear facturación manual: ${response.body}'),
+        );
+      }
+
+      // Parsear la respuesta
+      final responseData = jsonDecode(response.body);
+      
+      // Verificar si la respuesta indica éxito
+      if (responseData['success'] == true) {
+        return const Right(true);
+      } else {
+        return Left(
+          ServerFailure(
+            'Error al crear facturación manual: ${responseData['message'] ?? "Respuesta inválida"}',
+          ),
+        );
+      }
+    } catch (e) {
+      return Left(
+        ServerFailure('Error al crear facturación manual: $e'),
       );
     }
   }

@@ -28,6 +28,8 @@ class ApiEndpoints {
   // Billing endpoints
   static const String updateAutomaticCharge =
       '$supabaseBaseUrl/update_automatic_charge';
+  static const String createManualBilling =
+      '$airflowBaseUrl/create-manual-billing';
 
   // Payment endpoints
   static const String updateDefaultCreditCard =

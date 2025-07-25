@@ -37,3 +37,20 @@ class UpdateAutomaticChargeEvent extends BillingEvent {
   @override
   List<Object> get props => [customerId, value];
 }
+
+class CreateManualBillingEvent extends BillingEvent {
+  final int customerId;
+  final String billingDate;
+  final double discount;
+  final bool autoPayment;
+
+  const CreateManualBillingEvent({
+    required this.customerId,
+    required this.billingDate,
+    required this.discount,
+    required this.autoPayment,
+  });
+
+  @override
+  List<Object> get props => [customerId, billingDate, discount, autoPayment];
+}
