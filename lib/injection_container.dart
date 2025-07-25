@@ -154,6 +154,14 @@ import 'features/support/domain/usecases/upload_ticket_files.dart';
 import 'features/support/presentation/bloc/ticket_category_bloc.dart';
 import 'features/support/presentation/bloc/support_ticket_bloc.dart';
 
+// Affiliate feature imports
+import 'features/profile/data/datasources/affiliate_remote_data_source.dart';
+import 'features/profile/data/datasources/affiliate_remote_data_source_impl.dart';
+import 'features/profile/data/repositories/affiliate_repository_impl.dart';
+import 'features/profile/domain/repositories/affiliate_repository.dart';
+import 'features/profile/domain/usecases/send_affiliate_invitation.dart';
+import 'features/profile/presentation/bloc/affiliate_bloc.dart';
+
 final getIt = GetIt.instance;
 
 Future<void> init() async {
@@ -584,6 +592,30 @@ Future<void> init() async {
 
   getIt.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(sharedPreferences: getIt()),
+  );
+
+  //! Features - Affiliate
+  // Bloc
+  getIt.registerFactory(
+    () => AffiliateBloc(
+      sendAffiliateInvitation: getIt(),
+    ),
+  );
+  
+  // Use cases
+  getIt.registerLazySingleton(() => SendAffiliateInvitation(getIt()));
+  
+  // Repository
+  getIt.registerLazySingleton<AffiliateRepository>(
+    () => AffiliateRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+  
+  // Data sources
+  getIt.registerLazySingleton<AffiliateRemoteDataSource>(
+    () => AffiliateRemoteDataSourceImpl(client: getIt()),
   );
 
   //! Core

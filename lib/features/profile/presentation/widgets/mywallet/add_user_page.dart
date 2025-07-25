@@ -1,4 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uwifiapp/core/utils/app_logger.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
+import 'package:uwifiapp/features/profile/presentation/bloc/affiliate_bloc.dart';
+import 'package:uwifiapp/features/profile/presentation/bloc/affiliate_event.dart';
+import 'package:uwifiapp/features/profile/presentation/bloc/affiliate_state.dart';
+import 'package:uwifiapp/injection_container.dart' as di;
 
 class AddUserPage extends StatefulWidget {
   const AddUserPage({super.key});
@@ -9,6 +17,7 @@ class AddUserPage extends StatefulWidget {
 
 class _AddUserPageState extends State<AddUserPage> {
   final formKey = GlobalKey<FormState>();
+  bool isProcessing = false;
 
   // Controllers for text fields
   final nameController = TextEditingController();
@@ -75,157 +84,210 @@ class _AddUserPageState extends State<AddUserPage> {
   // Method to handle form submission
   void _handleSubmit() {
     if (formKey.currentState!.validate()) {
-      // If the form is valid, show a success snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invitation sent successfully!'),
-          backgroundColor: Colors.green,
-        ),
+      final authState = context.read<AuthBloc>().state;
+      if (authState is! AuthAuthenticated ||
+          authState.user.customerId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo identificar al usuario'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final customerId = authState.user.customerId!;
+      if (customerId <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('ID de cliente inválido'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      setState(() {
+        isProcessing = true;
+      });
+
+      AppLogger.info(
+        'Enviando invitación de afiliado para: ${emailController.text}',
       );
 
-      // Here would go the logic to send the invitation
-      // For now we just close the page after a brief delay
-      Future.delayed(const Duration(seconds: 2), () {
-        if (!mounted) return;
-        Navigator.of(context).pop();
-      });
+      // Enviar la invitación a través del bloc
+      context.read<AffiliateBloc>().add(
+        SendAffiliateInvitationEvent(
+          firstName: nameController.text,
+          lastName: lastNameController.text,
+          email: emailController.text,
+          phone: phoneController.text,
+          customerId: customerId,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'New affiliated user',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-        ),
-        centerTitle: true,
-      ),
-      backgroundColor: Colors.white,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Avatar/Illustration
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
+    return BlocProvider(
+      create: (_) => di.getIt<AffiliateBloc>(),
+      child: Builder(
+        builder: (context) => Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: const Text(
+              'New affiliated user',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            centerTitle: true,
+          ),
+          backgroundColor: Colors.white,
+          body: BlocConsumer<AffiliateBloc, AffiliateState>(
+            listener: (context, state) {
+              if (state is AffiliateLoading) {
+                setState(() {
+                  isProcessing = true;
+                });
+              } else if (state is AffiliateSuccess) {
+                setState(() {
+                  isProcessing = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.green,
                   ),
-                  child: const CircleAvatar(
-                    radius: 38,
-                    backgroundColor: Color(0xFF4CAF50),
-                    child: Icon(Icons.group_add, color: Colors.white, size: 38),
+                );
+                Future.delayed(const Duration(seconds: 2), () {
+                  if (!mounted) return;
+                  Navigator.of(context).pop();
+                });
+              } else if (state is AffiliateError) {
+                setState(() {
+                  isProcessing = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${state.message}'),
+                    backgroundColor: Colors.red,
                   ),
-                ),
-                const SizedBox(height: 18),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 22,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.07),
-                        blurRadius: 18,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              return Center(
+                child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Invite a new user to your group",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "They'll be able to download the U-app, watch ads, and earn points for your main account!",
-                        style: TextStyle(color: Colors.black54, fontSize: 15),
-                      ),
-                      const SizedBox(height: 22),
-                      Form(
-                        key: formKey,
+                      Container(
+                        padding: const EdgeInsets.all(24),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _ModernInputField(
-                              icon: Icons.person_outline,
-                              hintText: 'Name',
-                              controller: nameController,
-                              validator: validateName,
+                            const SizedBox(height: 60),
+                            const Text(
+                              'Add a new affiliate',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
-                            const SizedBox(height: 14),
-                            _ModernInputField(
-                              icon: Icons.person,
-                              hintText: 'Last Name',
-                              controller: lastNameController,
-                              validator: validateLastName,
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Fill in the information to send an invitation',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black54,
+                              ),
                             ),
-                            const SizedBox(height: 14),
-                            _ModernInputField(
-                              icon: Icons.email_outlined,
-                              hintText: 'Email',
-                              keyboardType: TextInputType.emailAddress,
-                              controller: emailController,
-                              validator: validateEmail,
-                            ),
-                            const SizedBox(height: 14),
-                            _ModernInputField(
-                              icon: Icons.phone,
-                              hintText: 'Phone number',
-                              keyboardType: TextInputType.phone,
-                              controller: phoneController,
-                              validator: validatePhone,
-                            ),
-                            const SizedBox(height: 28),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _handleSubmit,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
+                            const SizedBox(height: 32),
+                            Form(
+                              key: formKey,
+                              child: Column(
+                                children: [
+                                  _ModernInputField(
+                                    icon: Icons.person,
+                                    hintText: 'Name',
+                                    controller: nameController,
+                                    validator: validateName,
                                   ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24),
+                                  const SizedBox(height: 14),
+                                  _ModernInputField(
+                                    icon: Icons.person,
+                                    hintText: 'Last Name',
+                                    controller: lastNameController,
+                                    validator: validateLastName,
                                   ),
-                                  elevation: 2,
-                                  backgroundColor: Colors.green,
-                                  foregroundColor: Colors.white,
-                                ),
-                                child: const Text(
-                                  'Send Invitation',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w600,
+                                  const SizedBox(height: 14),
+                                  _ModernInputField(
+                                    icon: Icons.email_outlined,
+                                    hintText: 'Email',
+                                    keyboardType: TextInputType.emailAddress,
+                                    controller: emailController,
+                                    validator: validateEmail,
                                   ),
-                                ),
+                                  const SizedBox(height: 14),
+                                  _ModernInputField(
+                                    icon: Icons.phone,
+                                    hintText: 'Phone number',
+                                    keyboardType: TextInputType.phone,
+                                    controller: phoneController,
+                                    validator: validatePhone,
+                                  ),
+                                  const SizedBox(height: 28),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: isProcessing
+                                          ? null
+                                          : _handleSubmit,
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
+                                        ),
+                                        elevation: 2,
+                                        backgroundColor: Colors.green,
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      child: isProcessing
+                                          ? const SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                      Color
+                                                    >(Colors.white),
+                                              ),
+                                            )
+                                          : const Text(
+                                              'Send Invitation',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 17,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -234,8 +296,8 @@ class _AddUserPageState extends State<AddUserPage> {
                     ],
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),

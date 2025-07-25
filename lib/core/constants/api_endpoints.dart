@@ -41,6 +41,9 @@ class ApiEndpoints {
   // Support endpoints
   static const String supportTicketCategories = '$supabaseBaseUrl/get_support_ticket_categories';
 
+  // Affiliate endpoints
+  static const String sendAffiliateInvitation = '$airflowBaseUrl/afiliate';
+
   // API Keys
   static const String zequenceApiKey =
       'd43bdbe46e77d09ef9674c240deb7cd0597d3aae';
