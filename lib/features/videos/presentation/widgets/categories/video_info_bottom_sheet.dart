@@ -102,15 +102,13 @@ class VideoInfoBottomSheet extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Partner name with verification badge
+        // Nombre de la plataforma
         Row(
           children: [
             Flexible(
-              child: Text(
-                ad.partner != null && ad.partner!.isNotEmpty
-                    ? ad.partner!
-                    : 'U-Wifi',
-                style: const TextStyle(
+              child: const Text(
+                'U-Wifi', // Valor fijo ya que partner ya no existe
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -133,7 +131,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '• ${_formatDuration(ad.durationVideo > 0 ? ad.durationVideo : ad.duration)} seconds',
+          '• Video', // Ya no mostramos la duración porque durationVideo y duration ya no existen
           style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
       ],
@@ -156,7 +154,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          ad.overview.isNotEmpty ? ad.overview : ad.description,
+          ad.description, // Usamos solo description ya que overview ya no existe
           style: TextStyle(fontSize: 14, color: Colors.grey[800], height: 1.4),
           textAlign: TextAlign.justify,
         ),
@@ -166,14 +164,16 @@ class VideoInfoBottomSheet extends StatelessWidget {
 
   // Widget for the visit URL button
   Widget _buildVisitUrlButton(BuildContext context) {
+    // Usamos el campo videoUrl como alternativa ya que urlAd ya no existe
+    final hasUrl = ad.videoUrl.isNotEmpty;
     return Visibility(
-      visible: ad.urlAd != null && ad.urlAd!.isNotEmpty,
+      visible: hasUrl,
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () async {
             // Make sure the URL has the correct format
-            String urlString = ad.urlAd ?? '';
+            String urlString = ad.videoUrl;
             if (!urlString.startsWith('http://') &&
                 !urlString.startsWith('https://')) {
               urlString = 'https://$urlString';
@@ -216,10 +216,5 @@ class VideoInfoBottomSheet extends StatelessWidget {
     );
   }
 
-  // Method to format duration in mm:ss format
-  String _formatDuration(int seconds) {
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
-  }
+  // El método _formatDuration ha sido eliminado ya que ya no se usa
 }

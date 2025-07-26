@@ -235,8 +235,8 @@ class VideoExplorerBloc extends Bloc<VideoExplorerEvent, VideoExplorerState> {
       final query = event.query.toLowerCase();
       final filteredVideos = currentState.videos.where((video) {
         return video.title.toLowerCase().contains(query) ||
-            video.description.toLowerCase().contains(query) ||
-            video.overview.toLowerCase().contains(query);
+            video.description.toLowerCase().contains(query);
+        // Se eliminó la referencia a overview ya que ya no existe en la entidad Ad
       }).toList();
 
       emit(

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/exceptions.dart';
@@ -8,8 +9,12 @@ import 'videos_remote_data_source.dart';
 
 class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
   final SupabaseClient supabaseClient;
+  late final SupabaseClient _mediaLibraryClient;
 
-  VideosRemoteDataSourceImpl({required this.supabaseClient});
+  VideosRemoteDataSourceImpl({required this.supabaseClient}) {
+    // Obtener el cliente específico para el esquema media_library
+    _mediaLibraryClient = GetIt.instance.get<SupabaseClient>(instanceName: 'mediaLibraryClient');
+  }
 
   /// Método helper para reintentar requests con backoff exponencial
   Future<T> _retryRequest<T>(
@@ -41,19 +46,17 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
   @override
   Future<List<AdModel>> getVideos() async {
     return _retryRequest(() async {
-      final response = await supabaseClient
-          .from('ad')
+      final response = await _mediaLibraryClient
+          .from('vw_media_files_with_posters')
           .select(
-            'id, title, overview, poster_path, genre_id, video, duration_video, priority, created_at, points, video_status, partner, url_ad',
+            'media_file_id, media_title, file_description, poster_url, category_id, category_name, category_image_url, media_url, media_created_at, media_type, media_mime_type, poster_title, poster_created_at',
           )
-          .eq('video_status', true) // Solo videos activos
-          .order('priority');
+          .eq('media_type', 'video') // Solo archivos de tipo video
+          .order('media_created_at', ascending: false);
 
-      final videos = (response as List)
-          .map((video) => AdModel.fromJson(video))
+      return (response as List)
+          .map((json) => AdModel.fromJson(json))
           .toList();
-
-      return videos;
     });
   }
 
@@ -64,34 +67,34 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
     int? categoryId,
   }) async {
     return _retryRequest(() async {
-      var query = supabaseClient
-          .from('ad')
+      var query = _mediaLibraryClient
+          .from('vw_media_files_with_posters')
           .select(
-            'id, title, overview, poster_path, genre_id, video, duration_video, priority, created_at, points, video_status, partner, url_ad',
+            'media_file_id, media_title, file_description, poster_url, category_id, category_name, category_image_url, media_url, media_created_at, media_type, media_mime_type, poster_title, poster_created_at',
           );
 
-      // Filtrar solo videos activos
-      query = query.eq('video_status', true);
+      // Filtrar solo archivos de tipo video
+      query = query.eq('media_type', 'video');
 
       // Si se especifica una categoría, filtrar por ella
       if (categoryId != null && categoryId > 0) {
         debugPrint('🔎 Filtrando videos por categoría ID: $categoryId');
-        query = query.eq('genre_id', categoryId);
+        query = query.eq('category_id', categoryId);
       } else {
         debugPrint('🔎 Mostrando todos los videos (sin filtro de categoría)');
       }
 
-      // Ordenar por prioridad y aplicar paginación
+      // Ordenar por fecha de creación y aplicar paginación
       final offset = (page - 1) * limit;
-      final response = await query
-          .order('priority')
+      final finalQuery = query
+          .order('media_created_at', ascending: false)
           .range(offset, offset + limit - 1);
 
-      final videos = (response as List)
-          .map((video) => AdModel.fromJson(video))
-          .toList();
+      final response = await finalQuery;
 
-      return videos;
+      return (response as List)
+          .map((json) => AdModel.fromJson(json))
+          .toList();
     });
   }
 
@@ -100,61 +103,76 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
     return _retryRequest(() async {
       debugPrint('🔍 Obteniendo géneros con videos...');
 
-      // 1. Primero obtener todos los géneros para tener sus IDs correctos y poster images
+      // 1. Primero obtener todos los géneros desde la nueva tabla media_categories
       final genresResponse = await _retryRequest(() async {
-        return await supabaseClient
-            .from('genre_ad')
-            .select('id, name, poster_img, poster_img_file')
-            .eq('visible', true)
-            .order('name');
+        return await _mediaLibraryClient
+            .from('media_categories')
+            .select('media_categories_id, category_name, category_description')
+            .order('category_name');
       });
 
-      final genres = (genresResponse as List)
-          .map(
-            (genre) => {
-              'id': genre['id'] as int,
-              'name': genre['name'] as String,
-              'poster_img':
-                  genre['poster_img'] as String? ??
-                  'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
-              'poster_img_file': genre['poster_img_file'] as String?,
-            },
-          )
-          .toList();
+      final genres = (genresResponse as List).map((json) {
+        return {
+          'id': json['media_categories_id'] as String,
+          'name': json['category_name'] as String,
+          'description': json['category_description'] as String?,
+          // Usamos una imagen por defecto para mantener compatibilidad con la UI
+          'poster_img': 'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
+        };
+      }).toList();
 
-      debugPrint('📚 Obtenidos ${genres.length} géneros desde genre_ad');
+      debugPrint('📚 Obtenidos ${genres.length} géneros desde media_categories');
 
-      // 2. Consultar la vista group_ad_by_genre que agrupa videos por categoría
-      final response = await _retryRequest(() async {
-        return await supabaseClient.from('group_ad_by_genre').select();
+      // 2. Ahora agrupamos videos por categoría usando la vista de media_files
+      // Primero obtenemos todos los videos
+      final videosResponse = await _retryRequest(() async {
+        return await _mediaLibraryClient
+            .from('vw_media_files_with_posters')
+            .select()
+            .eq('media_type', 'video');
       });
-
-      // 3. Mapear los resultados y asignar los IDs correctos basándonos en el nombre
-      return (response as List).map((genreData) {
-        final String genreName = genreData['name'] ?? '';
-
-        // Buscar el ID correcto del género por nombre y obtener poster images
+      
+      final videos = videosResponse as List;
+      debugPrint('🎥 Obtenidos ${videos.length} videos desde vw_media_files_with_posters');
+      
+      // Agrupamos los videos por categoría
+      final Map<String, List<Map<String, dynamic>>> videosByCategory = {};
+      
+      for (var video in videos) {
+        final categoryName = video['category_name'] ?? 'Sin categoría';
+        if (!videosByCategory.containsKey(categoryName)) {
+          videosByCategory[categoryName] = [];
+        }
+        videosByCategory[categoryName]!.add(video);
+      }
+      
+      // 3. Crear los objetos GenreWithVideosModel
+      return videosByCategory.entries.map((entry) {
+        final String genreName = entry.key;
+        final List<Map<String, dynamic>> categoryVideos = entry.value;
+        
+        // Buscar el ID correcto del género por nombre
         final matchingGenre = genres.firstWhere(
           (g) => g['name'] == genreName,
           orElse: () => {
-            'id': 0,
+            'id': '0', // Ahora los IDs son String
             'name': genreName,
-            'poster_img':
-                'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
-            'poster_img_file': null,
+            'description': null,
+            'poster_img': 'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
           },
         );
-
-        // Crear un nuevo objeto JSON con el ID correcto y poster images
+        
+        // Crear un nuevo objeto JSON con el ID correcto y los videos
         final Map<String, dynamic> enrichedGenreData = {
-          ...Map<String, dynamic>.from(genreData),
           'id': matchingGenre['id'],
+          'name': genreName,
+          'description': matchingGenre['description'],
           'poster_img': matchingGenre['poster_img'],
-          'poster_img_file': matchingGenre['poster_img_file'],
+          'videos': categoryVideos,
         };
 
         debugPrint(
-          '🔑 Asignando ID ${matchingGenre['id']} al género "$genreName"',
+          '🔑 Procesando categoría "$genreName" (ID: ${matchingGenre['id']}) con ${categoryVideos.length} videos',
         );
 
         return GenreWithVideosModel.fromJson(enrichedGenreData);
@@ -163,12 +181,12 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
   }
 
   @override
-  Future<AdModel> getVideo(int id) async {
+  Future<AdModel> getVideo(String id) async {
     return _retryRequest(() async {
-      final response = await supabaseClient
-          .from('ad')
+      final response = await _mediaLibraryClient
+          .from('vw_media_files_with_posters')
           .select()
-          .eq('id', id)
+          .eq('media_file_id', id)
           .single();
 
       return AdModel.fromJson(response);
@@ -176,7 +194,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
   }
 
   @override
-  Future<bool> markVideoAsViewed(int id) async {
+  Future<bool> markVideoAsViewed(String id) async {
     try {
       // Aquí podríamos tener una tabla de visualizaciones de videos
       // por ahora simplemente retornamos true como ejemplo
@@ -187,7 +205,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
   }
 
   @override
-  Future<bool> likeVideo(int id) async {
+  Future<bool> likeVideo(String id) async {
     try {
       // Implementación para dar like a un video
       // Podría involucrar una tabla de likes de usuarios
@@ -198,7 +216,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
   }
 
   @override
-  Future<bool> unlikeVideo(int id) async {
+  Future<bool> unlikeVideo(String id) async {
     try {
       // Implementación para quitar like a un video
       // Podría involucrar eliminar un registro de la tabla de likes

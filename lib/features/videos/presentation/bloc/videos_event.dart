@@ -35,7 +35,7 @@ class LoadVideosByGenreEvent extends VideosEvent {
 
 /// Evento para cargar un video específico
 class LoadVideoEvent extends VideosEvent {
-  final int videoId;
+  final String videoId;
 
   const LoadVideoEvent(this.videoId);
 
@@ -45,7 +45,7 @@ class LoadVideoEvent extends VideosEvent {
 
 /// Evento para marcar un video como visto
 class MarkVideoAsViewedEvent extends VideosEvent {
-  final int videoId;
+  final String videoId;
 
   const MarkVideoAsViewedEvent(this.videoId);
 
@@ -55,7 +55,7 @@ class MarkVideoAsViewedEvent extends VideosEvent {
 
 /// Evento para dar "me gusta" a un video
 class LikeVideoEvent extends VideosEvent {
-  final int videoId;
+  final String videoId;
 
   const LikeVideoEvent(this.videoId);
 
@@ -65,7 +65,7 @@ class LikeVideoEvent extends VideosEvent {
 
 /// Evento para quitar el "me gusta" de un video
 class UnlikeVideoEvent extends VideosEvent {
-  final int videoId;
+  final String videoId;
 
   const UnlikeVideoEvent(this.videoId);
 
@@ -102,7 +102,7 @@ class DeductUserPointsEvent extends VideosEvent {
 
 /// Evento para marcar un video como completado y ganar puntos
 class CompleteVideoEvent extends VideosEvent {
-  final int videoId;
+  final String videoId;
   final int earnedPoints;
 
   const CompleteVideoEvent(this.videoId, this.earnedPoints);

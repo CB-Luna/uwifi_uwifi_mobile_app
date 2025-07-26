@@ -19,14 +19,14 @@ abstract class VideosRepository {
   Future<Either<Failure, List<GenreWithVideos>>> getVideosByGenre();
 
   /// Obtiene un video específico por ID
-  Future<Either<Failure, Ad>> getVideo(int id);
+  Future<Either<Failure, Ad>> getVideo(String id);
 
   /// Marca un video como visto
-  Future<Either<Failure, bool>> markVideoAsViewed(int id);
+  Future<Either<Failure, bool>> markVideoAsViewed(String id);
 
   /// Marca un video como "me gusta"
-  Future<Either<Failure, bool>> likeVideo(int id);
+  Future<Either<Failure, bool>> likeVideo(String id);
 
   /// Elimina el "me gusta" de un video
-  Future<Either<Failure, bool>> unlikeVideo(int id);
+  Future<Either<Failure, bool>> unlikeVideo(String id);
 }

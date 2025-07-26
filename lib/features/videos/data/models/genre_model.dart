@@ -1,47 +1,44 @@
 import '../../domain/entities/genre.dart';
 
-/// Modelo de datos para la tabla genre_ads de Supabase
+/// Modelo de datos para la tabla media_categories de Supabase
 class GenreModel extends Genre {
   const GenreModel({
     required super.id,
     required super.name,
-    required super.posterImg, required super.createdAt, super.description,
-    super.posterImgFile,
+    required super.posterImg,
+    required super.createdAt,
+    super.description,
+    super.mediaFileFK,
+    super.createdBy,
     super.visible = true,
-    super.updatedAt,
   });
 
   /// Crea una instancia desde un mapa de datos (JSON de Supabase)
   factory GenreModel.fromJson(Map<String, dynamic> json) {
     return GenreModel(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      description: json['description'],
-      posterImg:
-          json['poster_img'] ??
-          'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
-      posterImgFile: json['poster_img_file'],
-      visible: json['visible'] ?? true,
+      id: json['media_categories_id'] ?? 0,
+      name: json['category_name'] ?? '',
+      description: json['category_description'],
+      mediaFileFK: json['media_file_fk'],
+      createdBy: json['created_by'],
+      // Usamos una imagen por defecto para mantener compatibilidad con la UI
+      posterImg: 'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
+      visible: true, // Mantenemos visible por defecto para compatibilidad
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
-          : null,
     );
   }
 
   /// Convierte la instancia a JSON
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
-      'description': description,
-      'poster_img': posterImg,
-      'poster_img_file': posterImgFile,
-      'visible': visible,
+      'media_categories_id': id,
+      'category_name': name,
+      'category_description': description,
+      'media_file_fk': mediaFileFK,
+      'created_by': createdBy,
       'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 
@@ -51,21 +48,21 @@ class GenreModel extends Genre {
     int? id,
     String? name,
     String? description,
+    String? mediaFileFK,
+    String? createdBy,
     String? posterImg,
-    String? posterImgFile,
     bool? visible,
     DateTime? createdAt,
-    DateTime? updatedAt,
   }) {
     return GenreModel(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
+      mediaFileFK: mediaFileFK ?? this.mediaFileFK,
+      createdBy: createdBy ?? this.createdBy,
       posterImg: posterImg ?? this.posterImg,
-      posterImgFile: posterImgFile ?? this.posterImgFile,
       visible: visible ?? this.visible,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

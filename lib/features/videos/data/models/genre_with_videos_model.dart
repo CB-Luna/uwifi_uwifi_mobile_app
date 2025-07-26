@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/genre_with_videos.dart';
 import '../../domain/entities/ad.dart';
@@ -10,18 +9,20 @@ class GenreWithVideosModel extends GenreWithVideos {
   const GenreWithVideosModel({
     required super.id,
     required super.name,
+    super.description,
     required super.posterImg,
-    required super.totalVideos, required super.videos, super.posterImgFile,
+    required super.totalVideos,
+    required super.videos,
   });
 
   /// Crea una instancia desde un mapa de datos (JSON)
   factory GenreWithVideosModel.fromJson(Map<String, dynamic> json) {
     // Parsear la lista de videos desde el JSON
     List<Ad> videos = [];
-    if (json['ad_video'] != null) {
-      final List<dynamic> videosList = json['ad_video'] is String
-          ? jsonDecode(json['ad_video'])
-          : json['ad_video'];
+    if (json['videos'] != null) {
+      final List<dynamic> videosList = json['videos'] is String
+          ? jsonDecode(json['videos'])
+          : json['videos'];
 
       videos = videosList
           .map((videoJson) => AdModel.fromJson(videoJson))
@@ -29,69 +30,59 @@ class GenreWithVideosModel extends GenreWithVideos {
           .toList();
     }
 
-    // Obtener el ID directamente del campo id en el JSON
-    // Si no existe, intentar obtenerlo del campo genre_id o usar 0 como fallback
-    int genreId;
+    // Obtener el ID de la categoría
+    int categoryId;
     String source = 'desconocido';
 
     if (json.containsKey('id') && json['id'] != null) {
       // Usar el campo id directamente
-      genreId = json['id'] is int
+      categoryId = json['id'] is int
           ? json['id']
           : int.tryParse(json['id'].toString()) ?? 0;
       source = 'campo id';
-    } else if (json.containsKey('genre_id') && json['genre_id'] != null) {
-      // Alternativa: usar genre_id si está disponible
-      genreId = json['genre_id'] is int
-          ? json['genre_id']
-          : int.tryParse(json['genre_id'].toString()) ?? 0;
-      source = 'campo genre_id';
-    } else if (videos.isNotEmpty && videos[0] is AdModel) {
-      // Último recurso: extraer del primer video
-      final firstVideo = videos[0] as AdModel;
-      final videoJson = firstVideo.toJson();
-      genreId = videoJson['genre_id'] ?? 0;
-      source = 'primer video';
+    } else if (json.containsKey('media_categories_id') && json['media_categories_id'] != null) {
+      // Alternativa: usar media_categories_id si está disponible
+      categoryId = json['media_categories_id'] is int
+          ? json['media_categories_id']
+          : int.tryParse(json['media_categories_id'].toString()) ?? 0;
+      source = 'campo media_categories_id';
+    } else if (json.containsKey('category_id') && json['category_id'] != null) {
+      // Alternativa: usar category_id si está disponible
+      categoryId = json['category_id'] is int
+          ? json['category_id']
+          : int.tryParse(json['category_id'].toString()) ?? 0;
+      source = 'campo category_id';
     } else {
       // Fallback
-      genreId = 0;
+      categoryId = 0;
       source = 'fallback';
     }
 
-    final String genreName = json['name'] ?? 'Sin nombre';
+    // Obtener el nombre de la categoría
+    final String categoryName = json['name'] ?? json['category_name'] ?? 'Sin nombre';
     debugPrint(
-      '📊 Género cargado: $genreName con ID: $genreId (fuente: $source)',
+      '📊 Categoría cargada: $categoryName con ID: $categoryId (fuente: $source)',
     );
 
     // Mostrar advertencia si el ID es 0 (posible error)
-    if (genreId == 0) {
+    if (categoryId == 0) {
       String jsonPreview = json.toString();
       if (jsonPreview.length > 200) {
         jsonPreview = '${jsonPreview.substring(0, 200)}...';
       }
       debugPrint(
-        '⚠️ ADVERTENCIA: ID de género 0 para $genreName. JSON: $jsonPreview',
-      );
-    }
-
-    // Imprimir para depuración
-    debugPrint('📊 Género cargado: ${json['name']} con ID: $genreId');
-    if (genreId == 0 && json['name'] != 'Todas las categorías') {
-      debugPrint(
-        '⚠️ ADVERTENCIA: ID de género 0 para ${json['name']}. JSON: ${json.toString().substring(0, min(100, json.toString().length))}...',
+        '⚠️ ADVERTENCIA: ID de categoría 0 para $categoryName. JSON: $jsonPreview',
       );
     }
 
     return GenreWithVideosModel(
-      id: genreId,
-      name: json['name'] ?? '',
-      posterImg:
-          json['poster_img'] ??
-          'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
-      posterImgFile: json['poster_img_file'],
-      totalVideos: json['total_videos'] is int
-          ? json['total_videos']
-          : int.tryParse(json['total_videos']?.toString() ?? '0') ?? 0,
+      id: categoryId,
+      name: categoryName,
+      description: json['description'] ?? json['category_description'],
+      posterImg: json['poster_img'] ?? 
+                json['category_image_url'] ?? 
+                'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
+      totalVideos: videos.length,
       videos: videos,
     );
   }
@@ -100,16 +91,20 @@ class GenreWithVideosModel extends GenreWithVideos {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'media_categories_id': id,
       'name': name,
+      'category_name': name,
+      'description': description,
+      'category_description': description,
       'poster_img': posterImg,
-      'poster_img_file': posterImgFile,
+      'category_image_url': posterImg,
       'total_videos': totalVideos,
-      'ad_video': videos.map((video) {
+      'videos': videos.map((video) {
         if (video is AdModel) {
           return video.toJson();
         }
         // Si no es un AdModel, intentamos crear una representación genérica
-        return {'id': video.id, 'title': video.title};
+        return {'media_file_id': video.id, 'media_title': video.title};
       }).toList(),
     };
   }

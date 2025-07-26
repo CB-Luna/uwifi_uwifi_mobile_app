@@ -31,7 +31,7 @@ class VideosLocalDataSourceImpl implements VideosLocalDataSource {
   }
 
   @override
-  Future<AdModel> getVideo(int id) async {
+  Future<AdModel> getVideo(String id) async {
     final videos = await getLastVideos();
     final video = videos.firstWhere(
       (video) => video.id == id,

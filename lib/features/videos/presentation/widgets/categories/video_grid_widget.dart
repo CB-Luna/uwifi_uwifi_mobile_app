@@ -272,13 +272,7 @@ class _VideoThumbnailCardState extends State<VideoThumbnailCard>
     _animationController.reverse();
   }
 
-  String _formatDuration(int seconds) {
-    if (seconds <= 0) return '0:00';
-
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
-  }
+  // Método _formatDuration eliminado ya que ya no se usa
 
   String _generateThumbnailUrl(String videoUrl) {
     // Generar miniatura basada en la URL del video
@@ -406,9 +400,10 @@ class _VideoThumbnailCardState extends State<VideoThumbnailCard>
                               Row(
                                 children: [
                                   // Duración
+                                  // Nota: Se eliminó la visualización de duración ya que el campo durationVideo ya no existe
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
+                                      horizontal: 4,
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
@@ -417,41 +412,16 @@ class _VideoThumbnailCardState extends State<VideoThumbnailCard>
                                       ),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    child: Text(
-                                      _formatDuration(
-                                        widget.video.durationVideo,
-                                      ),
+                                    child: const Text(
+                                      'Video', // Texto genérico en lugar de duración
                                       style: TextStyle(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.9,
-                                        ),
+                                        color: Colors.white,
                                         fontSize: 10,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
                                   const Spacer(),
-
-                                  // Views si están disponibles
-                                  if (widget.video.views > 0) ...[
-                                    Icon(
-                                      Icons.remove_red_eye,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.7,
-                                      ),
-                                      size: 12,
-                                    ),
-                                    const SizedBox(width: 2),
-                                    Text(
-                                      '${widget.video.views}',
-                                      style: TextStyle(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                        fontSize: 10,
-                                      ),
-                                    ),
-                                  ],
                                 ],
                               ),
                             ],

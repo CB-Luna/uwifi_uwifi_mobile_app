@@ -42,12 +42,13 @@ class CoinsAnimationManager {
     BuildContext context,
     Ad video, {
     VoidCallback? onComplete,
+    int? customPoints,
   }) {
-    final earnedPoints = video.points;
+    final earnedPoints = customPoints ?? 10; // Valor predeterminado de 10 puntos
 
-    // ✅ ARREGLADO: NO acumular puntos, solo mostrar animación
+    // ARREGLADO: NO acumular puntos, solo mostrar animación
     AppLogger.videoInfo(
-      '🎬 Manual coins animation for video: "${video.title}" - Showing: +$earnedPoints points (NO accumulation)',
+      ' Manual coins animation for video: "${video.title}" - Showing: +$earnedPoints points (NO accumulation)',
     );
 
     // Obtener el total actual de puntos SIN modificarlo

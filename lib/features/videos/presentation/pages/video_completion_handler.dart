@@ -41,12 +41,11 @@ class VideoCompletionHandler {
     BuildContext context,
     Ad video, {
     VoidCallback? onAnimationComplete,
+    int? customPoints,
   }) async {
     try {
-      // Determine points to award (use specific video points or default value)
-      final pointsToAdd = video.points > 0
-          ? video.points
-          : 10; // Default value of 10 points
+      // Usar puntos personalizados o valor predeterminado de 10 puntos
+      final pointsToAdd = customPoints ?? 10;
 
       // ✅ ONLY accumulate points ONCE when the video actually ends
       await _awardPoints(pointsToAdd, video.title);

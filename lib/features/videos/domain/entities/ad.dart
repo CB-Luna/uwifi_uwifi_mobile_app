@@ -2,44 +2,36 @@ import 'package:equatable/equatable.dart';
 
 /// Entidad que representa un video/anuncio en el dominio
 class Ad extends Equatable {
-  final int id;
-  final String title;
-  final String description; // Campo description de Supabase
-  final String overview; // Campo overview de Supabase
-  final String videoUrl;
-  final String? thumbnailUrl;
-  final int genreId;
-  final int priority;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
-  final bool visible;
-  final bool liked;
-  final int views;
-  final int duration; // duración en segundos (campo duration)
-  final int durationVideo; // duración del video (campo duration_video)
-  final int points; // puntos del video (campo points)
-  final String? partner;
-  final String? urlAd;
+  final String id; // Ahora es UUID (media_file_id)
+  final String title; // media_title
+  final String description; // file_description
+  final String videoUrl; // media_url
+  final String? thumbnailUrl; // poster_url
+  final int? categoryId; // category_id
+  final String? categoryName; // category_name
+  final String? categoryImageUrl; // category_image_url
+  final DateTime createdAt; // media_created_at
+  final DateTime? posterCreatedAt; // poster_created_at
+  final String mediaType; // media_type
+  final String mediaMimeType; // media_mime_type
+  final String? posterTitle; // poster_title
+  final bool liked; // Mantenemos este campo para compatibilidad
 
   const Ad({
     required this.id,
     required this.title,
     required this.description,
     required this.videoUrl,
-    required this.genreId,
-    required this.priority,
     required this.createdAt,
-    this.overview = '',
+    required this.mediaType,
+    required this.mediaMimeType,
     this.thumbnailUrl,
-    this.updatedAt,
-    this.visible = true,
+    this.categoryId,
+    this.categoryName,
+    this.categoryImageUrl,
+    this.posterCreatedAt,
+    this.posterTitle,
     this.liked = false,
-    this.views = 0,
-    this.duration = 0,
-    this.durationVideo = 0,
-    this.points = 0,
-    this.partner,
-    this.urlAd,
   });
 
   @override
@@ -47,63 +39,51 @@ class Ad extends Equatable {
     id,
     title,
     description,
-    overview,
     videoUrl,
     thumbnailUrl,
-    genreId,
-    priority,
+    categoryId,
+    categoryName,
+    categoryImageUrl,
     createdAt,
-    updatedAt,
-    visible,
+    posterCreatedAt,
+    mediaType,
+    mediaMimeType,
+    posterTitle,
     liked,
-    views,
-    duration,
-    durationVideo,
-    points,
-    partner,
-    urlAd,
   ];
 
   /// Crea una copia con algunos campos modificados
   Ad copyWith({
-    int? id,
+    String? id,
     String? title,
     String? description,
-    String? overview,
     String? videoUrl,
     String? thumbnailUrl,
-    int? genreId,
-    int? priority,
+    int? categoryId,
+    String? categoryName,
+    String? categoryImageUrl,
     DateTime? createdAt,
-    DateTime? updatedAt,
-    bool? visible,
+    DateTime? posterCreatedAt,
+    String? mediaType,
+    String? mediaMimeType,
+    String? posterTitle,
     bool? liked,
-    int? views,
-    int? duration,
-    int? durationVideo,
-    int? points,
-    String? partner,
-    String? urlAd,
   }) {
     return Ad(
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
-      overview: overview ?? this.overview,
       videoUrl: videoUrl ?? this.videoUrl,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
-      genreId: genreId ?? this.genreId,
-      priority: priority ?? this.priority,
+      categoryId: categoryId ?? this.categoryId,
+      categoryName: categoryName ?? this.categoryName,
+      categoryImageUrl: categoryImageUrl ?? this.categoryImageUrl,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      visible: visible ?? this.visible,
+      posterCreatedAt: posterCreatedAt ?? this.posterCreatedAt,
+      mediaType: mediaType ?? this.mediaType,
+      mediaMimeType: mediaMimeType ?? this.mediaMimeType,
+      posterTitle: posterTitle ?? this.posterTitle,
       liked: liked ?? this.liked,
-      views: views ?? this.views,
-      duration: duration ?? this.duration,
-      durationVideo: durationVideo ?? this.durationVideo,
-      points: points ?? this.points,
-      partner: partner ?? this.partner,
-      urlAd: urlAd ?? this.urlAd,
     );
   }
 }

@@ -16,14 +16,14 @@ abstract class VideosRemoteDataSource {
   Future<List<GenreWithVideosModel>> getVideosByGenre();
 
   /// Obtiene un video específico por ID
-  Future<AdModel> getVideo(int id);
+  Future<AdModel> getVideo(String id);
 
   /// Marca un video como visto
-  Future<bool> markVideoAsViewed(int id);
+  Future<bool> markVideoAsViewed(String id);
 
   /// Marca un video como "me gusta"
-  Future<bool> likeVideo(int id);
+  Future<bool> likeVideo(String id);
 
   /// Elimina el "me gusta" de un video
-  Future<bool> unlikeVideo(int id);
+  Future<bool> unlikeVideo(String id);
 }

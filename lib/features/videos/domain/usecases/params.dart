@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Parámetros para obtener un video específico por ID
 class VideoParams extends Equatable {
-  final int id;
+  final String id;
 
   const VideoParams({required this.id});
 

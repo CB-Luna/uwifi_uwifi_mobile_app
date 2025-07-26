@@ -12,12 +12,13 @@ class GenresRemoteDataSourceImpl implements GenresRemoteDataSource {
   @override
   Future<List<GenreModel>> getGenres() async {
     try {
+      // Ahora usamos la tabla media_categories del esquema media_library
       final response = await supabaseClient
-          .from('genre_ad')
+          .from('media_library.media_categories')
           .select(
-            'id, name, description, poster_img, poster_img_file, visible, created_at, updated_at',
+            'media_categories_id, category_name, category_description, media_file_fk, created_by, created_at',
           )
-          .order('name');
+          .order('category_name');
 
       return (response as List)
           .map((genre) => GenreModel.fromJson(genre))

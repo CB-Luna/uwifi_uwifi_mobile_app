@@ -1,23 +1,28 @@
 import 'package:equatable/equatable.dart';
 
 /// Entidad que representa una categoría/género en el dominio
+/// Ahora basada en la tabla media_categories del esquema media_library
 class Genre extends Equatable {
-  final int id;
-  final String name;
-  final String? description;
-  final String posterImg;
-  final String? posterImgFile;
-  final bool visible;
+  final int id; // media_categories_id
+  final String name; // category_name
+  final String? description; // category_description
+  final String? mediaFileFK; // media_file_fk (UUID)
+  final String? createdBy; // created_by (UUID)
   final DateTime createdAt;
-  final DateTime? updatedAt;
+  
+  // Campos mantenidos para compatibilidad con UI existente
+  final String posterImg;
+  final bool visible;
 
   const Genre({
     required this.id,
     required this.name,
-    required this.posterImg, required this.createdAt, this.description,
-    this.posterImgFile,
+    required this.posterImg,
+    required this.createdAt,
+    this.description,
+    this.mediaFileFK,
+    this.createdBy,
     this.visible = true,
-    this.updatedAt,
   });
 
   @override
@@ -25,11 +30,11 @@ class Genre extends Equatable {
     id,
     name,
     description,
+    mediaFileFK,
+    createdBy,
     posterImg,
-    posterImgFile,
     visible,
     createdAt,
-    updatedAt,
   ];
 
   /// Crea una copia con algunos campos modificados
@@ -37,21 +42,21 @@ class Genre extends Equatable {
     int? id,
     String? name,
     String? description,
+    String? mediaFileFK,
+    String? createdBy,
     String? posterImg,
-    String? posterImgFile,
     bool? visible,
     DateTime? createdAt,
-    DateTime? updatedAt,
   }) {
     return Genre(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
+      mediaFileFK: mediaFileFK ?? this.mediaFileFK,
+      createdBy: createdBy ?? this.createdBy,
       posterImg: posterImg ?? this.posterImg,
-      posterImgFile: posterImgFile ?? this.posterImgFile,
       visible: visible ?? this.visible,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

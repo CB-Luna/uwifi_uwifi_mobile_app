@@ -645,3 +645,7 @@ Future<void> init() async {
 void registerSupabaseClient(SupabaseClient client) {
   getIt.registerLazySingleton(() => client);
 }
+
+void registerMediaLibraryClient(SupabaseClient client) {
+  getIt.registerLazySingleton(() => client, instanceName: 'mediaLibraryClient');
+}

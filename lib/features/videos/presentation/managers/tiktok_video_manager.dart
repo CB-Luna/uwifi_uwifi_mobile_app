@@ -159,7 +159,7 @@ class TikTokVideoManager extends ChangeNotifier {
   }
 
   /// Maneja el like de un video
-  void likeVideo(int videoId) {
+  void likeVideo(String videoId) {
     final videoIndex = _videos.indexWhere((v) => v.id == videoId);
     if (videoIndex != -1) {
       AppLogger.videoInfo('❤️ Liked video: $videoId');

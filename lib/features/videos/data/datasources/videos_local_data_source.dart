@@ -8,5 +8,5 @@ abstract class VideosLocalDataSource {
   Future<void> cacheVideos(List<AdModel> videos);
 
   /// Obtiene un video específico de la caché
-  Future<AdModel> getVideo(int id);
+  Future<AdModel> getVideo(String id);
 }

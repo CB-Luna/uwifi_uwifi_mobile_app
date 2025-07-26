@@ -69,14 +69,13 @@ class _VideoRewardsWidgetState extends State<VideoRewardsWidget> {
     });
   }
 
-  /// Calcula los puntos basado en las propiedades del video
+  /// Calcula los puntos basado en un valor fijo
   int _calculatePoints() {
-    // Fórmula: 10 puntos base + 1 punto por cada 100 vistas + 1 punto por cada 30 segundos
+    // Ahora usamos un valor fijo de puntos ya que los campos views y duration ya no existen
     const basePoints = 10;
-    final viewsBonus = (widget.video.views / 100).floor();
-    final durationBonus = (widget.video.duration / 30).floor();
-
-    return basePoints + viewsBonus + durationBonus;
+    
+    // Ya no calculamos bonificaciones basadas en vistas o duración
+    return basePoints;
   }
 
   @override

@@ -79,7 +79,7 @@ class VideosRepositoryImpl implements VideosRepository {
   }
 
   @override
-  Future<Either<Failure, Ad>> getVideo(int id) async {
+  Future<Either<Failure, Ad>> getVideo(String id) async {
     if (await networkInfo.isConnected) {
       try {
         final video = await remoteDataSource.getVideo(id);
@@ -98,7 +98,7 @@ class VideosRepositoryImpl implements VideosRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> markVideoAsViewed(int id) async {
+  Future<Either<Failure, bool>> markVideoAsViewed(String id) async {
     if (await networkInfo.isConnected) {
       try {
         final result = await remoteDataSource.markVideoAsViewed(id);
@@ -112,7 +112,7 @@ class VideosRepositoryImpl implements VideosRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> likeVideo(int id) async {
+  Future<Either<Failure, bool>> likeVideo(String id) async {
     if (await networkInfo.isConnected) {
       try {
         final result = await remoteDataSource.likeVideo(id);
@@ -126,7 +126,7 @@ class VideosRepositoryImpl implements VideosRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> unlikeVideo(int id) async {
+  Future<Either<Failure, bool>> unlikeVideo(String id) async {
     if (await networkInfo.isConnected) {
       try {
         final result = await remoteDataSource.unlikeVideo(id);

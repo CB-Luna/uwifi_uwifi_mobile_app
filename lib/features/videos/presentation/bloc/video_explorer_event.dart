@@ -50,7 +50,7 @@ class RefreshVideosEvent extends VideoExplorerEvent {
 
 /// Seleccionar video para reproducir
 class SelectVideoEvent extends VideoExplorerEvent {
-  final int videoId;
+  final String videoId;
   final int startIndex;
 
   const SelectVideoEvent({required this.videoId, required this.startIndex});
