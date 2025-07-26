@@ -13,29 +13,35 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
 
   VideosRemoteDataSourceImpl({required this.supabaseClient}) {
     // Obtener el cliente específico para el esquema media_library
-    _mediaLibraryClient = GetIt.instance.get<SupabaseClient>(instanceName: 'mediaLibraryClient');
+    _mediaLibraryClient = GetIt.instance.get<SupabaseClient>(
+      instanceName: 'mediaLibraryClient',
+    );
   }
 
   /// Método helper para reintentar requests con backoff exponencial
   Future<T> _retryRequest<T>(
     Future<T> Function() request, {
     int maxRetries = 3,
+    String functionName = 'desconocida',
   }) async {
     int attempt = 0;
     while (attempt < maxRetries) {
       try {
         return await request();
-      } catch (e) {
+      } catch (e, stackTrace) {
         attempt++;
         if (attempt >= maxRetries) {
-          debugPrint('❌ Máximo de reintentos alcanzado para request: $e');
+          debugPrint(
+            '❌ Función: $functionName - Máximo de reintentos alcanzado: $e',
+          );
+          debugPrint('❌ StackTrace: $stackTrace');
           rethrow;
         }
 
         final delayMs =
             (attempt * 1000) + (attempt * 500); // Backoff exponencial
         debugPrint(
-          '🔄 Reintentando request en ${delayMs}ms (intento $attempt/$maxRetries)',
+          '🔄 Función: $functionName - Reintentando request en ${delayMs}ms (intento $attempt/$maxRetries)',
         );
         await Future.delayed(Duration(milliseconds: delayMs));
       }
@@ -54,10 +60,8 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
           .eq('media_type', 'video') // Solo archivos de tipo video
           .order('media_created_at', ascending: false);
 
-      return (response as List)
-          .map((json) => AdModel.fromJson(json))
-          .toList();
-    });
+      return (response as List).map((json) => AdModel.fromJson(json)).toList();
+    }, functionName: 'getVideos');
   }
 
   @override
@@ -92,9 +96,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
 
       final response = await finalQuery;
 
-      return (response as List)
-          .map((json) => AdModel.fromJson(json))
-          .toList();
+      return (response as List).map((json) => AdModel.fromJson(json)).toList();
     });
   }
 
@@ -109,19 +111,23 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
             .from('media_categories')
             .select('media_categories_id, category_name, category_description')
             .order('category_name');
-      });
+      }, functionName: 'getVideosByGenre.getGenres');
 
       final genres = (genresResponse as List).map((json) {
         return {
-          'id': json['media_categories_id'] as String,
+          'id': json['media_categories_id']
+              .toString(), // Convertir explícitamente de int a String
           'name': json['category_name'] as String,
           'description': json['category_description'] as String?,
           // Usamos una imagen por defecto para mantener compatibilidad con la UI
-          'poster_img': 'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
+          'poster_img':
+              'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
         };
       }).toList();
 
-      debugPrint('📚 Obtenidos ${genres.length} géneros desde media_categories');
+      debugPrint(
+        '📚 Obtenidos ${genres.length} géneros desde media_categories',
+      );
 
       // 2. Ahora agrupamos videos por categoría usando la vista de media_files
       // Primero obtenemos todos los videos
@@ -130,14 +136,16 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
             .from('vw_media_files_with_posters')
             .select()
             .eq('media_type', 'video');
-      });
-      
+      }, functionName: 'getVideosByGenre.getVideos');
+
       final videos = videosResponse as List;
-      debugPrint('🎥 Obtenidos ${videos.length} videos desde vw_media_files_with_posters');
-      
+      debugPrint(
+        '🎥 Obtenidos ${videos.length} videos desde vw_media_files_with_posters',
+      );
+
       // Agrupamos los videos por categoría
       final Map<String, List<Map<String, dynamic>>> videosByCategory = {};
-      
+
       for (var video in videos) {
         final categoryName = video['category_name'] ?? 'Sin categoría';
         if (!videosByCategory.containsKey(categoryName)) {
@@ -145,12 +153,12 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
         }
         videosByCategory[categoryName]!.add(video);
       }
-      
+
       // 3. Crear los objetos GenreWithVideosModel
       return videosByCategory.entries.map((entry) {
         final String genreName = entry.key;
         final List<Map<String, dynamic>> categoryVideos = entry.value;
-        
+
         // Buscar el ID correcto del género por nombre
         final matchingGenre = genres.firstWhere(
           (g) => g['name'] == genreName,
@@ -158,10 +166,11 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
             'id': '0', // Ahora los IDs son String
             'name': genreName,
             'description': null,
-            'poster_img': 'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
+            'poster_img':
+                'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
           },
         );
-        
+
         // Crear un nuevo objeto JSON con el ID correcto y los videos
         final Map<String, dynamic> enrichedGenreData = {
           'id': matchingGenre['id'],
@@ -177,7 +186,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
 
         return GenreWithVideosModel.fromJson(enrichedGenreData);
       }).toList();
-    });
+    }, functionName: 'getVideosByGenre');
   }
 
   @override
@@ -190,7 +199,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
           .single();
 
       return AdModel.fromJson(response);
-    });
+    }, functionName: 'getVideo');
   }
 
   @override
