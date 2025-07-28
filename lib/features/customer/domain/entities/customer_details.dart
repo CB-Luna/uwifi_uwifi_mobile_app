@@ -21,6 +21,7 @@ class CustomerDetails extends Equatable {
   final num balance;
   final List<Service> services;
   final List<Note> notes;
+  final int customerAfiliateId;
 
   const CustomerDetails({
     required this.customerId,
@@ -37,6 +38,7 @@ class CustomerDetails extends Equatable {
     required this.balance,
     required this.services,
     required this.notes,
+    required this.customerAfiliateId,
     this.userPhoto,
   });
 
@@ -59,5 +61,6 @@ class CustomerDetails extends Equatable {
     balance,
     services,
     notes,
+    customerAfiliateId,
   ];
 }

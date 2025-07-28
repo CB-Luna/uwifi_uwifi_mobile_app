@@ -20,6 +20,7 @@ class CustomerDetailsModel extends CustomerDetails {
     required super.balance,
     required super.services,
     required super.notes,
+    required super.customerAfiliateId,
     super.userPhoto,
   });
 
@@ -50,6 +51,7 @@ class CustomerDetailsModel extends CustomerDetails {
       notes: (json['notes'] as List)
           .map((note) => NoteModel.fromJson(note))
           .toList(),
+      customerAfiliateId: json['customer_afiliate_id'],
     );
   }
 
@@ -88,6 +90,7 @@ class CustomerDetailsModel extends CustomerDetails {
           .map((note) => note is NoteModel ? note.toJson() : null)
           .whereType<Map<String, dynamic>>()
           .toList(),
+      'customer_afiliate_id': customerAfiliateId,
     };
   }
 
@@ -108,6 +111,7 @@ class CustomerDetailsModel extends CustomerDetails {
       balance: entity.balance,
       services: entity.services,
       notes: entity.notes,
+      customerAfiliateId: entity.customerAfiliateId,
     );
   }
 }
