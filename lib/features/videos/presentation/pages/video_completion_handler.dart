@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uwifiapp/core/utils/app_logger.dart';
+import '../../../../core/utils/app_logger.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/ad.dart';
+import '../../domain/usecases/register_media_visualization.dart';
 
 /// Handler for video completion and points system
 class VideoCompletionHandler {
@@ -43,6 +48,8 @@ class VideoCompletionHandler {
     VoidCallback? onAnimationComplete,
     int? customPoints,
   }) async {
+    // Registrar la visualización del video en la base de datos
+    await _registerMediaVisualization(context, video, customPoints ?? 10);
     try {
       // Usar puntos personalizados o valor predeterminado de 10 puntos
       final pointsToAdd = customPoints ?? 10;
@@ -99,6 +106,54 @@ class VideoCompletionHandler {
 
     // Save updated points
     await _saveUserPoints();
+  }
+
+  /// Registra la visualización del video en la base de datos
+  static Future<void> _registerMediaVisualization(
+    BuildContext context,
+    Ad video,
+    int pointsEarned,
+  ) async {
+    try {
+      // Obtener el estado de autenticación actual
+      final authState = context.read<AuthBloc>().state;
+      
+      // Verificar si el usuario está autenticado
+      if (authState is AuthAuthenticated) {
+        final user = authState.user;
+        final customerId = user.customerId;
+        
+        // Verificar que los valores no sean nulos
+        if (customerId == null) {
+          AppLogger.videoError('❌ Error: customerId is null');
+          return;
+        }
+        
+        // Si customerAfiliateId es nulo, usar customerId
+        final customerAfiliateId = user.customerAfiliateId ?? customerId;
+        final mediaFileId = video.id;
+        
+        // Registrar la visualización usando el caso de uso
+        final registerMediaVisualization = GetIt.instance<RegisterMediaVisualization>();
+        final result = await registerMediaVisualization(
+          RegisterMediaVisualizationParams(
+            mediaFileId: mediaFileId,
+            customerId: customerId,
+            pointsEarned: pointsEarned,
+            customerAfiliateId: customerAfiliateId,
+          ),
+        );
+        
+        result.fold(
+          (failure) => AppLogger.videoError('❌ Error registering media visualization: ${failure.message}'),
+          (success) => AppLogger.videoInfo('✅ Media visualization registered successfully'),
+        );
+      } else {
+        AppLogger.videoWarning('⚠️ User not authenticated, skipping media visualization registration');
+      }
+    } catch (e) {
+      AppLogger.videoError('❌ Error registering media visualization: $e');
+    }
   }
 
   /// Show earned points animation

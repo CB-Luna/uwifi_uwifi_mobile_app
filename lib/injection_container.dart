@@ -115,14 +115,15 @@ import 'features/profile/domain/usecases/register_new_credit_card.dart';
 import 'features/profile/domain/usecases/set_default_card.dart';
 import 'features/profile/presentation/bloc/payment_bloc.dart';
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
-import 'features/videos/data/datasources/genres_remote_data_source.dart';
-import 'features/videos/data/datasources/genres_remote_data_source_impl.dart';
+import 'features/videos/data/datasources/videos_remote_data_source.dart';
+import 'features/videos/data/datasources/videos_remote_data_source_impl.dart';
+import 'features/videos/di/media_visualization_injection.dart';
 import 'features/videos/data/datasources/videos_local_data_source.dart';
 import 'features/videos/data/datasources/videos_local_data_source_impl.dart';
-import 'features/videos/data/datasources/videos_remote_data_source.dart';
 import 'features/videos/data/datasources/video_likes_remote_data_source.dart';
 import 'features/videos/data/datasources/video_likes_remote_data_source_impl.dart';
-import 'features/videos/data/datasources/videos_remote_data_source_impl.dart';
+import 'features/videos/data/datasources/genres_remote_data_source.dart';
+import 'features/videos/data/datasources/genres_remote_data_source_impl.dart';
 import 'features/videos/data/repositories/genres_repository_impl.dart';
 import 'features/videos/data/repositories/videos_repository_impl.dart';
 import 'features/videos/data/repositories/video_likes_repository_impl.dart';
@@ -675,6 +676,9 @@ Future<void> init() async {
 
   // Register http.Client for HTTP calls
   getIt.registerLazySingleton(() => http.Client());
+
+  // Registrar dependencias de visualización de medios
+  registerMediaVisualizationDependencies(getIt);
 
   // Supabase client will be registered after initialization
 }
