@@ -120,11 +120,15 @@ import 'features/videos/data/datasources/genres_remote_data_source_impl.dart';
 import 'features/videos/data/datasources/videos_local_data_source.dart';
 import 'features/videos/data/datasources/videos_local_data_source_impl.dart';
 import 'features/videos/data/datasources/videos_remote_data_source.dart';
+import 'features/videos/data/datasources/video_likes_remote_data_source.dart';
+import 'features/videos/data/datasources/video_likes_remote_data_source_impl.dart';
 import 'features/videos/data/datasources/videos_remote_data_source_impl.dart';
 import 'features/videos/data/repositories/genres_repository_impl.dart';
 import 'features/videos/data/repositories/videos_repository_impl.dart';
+import 'features/videos/data/repositories/video_likes_repository_impl.dart';
 import 'features/videos/domain/repositories/genres_repository.dart';
 import 'features/videos/domain/repositories/videos_repository.dart';
+import 'features/videos/domain/repositories/video_likes_repository.dart';
 import 'features/videos/domain/usecases/get_ads.dart';
 import 'features/videos/domain/usecases/get_ads_with_params.dart';
 import 'features/videos/domain/usecases/get_genres.dart';
@@ -136,8 +140,12 @@ import 'features/videos/domain/usecases/get_videos_paginated.dart';
 import 'features/videos/domain/usecases/like_video.dart';
 import 'features/videos/domain/usecases/mark_video_as_viewed.dart';
 import 'features/videos/domain/usecases/unlike_video.dart';
+import 'features/videos/domain/usecases/like_video_with_customer.dart';
+import 'features/videos/domain/usecases/unlike_video_with_customer.dart';
+import 'features/videos/domain/usecases/has_user_liked_video.dart';
 import 'features/videos/presentation/bloc/genres_bloc.dart';
 import 'features/videos/presentation/bloc/video_explorer_bloc.dart';
+import 'features/videos/presentation/bloc/video_likes_bloc.dart';
 import 'features/videos/presentation/bloc/videos_bloc.dart';
 
 // Support feature imports
@@ -166,7 +174,16 @@ final getIt = GetIt.instance;
 
 Future<void> init() async {
   //! Features - Videos
-  // Bloc - Changed to LazySingleton to ensure a single instance
+  // Video Explorer Bloc
+  getIt.registerFactory(
+    () => VideoExplorerBloc(
+      getAdsUseCase: getIt(),
+      getAdsWithParamsUseCase: getIt(),
+      getGenresWithVideosUseCase: getIt(),
+    ),
+  );
+  
+  // Videos Bloc
   getIt.registerFactory(
     () => VideosBloc(
       getVideos: getIt(),
@@ -176,6 +193,15 @@ Future<void> init() async {
       markVideoAsViewed: getIt(),
       likeVideo: getIt(),
       unlikeVideo: getIt(),
+    ),
+  );
+
+  // Video Likes Bloc
+  getIt.registerFactory(
+    () => VideoLikesBloc(
+      likeVideo: getIt(),
+      unlikeVideo: getIt(),
+      hasUserLikedVideo: getIt(),
     ),
   );
 
@@ -217,23 +243,21 @@ Future<void> init() async {
 
   getIt.registerLazySingleton(() => GenresBloc(getGenres: getIt()));
 
-  // ✅ NEW: VideoExplorerBloc for the refactored system
-  getIt.registerFactory(
-    () => VideoExplorerBloc(
-      getAdsUseCase: getIt(),
-      getAdsWithParamsUseCase: getIt(),
-      getGenresWithVideosUseCase: getIt(),
-    ),
-  );
+  // VideoExplorerBloc ya está registrado al inicio del método init()
 
   // Use cases
   getIt.registerLazySingleton(() => GetVideos(getIt()));
-  getIt.registerLazySingleton(() => GetVideosPaginated(getIt()));
   getIt.registerLazySingleton(() => GetVideosByGenre(getIt()));
   getIt.registerLazySingleton(() => GetVideo(getIt()));
+  getIt.registerLazySingleton(() => GetVideosPaginated(getIt()));
   getIt.registerLazySingleton(() => MarkVideoAsViewed(getIt()));
   getIt.registerLazySingleton(() => LikeVideo(getIt()));
   getIt.registerLazySingleton(() => UnlikeVideo(getIt()));
+  
+  // Video Likes Use Cases (nueva implementación con customerId)
+  getIt.registerLazySingleton(() => LikeVideoWithCustomer(getIt()));
+  getIt.registerLazySingleton(() => UnlikeVideoWithCustomer(getIt()));
+  getIt.registerLazySingleton(() => HasUserLikedVideo(getIt()));
   getIt.registerLazySingleton(() => GetGenres(getIt()));
 
   // ✅ NEW: Use cases for the refactored exploration system
@@ -246,6 +270,14 @@ Future<void> init() async {
     () => VideosRepositoryImpl(
       remoteDataSource: getIt(),
       localDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
+  // Video Likes Repository
+  getIt.registerLazySingleton<VideoLikesRepository>(
+    () => VideoLikesRepositoryImpl(
+      remoteDataSource: getIt(),
       networkInfo: getIt(),
     ),
   );
@@ -265,6 +297,11 @@ Future<void> init() async {
 
   getIt.registerLazySingleton<VideosLocalDataSource>(
     () => VideosLocalDataSourceImpl(sharedPreferences: getIt()),
+  );
+  
+  // Video Likes Data Sources
+  getIt.registerLazySingleton<VideoLikesRemoteDataSource>(
+    () => VideoLikesRemoteDataSourceImpl(supabaseClient: getIt()),
   );
 
   getIt.registerLazySingleton<GenresRemoteDataSource>(
@@ -648,4 +685,8 @@ void registerSupabaseClient(SupabaseClient client) {
 
 void registerMediaLibraryClient(SupabaseClient client) {
   getIt.registerLazySingleton(() => client, instanceName: 'mediaLibraryClient');
+}
+
+void registerTransactionsClient(SupabaseClient client) {
+  getIt.registerLazySingleton(() => client, instanceName: 'transactionsClient');
 }

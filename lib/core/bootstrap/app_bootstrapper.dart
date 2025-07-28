@@ -15,12 +15,17 @@ class AppBootstrapper {
     );
 
     // Crear cliente específico para el esquema media_library
-    // No podemos usar el parámetro schema directamente, así que crearemos un cliente normal
-    // y luego lo configuraremos para usar el esquema media_library en las consultas
     final mediaLibraryClient = SupabaseClient(
       AppConstants.supabaseUrl,
       AppConstants.supabaseAnonKey,
       postgrestOptions: const PostgrestClientOptions(schema: 'media_library'),
+    );
+    
+    // Crear cliente específico para el esquema transactions
+    final transactionsClient = SupabaseClient(
+      AppConstants.supabaseUrl,
+      AppConstants.supabaseAnonKey,
+      postgrestOptions: const PostgrestClientOptions(schema: 'transactions'),
     );
 
     // Initialize dependency injection
@@ -29,5 +34,6 @@ class AppBootstrapper {
     // Register Supabase clients
     di.registerSupabaseClient(Supabase.instance.client);
     di.registerMediaLibraryClient(mediaLibraryClient);
+    di.registerTransactionsClient(transactionsClient);
   }
 }

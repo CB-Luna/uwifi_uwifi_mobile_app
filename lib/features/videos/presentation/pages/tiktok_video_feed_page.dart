@@ -20,6 +20,7 @@ import '../widgets/categories/video_explorer_page.dart';
 import '../bloc/videos_bloc.dart';
 import '../bloc/videos_event.dart';
 import '../bloc/videos_state.dart';
+import '../bloc/video_likes_bloc.dart';
 import '../managers/tiktok_video_manager.dart';
 import '../widgets/categories/video_explorer_button.dart';
 import '../widgets/categories/video_info_bottom_sheet.dart';
@@ -175,67 +176,69 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     
     return Scaffold(
       backgroundColor: Colors.black,
-      body: GestureDetector(
-        onHorizontalDragStart: (details) {
-          _horizontalDragStartPosition = details.globalPosition.dx;
-        },
-        onHorizontalDragUpdate: (details) {
-          _horizontalDragEndPosition = details.globalPosition.dx;
-        },
-        onHorizontalDragEnd: (details) {
-          // Solo procesar el gesto si tenemos categorías cargadas
-          if (_categoryIds.isEmpty) return;
-          
-          // Calcular la distancia del deslizamiento
-          final dragDistance = _horizontalDragEndPosition - _horizontalDragStartPosition;
-          
-          // Si el deslizamiento es significativo (más de 50px)
-          if (dragDistance.abs() > 50) {
-            // Evitar múltiples cambios de categoría mientras se procesa uno
-            if (_isSwipingCategory) return;
-            _isSwipingCategory = true;
+      body: BlocProvider<VideoLikesBloc>(
+        create: (context) => di.getIt<VideoLikesBloc>(),
+        child: GestureDetector(
+          onHorizontalDragStart: (details) {
+            _horizontalDragStartPosition = details.globalPosition.dx;
+          },
+          onHorizontalDragUpdate: (details) {
+            _horizontalDragEndPosition = details.globalPosition.dx;
+          },
+          onHorizontalDragEnd: (details) {
+            // Solo procesar el gesto si tenemos categorías cargadas
+            if (_categoryIds.isEmpty) return;
             
-            // Determinar la dirección del deslizamiento
-            if (dragDistance > 0) {
-              // Deslizamiento hacia la derecha (categoría anterior)
-              _navigateToPreviousCategory();
-            } else {
-              // Deslizamiento hacia la izquierda (categoría siguiente)
-              _navigateToNextCategory();
-            }
+            // Calcular la distancia del deslizamiento
+            final dragDistance = _horizontalDragEndPosition - _horizontalDragStartPosition;
             
-            // Restablecer el flag después de un tiempo
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted) {
-                setState(() {
-                  _isSwipingCategory = false;
-                });
+            // Si el deslizamiento es significativo (más de 50px)
+            if (dragDistance.abs() > 50) {
+              // Evitar múltiples cambios de categoría mientras se procesa uno
+              if (_isSwipingCategory) return;
+              _isSwipingCategory = true;
+              
+              // Determinar la dirección del deslizamiento
+              if (dragDistance > 0) {
+                // Deslizamiento hacia la derecha (categoría anterior)
+                _navigateToPreviousCategory();
+              } else {
+                // Deslizamiento hacia la izquierda (categoría siguiente)
+                _navigateToNextCategory();
               }
-            });
-          }
-        },
-        child: BlocBuilder<VideosBloc, VideosState>(
-          builder: (context, state) {
-            if (state is VideosLoading) {
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.white),
-              );
+              
+              // Restablecer el flag después de un tiempo
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  setState(() {
+                    _isSwipingCategory = false;
+                  });
+                }
+              });
             }
+          },
+          child: BlocBuilder<VideosBloc, VideosState>(
+            builder: (context, state) {
+              if (state is VideosLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
+              }
 
-            if (state is VideosError) {
-              return Center(
-                child: Text(
-                  'Error: ${state.message}',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              );
-            }
+              if (state is VideosError) {
+                return Center(
+                  child: Text(
+                    'Error: ${state.message}',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                );
+              }
 
-            if (state is VideosLoaded) {
-              final videos = state.videos;
+              if (state is VideosLoaded) {
+                final videos = state.videos;
 
-              return Stack(
-                children: [
+                return Stack(
+                  children: [
                   // PageView principal con videos
                   PageView.builder(
                     key: _pageViewKey,
@@ -473,10 +476,11 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                   ),
                 ],
               );
-            } else {
-              return const SizedBox.shrink();
-            }
-          },
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
         ),
       ),
     );
