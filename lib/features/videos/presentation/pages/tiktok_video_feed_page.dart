@@ -510,6 +510,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
             // After animation, advance to next video
             _advanceToNextVideo(videoList, videosState);
           },
+          customPoints: currentVideo.metadata?.points,
         );
       } else {
         _advanceToNextVideo(videoList, videosState);

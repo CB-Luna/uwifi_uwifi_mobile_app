@@ -1,4 +1,5 @@
 import '../../domain/entities/ad.dart';
+import 'metadata_json.dart';
 
 /// Modelo de datos para la vista media_library.vw_media_files_with_posters de Supabase
 class AdModel extends Ad {
@@ -17,6 +18,7 @@ class AdModel extends Ad {
     super.posterCreatedAt,
     super.posterTitle,
     super.liked = false,
+    super.metadata,
   });
 
   /// Crea una instancia desde un mapa de datos (JSON de Supabase)
@@ -40,6 +42,7 @@ class AdModel extends Ad {
       mediaMimeType: json['media_mime_type'] ?? '',
       posterTitle: json['poster_title'],
       liked: json['liked'] ?? false,
+      metadata: json['metadata_json'] != null ? MetadataJson.fromJson(json['metadata_json']) : null,
     );
   }
 
@@ -60,6 +63,7 @@ class AdModel extends Ad {
       'media_mime_type': mediaMimeType,
       'poster_title': posterTitle,
       'liked': liked,
+      'metadata_json': metadata?.toJson(),
     };
   }
 
@@ -80,6 +84,7 @@ class AdModel extends Ad {
     String? mediaMimeType,
     String? posterTitle,
     bool? liked,
+    MetadataJson? metadata,
   }) {
     return AdModel(
       id: id ?? this.id,
@@ -96,6 +101,7 @@ class AdModel extends Ad {
       mediaMimeType: mediaMimeType ?? this.mediaMimeType,
       posterTitle: posterTitle ?? this.posterTitle,
       liked: liked ?? this.liked,
+      metadata: metadata ?? this.metadata,
     );
   }
 }

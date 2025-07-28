@@ -54,9 +54,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
     return _retryRequest(() async {
       final response = await _mediaLibraryClient
           .from('vw_media_files_with_posters')
-          .select(
-            'media_file_id, media_title, file_description, poster_url, category_id, category_name, category_image_url, media_url, media_created_at, media_type, media_mime_type, poster_title, poster_created_at',
-          )
+          .select()
           .eq('media_type', 'video') // Solo archivos de tipo video
           .order('media_created_at', ascending: false);
 
@@ -73,9 +71,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
     return _retryRequest(() async {
       var query = _mediaLibraryClient
           .from('vw_media_files_with_posters')
-          .select(
-            'media_file_id, media_title, file_description, poster_url, category_id, category_name, category_image_url, media_url, media_created_at, media_type, media_mime_type, poster_title, poster_created_at',
-          );
+          .select();
 
       // Filtrar solo archivos de tipo video
       query = query.eq('media_type', 'video');
