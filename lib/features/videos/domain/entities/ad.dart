@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../data/models/metadata_json.dart';
 
 /// Entidad que representa un video/anuncio en el dominio
@@ -16,7 +17,6 @@ class Ad extends Equatable {
   final String mediaType; // media_type
   final String mediaMimeType; // media_mime_type
   final String? posterTitle; // poster_title
-  final bool liked; // Mantenemos este campo para compatibilidad
   final MetadataJson? metadata; // Metadatos adicionales del video
 
   const Ad({
@@ -33,7 +33,6 @@ class Ad extends Equatable {
     this.categoryImageUrl,
     this.posterCreatedAt,
     this.posterTitle,
-    this.liked = false,
     this.metadata,
   });
 
@@ -53,7 +52,6 @@ class Ad extends Equatable {
     mediaMimeType,
     metadata,
     posterTitle,
-    liked,
   ];
 
   /// Crea una copia con algunos campos modificados
@@ -71,7 +69,6 @@ class Ad extends Equatable {
     String? mediaType,
     String? mediaMimeType,
     String? posterTitle,
-    bool? liked,
   }) {
     return Ad(
       id: id ?? this.id,
@@ -87,7 +84,6 @@ class Ad extends Equatable {
       mediaType: mediaType ?? this.mediaType,
       mediaMimeType: mediaMimeType ?? this.mediaMimeType,
       posterTitle: posterTitle ?? this.posterTitle,
-      liked: liked ?? this.liked,
     );
   }
 }

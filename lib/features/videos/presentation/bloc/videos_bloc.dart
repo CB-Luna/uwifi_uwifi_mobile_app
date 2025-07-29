@@ -3,14 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../domain/usecases/get_video.dart';
 import '../../domain/usecases/get_videos.dart';
 import '../../domain/usecases/get_videos_by_genre.dart';
 import '../../domain/usecases/get_videos_paginated.dart';
-import '../../domain/usecases/get_video.dart';
 import '../../domain/usecases/like_video.dart';
-import '../../domain/usecases/unlike_video.dart';
 import '../../domain/usecases/mark_video_as_viewed.dart';
 import '../../domain/usecases/params.dart';
+import '../../domain/usecases/unlike_video.dart';
 import 'videos_event.dart';
 import 'videos_state.dart';
 
@@ -199,9 +199,7 @@ class VideosBloc extends Bloc<VideosEvent, VideosState> {
         if (state is VideoLoaded) {
           final currentVideo = (state as VideoLoaded).video;
           if (currentVideo.id == event.videoId) {
-            // Crear una copia del video con liked=true
-            final updatedVideo = currentVideo.copyWith(liked: true);
-            emit(VideoLoaded(video: updatedVideo));
+            emit(VideoLoaded(video: currentVideo));
           }
         }
       },
@@ -224,9 +222,7 @@ class VideosBloc extends Bloc<VideosEvent, VideosState> {
         if (state is VideoLoaded) {
           final currentVideo = (state as VideoLoaded).video;
           if (currentVideo.id == event.videoId) {
-            // Crear una copia del video con liked=false
-            final updatedVideo = currentVideo.copyWith(liked: false);
-            emit(VideoLoaded(video: updatedVideo));
+            emit(VideoLoaded(video: currentVideo));
           }
         }
       },

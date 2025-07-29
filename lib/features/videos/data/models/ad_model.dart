@@ -17,7 +17,6 @@ class AdModel extends Ad {
     super.categoryImageUrl,
     super.posterCreatedAt,
     super.posterTitle,
-    super.liked = false,
     super.metadata,
   });
 
@@ -41,8 +40,9 @@ class AdModel extends Ad {
       mediaType: json['media_type'] ?? '',
       mediaMimeType: json['media_mime_type'] ?? '',
       posterTitle: json['poster_title'],
-      liked: json['liked'] ?? false,
-      metadata: json['metadata_json'] != null ? MetadataJson.fromJson(json['metadata_json']) : null,
+      metadata: json['metadata_json'] != null
+          ? MetadataJson.fromJson(json['metadata_json'])
+          : null,
     );
   }
 
@@ -62,7 +62,6 @@ class AdModel extends Ad {
       'media_type': mediaType,
       'media_mime_type': mediaMimeType,
       'poster_title': posterTitle,
-      'liked': liked,
       'metadata_json': metadata?.toJson(),
     };
   }
@@ -83,7 +82,6 @@ class AdModel extends Ad {
     String? mediaType,
     String? mediaMimeType,
     String? posterTitle,
-    bool? liked,
     MetadataJson? metadata,
   }) {
     return AdModel(
@@ -100,7 +98,6 @@ class AdModel extends Ad {
       mediaType: mediaType ?? this.mediaType,
       mediaMimeType: mediaMimeType ?? this.mediaMimeType,
       posterTitle: posterTitle ?? this.posterTitle,
-      liked: liked ?? this.liked,
       metadata: metadata ?? this.metadata,
     );
   }

@@ -11,6 +11,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../profile/presentation/bloc/wallet_bloc.dart';
 import '../../../profile/presentation/bloc/wallet_event.dart';
+import '../../../profile/presentation/bloc/wallet_state.dart';
 import '../../domain/entities/ad.dart';
 import '../bloc/genres_bloc.dart';
 import '../bloc/genres_event.dart';
@@ -335,13 +336,33 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                                 videos.isNotEmpty && _currentIndex < videos.length
                                 ? videos[_currentIndex]
                                 : videos.first;
+                                
+                            // Obtener la lista de videos con like desde el WalletBloc
+                            List<String>? likedVideos;
+                            final walletState = context.watch<WalletBloc>().state;
+                            if (walletState is WalletLoaded && walletState.customerPoints != null) {
+                              likedVideos = walletState.customerPoints!.adsLiked;
+                              AppLogger.videoInfo('📊 Videos con like obtenidos: ${likedVideos.length}');
+                            }
 
                             return LikeActionWidget(
                               key: const ValueKey('likes_widget'),
                               video: currentVideo,
                               videoManager: _videoManager,
+                              likedVideos: likedVideos,
                               onLikeToggled: () {
-                                // Callback opcional
+                                // Refrescar los puntos del cliente para actualizar la lista de videos con like
+                                final authState = context.read<AuthBloc>().state;
+                                if (authState is AuthAuthenticated && authState.user.customerId != null) {
+                                  final customerId = authState.user.customerId.toString();
+                                  final customerAfiliateId = authState.user.customerAfiliateId != null ? authState.user.customerAfiliateId.toString() : null;
+                                  context.read<WalletBloc>().add(
+                                    GetCustomerPointsEvent(
+                                      customerId: customerId,
+                                      customerAfiliateId: customerAfiliateId,
+                                    ),
+                                  );
+                                }
                               },
                             );
                           },

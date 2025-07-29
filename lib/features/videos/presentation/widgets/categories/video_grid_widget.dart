@@ -1,6 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../domain/entities/ad.dart';
 
@@ -19,7 +19,9 @@ class VideoGridWidget extends StatelessWidget {
   final int crossAxisCount; // ✅ NUEVO: Número de columnas personalizable
 
   const VideoGridWidget({
-    required this.videos, required this.onVideoTap, super.key,
+    required this.videos,
+    required this.onVideoTap,
+    super.key,
     this.scrollController,
     this.isLoadingMore = false,
     this.isRefreshing = false,
@@ -214,7 +216,10 @@ class VideoThumbnailCard extends StatefulWidget {
   final VoidCallback onTap;
 
   const VideoThumbnailCard({
-    required this.video, required this.index, required this.onTap, super.key,
+    required this.video,
+    required this.index,
+    required this.onTap,
+    super.key,
   });
 
   @override
@@ -452,25 +457,6 @@ class _VideoThumbnailCardState extends State<VideoThumbnailCard>
                           ),
                         ),
                       ),
-
-                      // Badge de liked si aplica
-                      if (widget.video.liked)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.9),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.favorite,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
                     ],
                   ),
                 ),

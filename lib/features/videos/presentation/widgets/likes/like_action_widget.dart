@@ -17,10 +17,14 @@ class LikeActionWidget extends StatefulWidget {
   final Ad video;
   final TikTokVideoManager videoManager;
   final VoidCallback? onLikeToggled;
+  final List<String>? likedVideos;
 
   const LikeActionWidget({
-    required this.video, required this.videoManager, super.key,
+    required this.video, 
+    required this.videoManager, 
+    super.key,
     this.onLikeToggled,
+    this.likedVideos,
   });
 
   @override
@@ -38,7 +42,9 @@ class _LikeActionWidgetState extends State<LikeActionWidget>
   @override
   void initState() {
     super.initState();
-    _isLiked = widget.video.liked;
+    // Inicializar _isLiked como false, ignorando widget.video.liked
+    // El valor real se establecerá en _checkLikeStatus basado en la lista de videos con like
+    _isLiked = false;
     _videoLikesBloc = di.getIt<VideoLikesBloc>();
     
     _animationController = AnimationController(
@@ -55,7 +61,7 @@ class _LikeActionWidgetState extends State<LikeActionWidget>
     if (authState is AuthAuthenticated && authState.user.customerId != null) {
       _customerId = authState.user.customerId;
       
-      // Verificar si el usuario ha dado like al video
+      // Verificar si el usuario ha dado like al video usando la lista de videos con like
       _checkLikeStatus();
     } else {
       AppLogger.videoError('❌ No se pudo obtener el customerId del usuario');
@@ -63,11 +69,31 @@ class _LikeActionWidgetState extends State<LikeActionWidget>
   }
   
   void _checkLikeStatus() {
-    if (_customerId != null) {
+    // Si tenemos la lista de videos con like, usarla directamente
+    if (widget.likedVideos != null) {
+      final isLiked = widget.likedVideos!.contains(widget.video.id);
+      AppLogger.videoInfo('🔍 Verificando like usando lista precargada: ${widget.video.id} - isLiked: $isLiked');
+      setState(() {
+        _isLiked = isLiked;
+      });
+    } 
+    // Si no tenemos la lista, hacer la consulta a la API
+    else if (_customerId != null) {
+      AppLogger.videoInfo('🔍 Verificando like usando API: ${widget.video.id}');
       _videoLikesBloc.add(CheckVideoLikeStatusEvent(
         customerId: _customerId!,
         videoId: widget.video.id,
       ));
+    }
+  }
+  
+  @override
+  void didUpdateWidget(LikeActionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Si cambia la lista de videos con like, actualizar el estado
+    if (widget.likedVideos != oldWidget.likedVideos) {
+      _checkLikeStatus();
     }
   }
 
@@ -132,21 +158,32 @@ class _LikeActionWidgetState extends State<LikeActionWidget>
     });
 
     // Anticipamos el cambio de estado para una mejor experiencia de usuario
+    final newLikeState = !_isLiked;
     setState(() {
-      _isLiked = !_isLiked;
+      _isLiked = newLikeState;
     });
 
     // Lógica de like con el nuevo VideoLikesBloc
-    AppLogger.videoInfo('❤️ Like toggled for video: ${widget.video.title} by customer: $_customerId');
+    AppLogger.videoInfo('❤️ Like ${newLikeState ? "añadido" : "eliminado"} para video: ${widget.video.title} (ID: ${widget.video.id}) por customer: $_customerId');
 
     // Registrar en el manager de videos para compatibilidad
-    widget.videoManager.likeVideo(widget.video.id);
+    // Solo notificamos likeVideo ya que el TikTokVideoManager no tiene unlikeVideo
+    if (newLikeState) {
+      widget.videoManager.likeVideo(widget.video.id);
+    } else {
+      // Para unlike no hay método específico en el manager, pero podemos notificar el cambio
+      AppLogger.videoInfo('💔 Unlike para video: ${widget.video.id}');
+    }
     
     // Mantener la llamada al VideosBloc original para compatibilidad
-    context.read<VideosBloc>().add(videos_events.LikeVideoEvent(widget.video.id));
+    if (newLikeState) {
+      context.read<VideosBloc>().add(videos_events.LikeVideoEvent(widget.video.id));
+    } else {
+      context.read<VideosBloc>().add(videos_events.UnlikeVideoEvent(widget.video.id));
+    }
     
     // Usar el nuevo VideoLikesBloc con el customerId
-    if (_isLiked) {
+    if (newLikeState) {
       _videoLikesBloc.add(LikeVideoEvent(
         customerId: _customerId!,
         videoId: widget.video.id,
@@ -158,7 +195,7 @@ class _LikeActionWidgetState extends State<LikeActionWidget>
       ));
     }
 
-    // Callback opcional
+    // Callback opcional para actualizar la lista de videos con like en el WalletBloc
     widget.onLikeToggled?.call();
   }
 }
