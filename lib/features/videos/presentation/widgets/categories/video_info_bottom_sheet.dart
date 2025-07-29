@@ -106,9 +106,10 @@ class VideoInfoBottomSheet extends StatelessWidget {
         Row(
           children: [
             Flexible(
-              child: const Text(
-                'U-Wifi', // Valor fijo ya que partner ya no existe
-                style: TextStyle(
+              child: Text(
+                ad.metadata?.partner ??
+                    'U-Wifi', // Valor fijo ya que partner ya no existe
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -131,7 +132,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '• Video', // Ya no mostramos la duración porque durationVideo y duration ya no existen
+          '• ${_formatDuration(ad.metadata?.durationSeconds ?? 0)}', // Ya no mostramos la duración porque durationVideo y duration ya no existen
           style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
       ],
@@ -165,7 +166,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
   // Widget for the visit URL button
   Widget _buildVisitUrlButton(BuildContext context) {
     // Usamos el campo videoUrl como alternativa ya que urlAd ya no existe
-    final hasUrl = ad.videoUrl.isNotEmpty;
+    final hasUrl = ad.metadata?.urlAd != null;
     return Visibility(
       visible: hasUrl,
       child: SizedBox(
@@ -173,7 +174,7 @@ class VideoInfoBottomSheet extends StatelessWidget {
         child: ElevatedButton(
           onPressed: () async {
             // Make sure the URL has the correct format
-            String urlString = ad.videoUrl;
+            String urlString = ad.metadata!.urlAd!;
             if (!urlString.startsWith('http://') &&
                 !urlString.startsWith('https://')) {
               urlString = 'https://$urlString';
@@ -217,4 +218,9 @@ class VideoInfoBottomSheet extends StatelessWidget {
   }
 
   // El método _formatDuration ha sido eliminado ya que ya no se usa
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')} min';
+  }
 }
