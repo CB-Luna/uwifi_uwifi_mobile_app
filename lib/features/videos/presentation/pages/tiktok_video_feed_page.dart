@@ -706,7 +706,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                     // Botón "More Information"
                     Positioned(
                       key: const ValueKey('more_info_button'),
-                      bottom: 100,
+                      bottom: 165,
                       left: 20,
                       right: 20,
                       child: Center(

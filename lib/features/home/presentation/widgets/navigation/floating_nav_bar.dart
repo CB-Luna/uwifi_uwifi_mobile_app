@@ -13,55 +13,50 @@ class FloatingNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 20,
-      left: 20,
-      right: 20,
-      child: Container(
-        height: 70,
-        decoration: BoxDecoration(
-          // ✅ Fondo transparente para Videos, blanco para otras pantallas
-          color: currentIndex == 0 ? Colors.transparent : Colors.white,
-          borderRadius: BorderRadius.circular(35),
-          boxShadow: currentIndex == 0
-              ? [] // ✅ Sin sombra para Videos (transparente)
-              : [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(25),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildNavItem(
-              icon: MyFlutterApp.u,
-              label: 'Videos',
-              index: 0,
-              isSelected: currentIndex == 0,
-            ),
-            _buildNavItem(
-              icon: Icons.home_outlined,
-              label: 'Home',
-              index: 1,
-              isSelected: currentIndex == 1,
-            ),
-            _buildNavItem(
-              icon: Icons.person_add_outlined,
-              label: 'Invite',
-              index: 2,
-              isSelected: currentIndex == 2,
-            ),
-            _buildNavItem(
-              icon: Icons.person_outline,
-              label: 'Profile',
-              index: 3,
-              isSelected: currentIndex == 3,
-            ),
-          ],
-        ),
+    return Container(
+      height: 70,
+      decoration: BoxDecoration(
+        // ✅ Fondo transparente para Videos, blanco para otras pantallas
+        color: currentIndex == 0 ? Colors.transparent : Colors.white,
+        borderRadius: BorderRadius.circular(35),
+        boxShadow: currentIndex == 0
+            ? [] // ✅ Sin sombra para Videos (transparente)
+            : [
+                BoxShadow(
+                  color: Colors.black.withAlpha(25),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildNavItem(
+            icon: MyFlutterApp.u,
+            label: 'Videos',
+            index: 0,
+            isSelected: currentIndex == 0,
+          ),
+          _buildNavItem(
+            icon: Icons.home_outlined,
+            label: 'Home',
+            index: 1,
+            isSelected: currentIndex == 1,
+          ),
+          _buildNavItem(
+            icon: Icons.person_add_outlined,
+            label: 'Invite',
+            index: 2,
+            isSelected: currentIndex == 2,
+          ),
+          _buildNavItem(
+            icon: Icons.person_outline,
+            label: 'Profile',
+            index: 3,
+            isSelected: currentIndex == 3,
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import '../../../../core/utils/ad_manager.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -24,6 +26,10 @@ class _HomePageState extends State<HomePage> {
   late PageController _pageController;
   late List<Widget> _pages;
 
+  // Variables para el manejo de anuncios
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
+
   final List<String> _titles = ['Watch Videos', 'Home', 'Invite', 'Profile'];
 
   @override
@@ -42,10 +48,31 @@ class _HomePageState extends State<HomePage> {
       const InvitePage(),
       const ProfilePage(),
     ];
+
+    // Cargar el anuncio banner
+    _loadBannerAd();
+  }
+
+  // Método para cargar el anuncio banner
+  void _loadBannerAd() {
+    _bannerAd = AdManager.createBannerAd();
+    _bannerAd!
+        .load()
+        .then((value) {
+          setState(() {
+            _isAdLoaded = true;
+          });
+        })
+        .catchError((error) {
+          AppLogger.navInfo('Error al cargar el anuncio: $error');
+          _isAdLoaded = false;
+        });
   }
 
   @override
   void dispose() {
+    // Liberar recursos del anuncio
+    _bannerAd?.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -135,6 +162,7 @@ class _HomePageState extends State<HomePage> {
             ),
       body: Stack(
         children: [
+          // Contenido principal
           PageView(
             controller: _pageController,
             onPageChanged: (index) {
@@ -144,19 +172,47 @@ class _HomePageState extends State<HomePage> {
             },
             children: _pages,
           ),
-          FloatingNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
+
+          // Barra de navegación flotante
+          Positioned(
+            // Ajustar posición para que quede por encima del anuncio y con suficiente margen
+            bottom: _isAdLoaded ? 100 : 30, // Aumentamos el margen inferior
+            left: 20,
+            right: 20,
+            child: FloatingNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+                _pageController.animateToPage(
+                  index,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+            ),
           ),
+
+          // Banner de anuncios en la parte inferior
+          if (_isAdLoaded && _bannerAd != null)
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.only(
+                  bottom: 8,
+                  top: 8,
+                ), // Padding inferior para evitar solapamiento
+                alignment: Alignment.center,
+                width: _bannerAd!.size.width.toDouble(),
+                height:
+                    _bannerAd!.size.height.toDouble() +
+                    8, // Añadimos espacio extra para el padding
+                child: AdWidget(ad: _bannerAd!),
+              ),
+            ),
         ],
       ),
     );

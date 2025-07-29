@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +8,7 @@ import 'core/constants/app_constants.dart';
 import 'core/providers/biometric_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/utils/app_logger.dart';
+import 'core/utils/ad_manager.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/reset_password_bloc.dart';
@@ -29,6 +31,32 @@ import 'injection_container.dart' as di;
 void main() async {
   // Inicializar la aplicación usando el bootstrapper
   await AppBootstrapper.initialize();
+  
+  // Inicializar el SDK de Google Mobile Ads
+  await AdManager.initialize();
+
+  // Configurar el modo inmersivo para ocultar la barra de navegación del sistema
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
+    overlays: [SystemUiOverlay.top],
+  );
+
+  // Configurar la orientación de la aplicación
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  // Configurar el color de la barra de estado
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
 
   runApp(const MyApp());
 }
