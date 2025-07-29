@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
+import 'package:uwifiapp/core/utils/ad_manager.dart';
 
 import '../../../../core/providers/biometric_provider.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -24,12 +26,18 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   late final BiometricAuthService _biometricAuthService;
+  // Variables para el manejo de anuncios
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
 
   @override
   void initState() {
     super.initState();
     AppLogger.navInfo('LoginPage initialized');
     _biometricAuthService = di.getIt<BiometricAuthService>();
+
+    // Cargar el anuncio banner
+    _loadBannerAd();
   }
 
   @override
@@ -123,6 +131,22 @@ class _LoginPageState extends State<LoginPage> {
       return 'Please enter your password';
     }
     return null;
+  }
+
+  // Método para cargar el anuncio banner
+  void _loadBannerAd() {
+    _bannerAd = AdManager.createBannerAd();
+    _bannerAd!
+        .load()
+        .then((value) {
+          setState(() {
+            _isAdLoaded = true;
+          });
+        })
+        .catchError((error) {
+          AppLogger.navInfo('Error al cargar el anuncio: $error');
+          _isAdLoaded = false;
+        });
   }
 
   @override
@@ -408,15 +432,22 @@ class _LoginPageState extends State<LoginPage> {
 
                             // Ad banner
                             const SizedBox(height: 24),
-                            Container(
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(8),
+                            // Banner de anuncios en la parte inferior
+                            if (_isAdLoaded && _bannerAd != null)
+                              Center(
+                                child: Container(
+                                  padding: const EdgeInsets.only(
+                                    bottom: 8,
+                                    top: 8,
+                                  ), // Padding inferior para evitar solapamiento
+                                  alignment: Alignment.center,
+                                  width: _bannerAd!.size.width.toDouble(),
+                                  height:
+                                      _bannerAd!.size.height.toDouble() +
+                                      8, // Añadimos espacio extra para el padding
+                                  child: AdWidget(ad: _bannerAd!),
+                                ),
                               ),
-                              alignment: Alignment.center,
-                              child: const Text('AdMob Banner'),
-                            ),
                           ],
                         ),
                       ),
