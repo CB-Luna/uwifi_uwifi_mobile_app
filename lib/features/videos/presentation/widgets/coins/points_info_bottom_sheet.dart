@@ -36,10 +36,11 @@ class PointsInfoBottomSheet extends StatelessWidget {
       builder: (context) => BlocBuilder<WalletBloc, WalletState>(
         builder: (context, state) {
           // Use total points from WalletBloc if available, otherwise use local points
-          final totalPoints = state is WalletLoaded && state.customerPoints != null
+          final totalPoints =
+              state is WalletLoaded && state.customerPoints != null
               ? state.customerPoints!.totalPointsEarned
               : localPoints;
-              
+
           return PointsInfoBottomSheet(video: video, userPoints: totalPoints);
         },
       ),
@@ -77,10 +78,10 @@ class PointsInfoBottomSheet extends StatelessWidget {
           // Current points
           _buildCurrentPoints(),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Progress bar
-          _buildProgressBar(),
+          _buildProgressBar(context),
 
           const SizedBox(height: 16),
 
@@ -171,47 +172,108 @@ class PointsInfoBottomSheet extends StatelessWidget {
   }
 
   // Widget to display the progress bar
-  Widget _buildProgressBar() {
-    // Example values for the progress bar
-    const maxValue = 38;
-    final progress = userPoints >= maxValue ? 1.0 : userPoints / maxValue;
+  Widget _buildProgressBar(BuildContext context) {
+    // Calcular el progreso y estados de los círculos
+    double progress = 0.0;
+    bool isFirstActive = false;
+    bool isSecondActive = false;
+    bool isThirdActive = false;
 
-    return Column(
-      children: [
-        // Progress bar
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 12,
-            backgroundColor: Colors.grey[300],
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+    // Determinar qué círculos están activos basado en los puntos
+    isFirstActive = userPoints >= 1000;
+    isSecondActive = userPoints >= 2000;
+    isThirdActive = userPoints >= 4000;
+
+    // Calcular el progreso para la línea
+    if (userPoints >= 4000) {
+      progress = 1.0; // 100% de progreso
+    } else if (userPoints >= 2000) {
+      // Entre $20 y $38 (2000 a 4000 puntos)
+      progress = 0.5 + ((userPoints - 2000) / 2000) * 0.5;
+    } else if (userPoints >= 1000) {
+      // Entre $10 y $20 (1000 a 2000 puntos)
+      progress = 0.25 + ((userPoints - 1000) / 1000) * 0.25;
+    } else {
+      // Entre $0 y $10 (0 a 1000 puntos)
+      progress = (userPoints / 1000) * 0.25;
+    }
+
+    return Container(
+      height: 80,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Línea de conexión (background)
+          Positioned(
+            left: 30,
+            right: 30,
+            child: Container(height: 4, color: Colors.grey.shade300),
+          ),
+          // Línea de progreso (foreground)
+          Positioned(
+            left: 30,
+            width: (MediaQuery.of(context).size.width - 76) * progress,
+            child: Container(height: 4, color: Colors.teal),
+          ),
+          // Círculos de puntos
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildPointCircle(
+                '\$10',
+                isFirstActive,
+                isFirstActive ? Colors.teal : Colors.grey,
+              ),
+              _buildPointCircle(
+                '\$20',
+                isSecondActive,
+                isSecondActive ? Colors.teal : Colors.grey,
+              ),
+              _buildPointCircle(
+                '\$38',
+                isThirdActive,
+                isThirdActive ? Colors.teal : Colors.grey,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Widget para construir los círculos de puntos
+  Widget _buildPointCircle(String value, bool isActive, Color color) {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isActive ? color : Colors.grey.shade600,
+        border: Border.all(
+          color: isActive ? Colors.teal.shade200 : Colors.grey.shade400,
+          width: 4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isActive
+                ? Colors.teal.withValues(alpha: 0.3)
+                : Colors.transparent,
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
         ),
-        const SizedBox(height: 8),
-        // Bar values
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '\$0',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-            Text(
-              '\$10',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-            Text(
-              '\$20',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-            Text(
-              '\$$maxValue',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 
