@@ -58,6 +58,7 @@ flutter:
     - assets/images/profile/
     - assets/animations/
     - assets/animations/lotties/
+    - assets/splash/
 
   fonts:
     - family: MyFlutterApp

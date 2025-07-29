@@ -7,12 +7,13 @@ import 'core/bootstrap/app_bootstrapper.dart';
 import 'core/constants/app_constants.dart';
 import 'core/providers/biometric_provider.dart';
 import 'core/router/app_router.dart';
-import 'core/utils/app_logger.dart';
 import 'core/utils/ad_manager.dart';
+import 'core/utils/app_logger.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/reset_password_bloc.dart';
-import 'features/auth/presentation/widgets/auth_wrapper_widget.dart';
+import 'features/customer/presentation/bloc/customer_details_bloc.dart';
+import 'features/customer/presentation/widgets/customer_details_listener.dart';
 import 'features/home/presentation/bloc/data_usage_bloc.dart';
 import 'features/home/presentation/bloc/traffic_bloc.dart';
 import 'features/home/presentation/bloc/transaction_bloc.dart';
@@ -20,18 +21,17 @@ import 'features/invite/presentation/bloc/invite_bloc.dart';
 import 'features/profile/presentation/bloc/payment_bloc.dart';
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
 import 'features/profile/presentation/widgets/uwifistore/cart_provider.dart';
+import 'features/splash/presentation/pages/splash_screen.dart';
 import 'features/videos/presentation/bloc/genres_bloc.dart';
 import 'features/videos/presentation/bloc/genres_event.dart';
 import 'features/videos/presentation/bloc/video_explorer_bloc.dart';
 import 'features/videos/presentation/bloc/videos_bloc.dart';
-import 'features/customer/presentation/bloc/customer_details_bloc.dart';
-import 'features/customer/presentation/widgets/customer_details_listener.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
   // Inicializar la aplicación usando el bootstrapper
   await AppBootstrapper.initialize();
-  
+
   // Inicializar el SDK de Google Mobile Ads
   await AdManager.initialize();
 
@@ -120,13 +120,9 @@ class MyApp extends StatelessWidget {
           create: (_) => di.getIt<ResetPasswordBloc>(),
         ),
         // Add DataUsageBloc for the data usage feature
-        BlocProvider<DataUsageBloc>(
-          create: (_) => di.getIt<DataUsageBloc>(),
-        ),
+        BlocProvider<DataUsageBloc>(create: (_) => di.getIt<DataUsageBloc>()),
         // Add TrafficBloc for the data usage in bar chart feature
-        BlocProvider<TrafficBloc>(
-          create: (_) => di.getIt<TrafficBloc>(),
-        ),
+        BlocProvider<TrafficBloc>(create: (_) => di.getIt<TrafficBloc>()),
         // Add CustomerDetailsBloc for the customer details feature
         BlocProvider<CustomerDetailsBloc>(
           create: (_) => di.getIt<CustomerDetailsBloc>(),
@@ -135,7 +131,9 @@ class MyApp extends StatelessWidget {
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (context) => CartProvider()),
-          ChangeNotifierProvider(create: (context) => di.getIt<BiometricProvider>()),
+          ChangeNotifierProvider(
+            create: (context) => di.getIt<BiometricProvider>(),
+          ),
         ],
         child: Builder(
           builder: (context) {
@@ -148,7 +146,10 @@ class MyApp extends StatelessWidget {
                 theme: ThemeData(
                   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
                   useMaterial3: true,
-                  appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
+                  appBarTheme: const AppBarTheme(
+                    centerTitle: true,
+                    elevation: 0,
+                  ),
                   elevatedButtonTheme: ElevatedButtonThemeData(
                     style: ElevatedButton.styleFrom(
                       elevation: 2,
@@ -165,7 +166,7 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
                 // ✅ Use home instead of initialRoute to avoid Navigator conflicts
-                home: const AuthWrapperWidget(),
+                home: const SplashScreen(),
                 onGenerateRoute: AppRouter.generateRoute,
               ),
             );
