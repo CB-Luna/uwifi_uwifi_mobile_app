@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/utils/app_logger.dart';
 import '../../../domain/entities/ad.dart';
 import '../../bloc/video_explorer_bloc.dart';
 import '../../bloc/video_explorer_event.dart';
 import '../../bloc/video_explorer_state.dart';
-import 'video_grid_widget.dart';
 import 'category_filter_widget.dart';
 import 'search_bar_widget.dart';
+import 'video_grid_widget.dart';
 
 /// Widget principal para explorar videos con filtros y miniaturas
 class VideoExplorerPage extends StatefulWidget {
@@ -211,7 +211,7 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Explorar Videos',
+                      'Explore Videos',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,
@@ -224,7 +224,7 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                       builder: (context, state) {
                         if (state is VideoExplorerLoaded) {
                           return Text(
-                            '${state.filteredVideos.length} videos disponibles',
+                            '${state.filteredVideos.length} available videos',
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 14,
@@ -232,7 +232,7 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                           );
                         }
                         return Text(
-                          'Cargando...',
+                          'Loading...',
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 14,
@@ -285,12 +285,12 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
             selectedCategory: state.selectedCategory,
             onCategorySelected: (category) {
               if (category == null) {
-                // Mostrar todos los videos
+                // Show all videos
                 context.read<VideoExplorerBloc>().add(
-                  const FilterByCategory(categoryName: 'Todos'),
+                  const FilterByCategory(categoryName: 'All'),
                 );
               } else {
-                // Filtrar por categoría específica
+                // Filter by specific category
                 context.read<VideoExplorerBloc>().add(
                   FilterByCategory(
                     categoryId: category.id,
@@ -317,7 +317,7 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                 CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                 SizedBox(height: 16),
                 Text(
-                  'Cargando videos...',
+                  'Loading videos...',
                   style: TextStyle(color: Colors.white70, fontSize: 16),
                 ),
               ],
@@ -337,7 +337,7 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Error al cargar videos',
+                  'Error loading videos',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 18,
@@ -371,7 +371,7 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Reintentar'),
+                  child: const Text('Retry'),
                 ),
               ],
             ),
@@ -394,8 +394,8 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                   const SizedBox(height: 16),
                   Text(
                     state.searchQuery.isNotEmpty
-                        ? 'No se encontraron videos'
-                        : 'No hay videos disponibles',
+                        ? 'No videos found'
+                        : 'No videos available',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 18,
@@ -405,8 +405,8 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                   const SizedBox(height: 8),
                   Text(
                     state.searchQuery.isNotEmpty
-                        ? 'Intenta con otros términos de búsqueda'
-                        : 'Selecciona una categoría diferente',
+                        ? 'Try different search terms'
+                        : 'Select a different category',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.6),
                       fontSize: 14,

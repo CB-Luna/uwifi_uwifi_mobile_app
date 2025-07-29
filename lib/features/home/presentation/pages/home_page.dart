@@ -201,17 +201,13 @@ class _HomePageState extends State<HomePage> {
               left: 0,
               right: 0,
               child: Container(
-                width: double.infinity, // Ocupa todo el ancho disponible
-                decoration: const BoxDecoration(color: Colors.white),
-                padding: const EdgeInsets.only(
-                  bottom: 8,
-                  top: 8,
-                ), // Padding inferior para evitar solapamiento
-                alignment: Alignment.center,
-                height:
-                    _bannerAd!.size.height.toDouble() +
-                    8, // Añadimos espacio extra para el padding
-                child: Center(
+                width: MediaQuery.of(context).size.width, // Ancho explícito de la pantalla
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: _bannerAd!.size.height.toDouble(),
+                  alignment: Alignment.center,
                   child: AdWidget(ad: _bannerAd!),
                 ),
               ),

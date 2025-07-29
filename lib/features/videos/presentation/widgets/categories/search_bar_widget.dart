@@ -9,9 +9,11 @@ class SearchBarWidget extends StatefulWidget {
   final String hintText;
 
   const SearchBarWidget({
-    required this.controller, required this.onChanged, super.key,
+    required this.controller,
+    required this.onChanged,
+    super.key,
     this.onClear,
-    this.hintText = 'Buscar videos...',
+    this.hintText = 'Search videos...',
   });
 
   @override
