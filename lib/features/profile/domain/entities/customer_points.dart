@@ -6,7 +6,8 @@ class CustomerPoints extends Equatable {
   final int affiliatePoints;
   final int totalPointsEarned;
   final int secondsWatched;
-  final List<int> adsWatched;
+  final List<String> adsWatched;
+  final List<String> adsLiked;
   final List<int> affiliatesArray;
   final String billingStart;
   final String billingEnd;
@@ -18,6 +19,7 @@ class CustomerPoints extends Equatable {
     required this.totalPointsEarned,
     required this.secondsWatched,
     required this.adsWatched,
+    required this.adsLiked,
     required this.affiliatesArray,
     required this.billingStart,
     required this.billingEnd,
@@ -31,6 +33,7 @@ class CustomerPoints extends Equatable {
         totalPointsEarned,
         secondsWatched,
         adsWatched,
+        adsLiked,
         affiliatesArray,
         billingStart,
         billingEnd,

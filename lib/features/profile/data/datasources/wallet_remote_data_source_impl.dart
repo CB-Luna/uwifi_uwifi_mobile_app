@@ -81,10 +81,14 @@ class WalletRemoteDataSourceImpl implements WalletRemoteDataSource {
   @override
   Future<Either<Failure, CustomerPointsModel>> getCustomerPoints(
     String customerId,
+    {String? customerAfiliateId}
   ) async {
     try {
       // Preparar el cuerpo de la solicitud
-      final requestBody = {'var_customer_id': int.parse(customerId)};
+      final requestBody = {
+        'var_customer_id': int.parse(customerId),
+        'var_customer_afiliate_id': int.parse(customerAfiliateId ?? customerId)
+      };
 
       AppLogger.navInfo(
         'Obteniendo puntos del cliente para customerId: $customerId',

@@ -114,10 +114,16 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
     }
 
     AppLogger.navInfo(
-      'Solicitando puntos del cliente para customerId: ${event.customerId}',
+      'Solicitando puntos del cliente para customerId: ${event.customerId}' +
+      (event.customerAfiliateId != null ? ', customerAfiliateId: ${event.customerAfiliateId}' : ''),
     );
 
-    final result = await getCustomerPoints(event.customerId);
+    final params = GetCustomerPointsParams(
+      customerId: event.customerId,
+      customerAfiliateId: event.customerAfiliateId,
+    );
+    
+    final result = await getCustomerPoints(params);
 
     result.fold(
       (failure) {

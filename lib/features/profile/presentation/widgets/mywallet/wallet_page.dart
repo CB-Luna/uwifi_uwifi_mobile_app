@@ -94,11 +94,18 @@ class _WalletPageState extends State<WalletPage> {
 
       // Verificar si el usuario tiene customerId
       if (user.customerId != null) {
+        final customerAfiliateId = user.customerAfiliateId?.toString();
+        
         AppLogger.navInfo(
-          'Cargando puntos del cliente para customerId: ${user.customerId}',
+          'Cargando puntos del cliente para customerId: ${user.customerId}' +
+          (customerAfiliateId != null ? ', customerAfiliateId: $customerAfiliateId' : ''),
         );
+        
         context.read<WalletBloc>().add(
-          GetCustomerPointsEvent(customerId: user.customerId.toString()),
+          GetCustomerPointsEvent(
+            customerId: user.customerId.toString(),
+            customerAfiliateId: customerAfiliateId,
+          ),
         );
       } else {
         AppLogger.navError('Error: El usuario no tiene customerId asignado');

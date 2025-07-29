@@ -29,10 +29,16 @@ class WalletRepositoryImpl implements WalletRepository {
   }
 
   @override
-  Future<Either<Failure, CustomerPoints>> getCustomerPoints(String customerId) async {
+  Future<Either<Failure, CustomerPoints>> getCustomerPoints(
+    String customerId,
+    {String? customerAfiliateId}
+  ) async {
     if (await networkInfo.isConnected) {
       try {
-        return await remoteDataSource.getCustomerPoints(customerId);
+        return await remoteDataSource.getCustomerPoints(
+          customerId,
+          customerAfiliateId: customerAfiliateId
+        );
       } catch (e) {
         return Left(ServerFailure(e.toString()));
       }
