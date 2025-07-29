@@ -544,6 +544,43 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                         key: const ValueKey('action_buttons'),
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Botón "More Information"
+                          Builder(
+                            builder: (context) {
+                              final currentVideo =
+                                  videos.isNotEmpty &&
+                                      _currentIndex < videos.length
+                                  ? videos[_currentIndex]
+                                  : null;
+
+                              return Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withAlpha(
+                                    128,
+                                  ), // 0.5 * 255 = 128
+                                  shape: BoxShape.circle,
+                                ),
+                                child: InkWell(
+                                  onTap: currentVideo != null
+                                      ? () => VideoInfoBottomSheet.show(
+                                          context,
+                                          currentVideo,
+                                        )
+                                      : null,
+                                  borderRadius: BorderRadius.circular(25),
+                                  child: const Icon(
+                                    Icons.info,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+
+                          const SizedBox(height: 16),
+
                           // Widget de Exploración de Videos
                           VideoExplorerButton(
                             onVideoSelected: (video, playlist, startIndex) {
@@ -701,65 +738,6 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                               initialStyle: _currentProgressStyle,
                             )
                           : const SizedBox(width: 84, height: 84),
-                    ),
-
-                    // Botón "More Information"
-                    Positioned(
-                      key: const ValueKey('more_info_button'),
-                      bottom: 165,
-                      left: 20,
-                      right: 20,
-                      child: Center(
-                        child: Builder(
-                          builder: (context) {
-                            final currentVideo =
-                                videos.isNotEmpty &&
-                                    _currentIndex < videos.length
-                                ? videos[_currentIndex]
-                                : null;
-
-                            return Opacity(
-                              opacity: currentVideo != null ? 1.0 : 0.0,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withAlpha(38),
-                                  borderRadius: BorderRadius.circular(25),
-                                  border: Border.all(
-                                    color: Colors.green,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: currentVideo != null
-                                        ? () => VideoInfoBottomSheet.show(
-                                            context,
-                                            currentVideo,
-                                          )
-                                        : null,
-                                    borderRadius: BorderRadius.circular(25),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 12,
-                                      ),
-                                      child: const Text(
-                                        'More Information',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
                     ),
                   ],
                 );

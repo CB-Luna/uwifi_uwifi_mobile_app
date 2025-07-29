@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../pages/my_flutter_app_icons.dart';
 
 class FloatingNavigationBar extends StatelessWidget {
@@ -18,7 +19,6 @@ class FloatingNavigationBar extends StatelessWidget {
       decoration: BoxDecoration(
         // ✅ Fondo transparente para Videos, blanco para otras pantallas
         color: currentIndex == 0 ? Colors.transparent : Colors.white,
-        borderRadius: BorderRadius.circular(35),
         boxShadow: currentIndex == 0
             ? [] // ✅ Sin sombra para Videos (transparente)
             : [
@@ -30,7 +30,7 @@ class FloatingNavigationBar extends StatelessWidget {
               ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(
             icon: MyFlutterApp.u,

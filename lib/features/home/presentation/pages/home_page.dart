@@ -30,7 +30,7 @@ class _HomePageState extends State<HomePage> {
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
 
-  final List<String> _titles = ['Watch Videos', 'Home', 'Invite', 'Profile'];
+  final List<String> _titles = ['Videos', 'Home', 'Invite', 'Profile'];
 
   @override
   void initState() {
@@ -177,8 +177,8 @@ class _HomePageState extends State<HomePage> {
           Positioned(
             // Ajustar posición para que quede por encima del anuncio y con suficiente margen
             bottom: _isAdLoaded ? 100 : 30, // Aumentamos el margen inferior
-            left: 20,
-            right: 20,
+            left: 0,
+            right: 0,
             child: FloatingNavigationBar(
               currentIndex: _currentIndex,
               onTap: (index) {
@@ -197,10 +197,11 @@ class _HomePageState extends State<HomePage> {
           // Banner de anuncios en la parte inferior
           if (_isAdLoaded && _bannerAd != null)
             Positioned(
-              bottom: 40,
+              bottom: 50,
               left: 0,
               right: 0,
               child: Container(
+                decoration: const BoxDecoration(color: Colors.white),
                 padding: const EdgeInsets.only(
                   bottom: 8,
                   top: 8,
@@ -222,12 +223,12 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cerrar Sesión'),
-        content: const Text('¿Estás seguro que deseas cerrar sesión?'),
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -244,7 +245,7 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Cerrar Sesión'),
+            child: const Text('Logout'),
           ),
         ],
       ),
