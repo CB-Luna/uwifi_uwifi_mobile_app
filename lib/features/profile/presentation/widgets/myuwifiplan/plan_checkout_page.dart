@@ -170,16 +170,24 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
               children: [
                 Text(
                   'Your Services',
-                  style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   'Price',
-                  style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Lista de servicios
             BlocBuilder<ServiceBloc, ServiceState>(
               builder: (context, state) {
@@ -187,13 +195,14 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                   return const Center(
                     child: CircularProgressIndicator(color: Colors.green),
                   );
-                } else if (state is ServiceLoaded && state.services.isNotEmpty) {
+                } else if (state is ServiceLoaded &&
+                    state.services.isNotEmpty) {
                   // Calcular el total
                   double totalAmount = 0;
                   for (var service in state.services) {
                     totalAmount += service.value;
                   }
-                  
+
                   return Column(
                     children: [
                       // Lista de servicios
@@ -201,7 +210,8 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: state.services.length,
-                        separatorBuilder: (context, index) => const Divider(height: 16),
+                        separatorBuilder: (context, index) =>
+                            const Divider(height: 16),
                         itemBuilder: (context, index) {
                           final service = state.services[index];
                           return Row(
@@ -238,7 +248,6 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                                       backgroundColor: const Color(0xFFF3F5F8),
                                       labelPadding: const EdgeInsets.symmetric(
                                         horizontal: 8,
-                                        vertical: 0,
                                       ),
                                     ),
                                   ],
@@ -246,7 +255,6 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                               ),
                               // Precio del servicio
                               Expanded(
-                                flex: 1,
                                 child: Text(
                                   '\$${service.value.toStringAsFixed(2)}',
                                   style: const TextStyle(
@@ -260,11 +268,11 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                           );
                         },
                       ),
-                      
+
                       const SizedBox(height: 16),
                       const Divider(),
                       const SizedBox(height: 8),
-                      
+
                       // Total
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -289,9 +297,7 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                     ],
                   );
                 } else {
-                  return const Center(
-                    child: Text('No services available'),
-                  );
+                  return const Center(child: Text('No services available'));
                 }
               },
             ),
@@ -637,21 +643,30 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                 onPressed: () {
                   // Obtener los servicios del ServiceBloc
                   final serviceState = context.read<ServiceBloc>().state;
-                  
+
                   // Registrar información sobre los servicios para depuración
-                  if (serviceState is ServiceLoaded && serviceState.services.isNotEmpty) {
-                    AppLogger.info('Número de servicios a procesar: ${serviceState.services.length}');
-                    
+                  if (serviceState is ServiceLoaded &&
+                      serviceState.services.isNotEmpty) {
+                    AppLogger.info(
+                      'Número de servicios a procesar: ${serviceState.services.length}',
+                    );
+
                     // Calcular el monto total para el log (solo para depuración)
                     double totalAmount = 0;
                     for (var service in serviceState.services) {
                       totalAmount += service.value;
-                      AppLogger.info('Servicio: ${service.name}, Valor: \$${service.value.toStringAsFixed(2)}');
+                      AppLogger.info(
+                        'Servicio: ${service.name}, Valor: \$${service.value.toStringAsFixed(2)}',
+                      );
                     }
-                    
-                    AppLogger.info('Monto total calculado: \$${totalAmount.toStringAsFixed(2)}');
+
+                    AppLogger.info(
+                      'Monto total calculado: \$${totalAmount.toStringAsFixed(2)}',
+                    );
                   } else {
-                    AppLogger.info('No hay servicios disponibles o estado no cargado');
+                    AppLogger.info(
+                      'No hay servicios disponibles o estado no cargado',
+                    );
                   }
 
                   // Obtener la tarjeta predeterminada del PaymentBloc
@@ -673,7 +688,9 @@ class _PlanPayNowPageContentState extends State<_PlanPayNowPageContent> {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => CheckoutSummaryPage(
-                        services: serviceState is ServiceLoaded && serviceState.services.isNotEmpty
+                        services:
+                            serviceState is ServiceLoaded &&
+                                serviceState.services.isNotEmpty
                             ? serviceState.services
                             : [],
                         selectedCard: defaultCard,

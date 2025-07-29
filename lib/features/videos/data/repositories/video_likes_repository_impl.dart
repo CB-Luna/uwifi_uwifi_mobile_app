@@ -16,44 +16,59 @@ class VideoLikesRepositoryImpl implements VideoLikesRepository {
   });
 
   @override
-  Future<Either<Failure, LikeResponse>> likeVideo(int customerId, String videoId) async {
+  Future<Either<Failure, LikeResponse>> likeVideo(
+    int customerId,
+    String videoId,
+  ) async {
     if (await networkInfo.isConnected) {
       try {
         final response = await remoteDataSource.likeVideo(customerId, videoId);
         return Right(response.toEntity());
       } on ServerException {
-        return Left(ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
-      return Left(NetworkFailure());
+      return const Left(NetworkFailure());
     }
   }
 
   @override
-  Future<Either<Failure, LikeResponse>> unlikeVideo(int customerId, String videoId) async {
+  Future<Either<Failure, LikeResponse>> unlikeVideo(
+    int customerId,
+    String videoId,
+  ) async {
     if (await networkInfo.isConnected) {
       try {
-        final response = await remoteDataSource.unlikeVideo(customerId, videoId);
+        final response = await remoteDataSource.unlikeVideo(
+          customerId,
+          videoId,
+        );
         return Right(response.toEntity());
       } on ServerException {
-        return Left(ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
-      return Left(NetworkFailure());
+      return const Left(NetworkFailure());
     }
   }
 
   @override
-  Future<Either<Failure, bool>> hasUserLikedVideo(int customerId, String videoId) async {
+  Future<Either<Failure, bool>> hasUserLikedVideo(
+    int customerId,
+    String videoId,
+  ) async {
     if (await networkInfo.isConnected) {
       try {
-        final hasLiked = await remoteDataSource.hasUserLikedVideo(customerId, videoId);
+        final hasLiked = await remoteDataSource.hasUserLikedVideo(
+          customerId,
+          videoId,
+        );
         return Right(hasLiked);
       } on ServerException {
-        return Left(ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
-      return Left(NetworkFailure());
+      return const Left(NetworkFailure());
     }
   }
 }

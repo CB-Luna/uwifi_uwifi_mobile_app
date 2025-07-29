@@ -11,10 +11,10 @@ import '../../../presentation/bloc/payment_event.dart';
 class ChangeCardSheet extends StatefulWidget {
   final List<CreditCard> creditCards;
   final CreditCard? defaultCard;
-  
+
   const ChangeCardSheet({
-    super.key,
     required this.creditCards,
+    super.key,
     this.defaultCard,
   });
 
@@ -52,7 +52,6 @@ class _ChangeCardSheetState extends State<ChangeCardSheet> {
       padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             width: 40,
@@ -97,9 +96,7 @@ class _ChangeCardSheetState extends State<ChangeCardSheet> {
                   ),
                 ),
                 child: ListTile(
-                  leading: SizedBox(
-                    child: _getCardIcon(card.token),
-                  ),
+                  leading: SizedBox(child: _getCardIcon(card.token)),
                   title: Text('Card ending in $last4Digits'),
                   subtitle: Text(
                     'Expires ${card.expirationMonth}/${card.expirationYear}',
@@ -112,7 +109,7 @@ class _ChangeCardSheetState extends State<ChangeCardSheet> {
                   onTap: () => setState(() => selectedCard = card),
                 ),
               );
-            }).toList(),
+            }),
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: () {
@@ -153,16 +150,18 @@ class _ChangeCardSheetState extends State<ChangeCardSheet> {
                     AppLogger.info(
                       'Setting card ${selectedCard!.id} as default',
                     );
-                    
+
                     // Esperar un momento para que se procese el cambio
                     await Future.delayed(const Duration(milliseconds: 300));
-                    
+
                     // Recargar las tarjetas para actualizar la UI
                     if (!context.mounted) return;
-                    context.read<PaymentBloc>().add(GetCreditCardsEvent(customerId));
+                    context.read<PaymentBloc>().add(
+                      GetCreditCardsEvent(customerId),
+                    );
                   }
                 }
-                
+
                 if (!context.mounted) return;
                 Navigator.of(context).pop();
               },

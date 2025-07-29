@@ -64,7 +64,8 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
   void _loadWalletData() {
     // Simulamos puntos acumulados para esta implementación
     setState(() {
-      totalPoints = 0; // En una implementación real, esto vendría del sistema de puntos
+      totalPoints =
+          0; // En una implementación real, esto vendría del sistema de puntos
     });
   }
 
@@ -114,39 +115,46 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
     final customerId = authState.user.customerId!;
     // Validar que el ID sea válido
     if (customerId <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ID de cliente inválido')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('ID de cliente inválido')));
       return;
     }
 
     // Mostrar diálogo de confirmación
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar pago'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('¿Estás seguro que deseas procesar el pago de \$${_calculateTotal().toStringAsFixed(2)}?'),
-            const SizedBox(height: 8),
-            Text('Método de pago: **** ${selectedCard.last4Digits}'),
-            if (_localAutoPay) const Text('Se activará el pago automático para futuros cargos.'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Confirmar pago'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '¿Estás seguro que deseas procesar el pago de \$${_calculateTotal().toStringAsFixed(2)}?',
+                ),
+                const SizedBox(height: 8),
+                Text('Método de pago: **** ${selectedCard.last4Digits}'),
+                if (_localAutoPay)
+                  const Text(
+                    'Se activará el pago automático para futuros cargos.',
+                  ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Confirmar'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
 
     if (!confirmed || !mounted) return;
 
@@ -157,7 +165,7 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
     // Obtener la fecha actual para la facturación
     final now = DateTime.now();
     final billingDate = DateFormat('yyyy-MM-dd').format(now);
-    
+
     // Calcular el descuento basado en los puntos aplicados
     final discount = totalPoints > 0 ? (totalPoints / 100) : 0.0;
 
@@ -213,9 +221,9 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
     } else if (billingState is BillingError) {
       // Mostrar mensaje de error
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${billingState.message}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${billingState.message}')));
     }
   }
 
@@ -223,22 +231,24 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
   Future<BillingState> _listenForBillingState() {
     final completer = Completer<BillingState>();
     late final StreamSubscription subscription;
-    
+
     subscription = context.read<BillingBloc>().stream.listen((state) {
       if (state is BillingSuccess || state is BillingError) {
         completer.complete(state);
         subscription.cancel();
       }
     });
-    
+
     // Timeout después de 10 segundos
     Future.delayed(const Duration(seconds: 10), () {
       if (!completer.isCompleted) {
-        completer.complete(const BillingError(message: 'Tiempo de espera agotado'));
+        completer.complete(
+          const BillingError(message: 'Tiempo de espera agotado'),
+        );
         subscription.cancel();
       }
     });
-    
+
     return completer.future;
   }
 
@@ -430,10 +440,7 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                   if (totalPoints > 0)
                     const Text(
                       'These points will be deducted from the total payable.',
-                      style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Colors.black54, fontSize: 12),
                     ),
                   const SizedBox(height: 16),
                   const Text(
@@ -454,11 +461,11 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                       ),
                     ],
                   ),
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Discount', style: TextStyle(color: Colors.black54)),
-                      Text('\$0.00', style: const TextStyle(color: Colors.black54)),
+                      Text('Discount', style: TextStyle(color: Colors.black54)),
+                      Text('\$0.00', style: TextStyle(color: Colors.black54)),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -498,29 +505,29 @@ class _CheckoutSummaryPageState extends State<CheckoutSummaryPage> {
                       ),
                     ],
                   ),
-                  
+
                   if (totalPoints > 0) ...[
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Puntos disponibles',
-                          style: TextStyle(fontWeight: FontWeight.w500),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Puntos disponibles',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '$totalPoints puntos',
+                          style: const TextStyle(color: Colors.black87),
                         ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '$totalPoints puntos',
-                              style: const TextStyle(color: Colors.black87),
-                            ),
-                            Text(
-                              '-\$${(totalPoints / 100).toStringAsFixed(2)}',
-                              style: const TextStyle(color: Colors.green),
-                            ),
-                          ],
+                        Text(
+                          '-\$${(totalPoints / 100).toStringAsFixed(2)}',
+                          style: const TextStyle(color: Colors.green),
                         ),
                       ],
-                  
+                    ),
+                  ],
+
                   const SizedBox(height: 50),
                   SizedBox(
                     width: double.infinity,

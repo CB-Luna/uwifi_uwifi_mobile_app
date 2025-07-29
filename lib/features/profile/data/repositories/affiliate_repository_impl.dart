@@ -31,7 +31,7 @@ class AffiliateRepositoryImpl implements AffiliateRepository {
         customerId: customerId,
       );
     } else {
-      return Left(NetworkFailure());
+      return const Left(NetworkFailure());
     }
   }
 }

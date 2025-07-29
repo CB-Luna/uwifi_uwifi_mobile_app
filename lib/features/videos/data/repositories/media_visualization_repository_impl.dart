@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -18,17 +19,19 @@ class MediaVisualizationRepositoryImpl implements MediaVisualizationRepository {
   });
 
   @override
-  Future<Either<Failure, bool>> registerMediaVisualization(MediaVisualization visualization) async {
+  Future<Either<Failure, bool>> registerMediaVisualization(
+    MediaVisualization visualization,
+  ) async {
     if (await networkInfo.isConnected) {
       try {
         final model = MediaVisualizationModel.fromEntity(visualization);
         final result = await remoteDataSource.registerMediaVisualization(model);
         return Right(result);
       } on ServerException {
-        return Left(const ServerFailure());
+        return const Left(ServerFailure());
       }
     } else {
-      return Left(const NetworkFailure());
+      return const Left(NetworkFailure());
     }
   }
 }

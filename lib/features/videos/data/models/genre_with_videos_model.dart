@@ -1,7 +1,9 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
-import '../../domain/entities/genre_with_videos.dart';
+
 import '../../domain/entities/ad.dart';
+import '../../domain/entities/genre_with_videos.dart';
 import 'ad_model.dart';
 
 /// Modelo de datos para representar la vista group_ad_by_genre de Supabase
@@ -9,10 +11,10 @@ class GenreWithVideosModel extends GenreWithVideos {
   const GenreWithVideosModel({
     required super.id,
     required super.name,
-    super.description,
     required super.posterImg,
     required super.totalVideos,
     required super.videos,
+    super.description,
   });
 
   /// Crea una instancia desde un mapa de datos (JSON)
@@ -40,7 +42,8 @@ class GenreWithVideosModel extends GenreWithVideos {
           ? json['id']
           : int.tryParse(json['id'].toString()) ?? 0;
       source = 'campo id';
-    } else if (json.containsKey('media_categories_id') && json['media_categories_id'] != null) {
+    } else if (json.containsKey('media_categories_id') &&
+        json['media_categories_id'] != null) {
       // Alternativa: usar media_categories_id si está disponible
       categoryId = json['media_categories_id'] is int
           ? json['media_categories_id']
@@ -59,7 +62,8 @@ class GenreWithVideosModel extends GenreWithVideos {
     }
 
     // Obtener el nombre de la categoría
-    final String categoryName = json['name'] ?? json['category_name'] ?? 'Sin nombre';
+    final String categoryName =
+        json['name'] ?? json['category_name'] ?? 'Sin nombre';
     debugPrint(
       '📊 Categoría cargada: $categoryName con ID: $categoryId (fuente: $source)',
     );
@@ -79,9 +83,10 @@ class GenreWithVideosModel extends GenreWithVideos {
       id: categoryId,
       name: categoryName,
       description: json['description'] ?? json['category_description'],
-      posterImg: json['poster_img'] ?? 
-                json['category_image_url'] ?? 
-                'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
+      posterImg:
+          json['poster_img'] ??
+          json['category_image_url'] ??
+          'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
       totalVideos: videos.length,
       videos: videos,
     );

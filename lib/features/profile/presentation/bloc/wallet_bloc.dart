@@ -11,7 +11,7 @@ import 'wallet_state.dart';
 class WalletBloc extends Bloc<WalletEvent, WalletState> {
   final GetAffiliatedUsers getAffiliatedUsers;
   final GetCustomerPoints getCustomerPoints;
-  
+
   // Cache de datos para evitar pérdida de información
   List<AffiliatedUser>? _cachedAffiliatedUsers;
   CustomerPoints? _cachedCustomerPoints;
@@ -30,10 +30,11 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
   ) async {
     // Preservamos el estado actual si ya está cargado
     final currentState = state;
-    
+
     // Si tenemos usuarios en caché, los usamos durante la carga
     if (currentState is! WalletLoaded) {
-      if (_cachedAffiliatedUsers != null && _cachedAffiliatedUsers!.isNotEmpty) {
+      if (_cachedAffiliatedUsers != null &&
+          _cachedAffiliatedUsers!.isNotEmpty) {
         // Usar el caché durante la carga
         emit(WalletLoading(affiliatedUsers: _cachedAffiliatedUsers));
       } else {
@@ -60,7 +61,8 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
         // Si teníamos un estado cargado previamente, lo restauramos en lugar de mostrar error
         if (currentState is WalletLoaded) {
           emit(currentState);
-        } else if (_cachedAffiliatedUsers != null && _cachedAffiliatedUsers!.isNotEmpty) {
+        } else if (_cachedAffiliatedUsers != null &&
+            _cachedAffiliatedUsers!.isNotEmpty) {
           // Usar el caché si hay un error y no hay estado previo
           emit(WalletLoaded(affiliatedUsers: _cachedAffiliatedUsers!));
         } else {
@@ -73,7 +75,7 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
         );
         // Actualizar el caché con los nuevos datos
         _cachedAffiliatedUsers = affiliatedUsers;
-        
+
         if (currentState is WalletLoaded) {
           emit(currentState.copyWith(affiliatedUsers: affiliatedUsers));
         } else {
@@ -89,19 +91,22 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
   ) async {
     // Preservamos el estado actual si ya está cargado
     final currentState = state;
-    
+
     // Si tenemos datos en caché, los usamos durante la carga
     if (currentState is! WalletLoaded) {
       // Determinar qué datos tenemos en caché
-      final hasAffiliatedUsers = _cachedAffiliatedUsers != null && _cachedAffiliatedUsers!.isNotEmpty;
+      final hasAffiliatedUsers =
+          _cachedAffiliatedUsers != null && _cachedAffiliatedUsers!.isNotEmpty;
       final hasPoints = _cachedCustomerPoints != null;
-      
+
       if (hasAffiliatedUsers || hasPoints) {
         // Usar el caché durante la carga
-        emit(WalletLoading(
-          affiliatedUsers: _cachedAffiliatedUsers,
-          customerPoints: _cachedCustomerPoints,
-        ));
+        emit(
+          WalletLoading(
+            affiliatedUsers: _cachedAffiliatedUsers,
+            customerPoints: _cachedCustomerPoints,
+          ),
+        );
       } else {
         emit(const WalletLoading());
       }
@@ -114,15 +119,14 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
     }
 
     AppLogger.navInfo(
-      'Solicitando puntos del cliente para customerId: ${event.customerId}' +
-      (event.customerAfiliateId != null ? ', customerAfiliateId: ${event.customerAfiliateId}' : ''),
+      'Solicitando puntos del cliente para customerId: ${event.customerId}${event.customerAfiliateId != null ? ', customerAfiliateId: ${event.customerAfiliateId}' : ''}',
     );
 
     final params = GetCustomerPointsParams(
       customerId: event.customerId,
       customerAfiliateId: event.customerAfiliateId,
     );
-    
+
     final result = await getCustomerPoints(params);
 
     result.fold(
@@ -133,12 +137,16 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
         // Si teníamos un estado cargado previamente, lo restauramos en lugar de mostrar error
         if (currentState is WalletLoaded) {
           emit(currentState);
-        } else if (_cachedCustomerPoints != null || (_cachedAffiliatedUsers != null && _cachedAffiliatedUsers!.isNotEmpty)) {
+        } else if (_cachedCustomerPoints != null ||
+            (_cachedAffiliatedUsers != null &&
+                _cachedAffiliatedUsers!.isNotEmpty)) {
           // Usar el caché si hay un error y no hay estado previo
-          emit(WalletLoaded(
-            affiliatedUsers: _cachedAffiliatedUsers ?? const [],
-            customerPoints: _cachedCustomerPoints,
-          ));
+          emit(
+            WalletLoaded(
+              affiliatedUsers: _cachedAffiliatedUsers ?? const [],
+              customerPoints: _cachedCustomerPoints,
+            ),
+          );
         } else {
           emit(WalletError(message: failure.message));
         }
@@ -149,7 +157,7 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
         );
         // Actualizar el caché con los nuevos datos
         _cachedCustomerPoints = customerPoints;
-        
+
         if (currentState is WalletLoaded) {
           emit(currentState.copyWith(customerPoints: customerPoints));
         } else {
