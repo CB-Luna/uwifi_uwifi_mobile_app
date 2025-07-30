@@ -539,7 +539,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                     // UI Elements
                     Positioned(
                       right: 16,
-                      top: MediaQuery.of(context).size.height * 0.30,
+                      top: MediaQuery.of(context).size.height * 0.2,
                       child: Column(
                         key: const ValueKey('action_buttons'),
                         mainAxisSize: MainAxisSize.min,
@@ -792,7 +792,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
         _currentVideoController!.value.isInitialized) {
       _currentVideoController!.pause();
     }
-    
+
     // Verificar que el índice corresponda al video correcto
     int verifiedIndex = startIndex;
     if (startIndex < playlist.length) {

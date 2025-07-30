@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../../../core/utils/app_logger.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
@@ -18,9 +22,7 @@ class VideoCompletionHandler {
     try {
       final prefs = await SharedPreferences.getInstance();
       _currentUserPoints = prefs.getInt(_userPointsKey) ?? 0;
-      AppLogger.videoInfo(
-        '💰 User points loaded: $_currentUserPoints',
-      );
+      AppLogger.videoInfo('💰 User points loaded: $_currentUserPoints');
     } catch (e) {
       AppLogger.videoError('❌ Error loading user points: $e');
       _currentUserPoints = 0;
@@ -117,24 +119,25 @@ class VideoCompletionHandler {
     try {
       // Obtener el estado de autenticación actual
       final authState = context.read<AuthBloc>().state;
-      
+
       // Verificar si el usuario está autenticado
       if (authState is AuthAuthenticated) {
         final user = authState.user;
         final customerId = user.customerId;
-        
+
         // Verificar que los valores no sean nulos
         if (customerId == null) {
           AppLogger.videoError('❌ Error: customerId is null');
           return;
         }
-        
+
         // Si customerAfiliateId es nulo, usar customerId
         final customerAfiliateId = user.customerAfiliateId ?? customerId;
         final mediaFileId = video.id;
-        
+
         // Registrar la visualización usando el caso de uso
-        final registerMediaVisualization = GetIt.instance<RegisterMediaVisualization>();
+        final registerMediaVisualization =
+            GetIt.instance<RegisterMediaVisualization>();
         final result = await registerMediaVisualization(
           RegisterMediaVisualizationParams(
             mediaFileId: mediaFileId,
@@ -143,20 +146,26 @@ class VideoCompletionHandler {
             customerAfiliateId: customerAfiliateId,
           ),
         );
-        
+
         result.fold(
-          (failure) => AppLogger.videoError('❌ Error registering media visualization: ${failure.message}'),
-          (success) => AppLogger.videoInfo('✅ Media visualization registered successfully'),
+          (failure) => AppLogger.videoError(
+            '❌ Error registering media visualization: ${failure.message}',
+          ),
+          (success) => AppLogger.videoInfo(
+            '✅ Media visualization registered successfully',
+          ),
         );
       } else {
-        AppLogger.videoWarning('⚠️ User not authenticated, skipping media visualization registration');
+        AppLogger.videoWarning(
+          '⚠️ User not authenticated, skipping media visualization registration',
+        );
       }
     } catch (e) {
       AppLogger.videoError('❌ Error registering media visualization: $e');
     }
   }
 
-  /// Show earned points animation
+  /// Show earned points animation using Lottie animation
   static Future<void> _showPointsEarnedAnimation(
     BuildContext context,
     int pointsEarned,
@@ -177,8 +186,8 @@ class VideoCompletionHandler {
 
     overlay.insert(overlayEntry);
 
-    // Wait for animation to finish
-    await Future.delayed(const Duration(milliseconds: 2000));
+    // Wait for animation to finish - increased duration for Lottie animation
+    await Future.delayed(const Duration(milliseconds: 3000));
   }
 
   /// Reset user points (for testing or admin functionality)
@@ -214,70 +223,45 @@ class _PointsEarnedWidget extends StatefulWidget {
 
 class _PointsEarnedWidgetState extends State<_PointsEarnedWidget>
     with TickerProviderStateMixin {
-  late AnimationController _scaleController;
+  late AnimationController _lottieController;
   late AnimationController _fadeController;
-  late AnimationController _slideController;
-
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    // Controladores de animación
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+    // Controlador para la animación Lottie
+    _lottieController = AnimationController(
+      duration: const Duration(milliseconds: 2500),
       vsync: this,
     );
 
+    // Controlador para el desvanecimiento
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-
-    // Animations
-    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.2).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _fadeController,
-        curve: const Interval(0.6, 1.0, curve: Curves.easeOut),
-      ),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(0.0, -0.5),
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
-
-    // Start animations
+    // Iniciar animaciones
     _startAnimations();
   }
 
   void _startAnimations() async {
-    await _scaleController.forward();
-    await Future.delayed(const Duration(milliseconds: 300));
-    _fadeController.forward();
-    _slideController.forward();
+    // Mostrar la animación
+    _fadeController.value = 1.0; // Comenzar visible
+    await _lottieController.forward(); // Reproducir animación Lottie
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Desvanecer al final
+    await _fadeController.animateTo(0.0);
+
+    // Notificar que la animación ha terminado
     widget.onAnimationComplete();
   }
 
   @override
   void dispose() {
-    _scaleController.dispose();
+    _lottieController.dispose();
     _fadeController.dispose();
-    _slideController.dispose();
     super.dispose();
   }
 
@@ -285,74 +269,27 @@ class _PointsEarnedWidgetState extends State<_PointsEarnedWidget>
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: Material(
-        color: Colors.transparent,
+        color: Colors.black.withValues(alpha: 0.5),
         child: Center(
-          child: AnimatedBuilder(
-            animation: Listenable.merge([
-              _scaleController,
-              _fadeController,
-              _slideController,
-            ]),
-            builder: (context, child) {
-              return SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Colors.amber, Colors.orange],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.amber.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.stars,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '+${widget.points}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Text(
-                            'points',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+          child: FadeTransition(
+            opacity: _fadeController,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Animación Lottie
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: MediaQuery.of(context).size.height * 0.8,
+                  child: Lottie.asset(
+                    'assets/animations/lotties/Ucoins.json',
+                    controller: _lottieController,
+                    fit: BoxFit.contain,
+                    animate: true,
+                    repeat: false,
                   ),
                 ),
-              );
-            },
+              ],
+            ),
           ),
         ),
       ),
