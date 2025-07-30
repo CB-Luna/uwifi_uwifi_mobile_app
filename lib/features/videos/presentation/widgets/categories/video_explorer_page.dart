@@ -89,12 +89,29 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
   void _onVideoTap(Ad video, int index) {
     HapticFeedback.mediumImpact();
     AppLogger.videoInfo(
-      '🎬 Video seleccionado desde explorador: ${video.title}',
+      '🎬 Video seleccionado desde explorador: ${video.title} (ID: ${video.id})',
     );
-
-    context.read<VideoExplorerBloc>().add(
-      SelectVideoEvent(videoId: video.id, startIndex: index),
-    );
+    
+    // Buscar el índice correcto del video en la lista filtrada actual
+    final currentState = context.read<VideoExplorerBloc>().state;
+    if (currentState is VideoExplorerLoaded) {
+      // Encontrar el índice exacto del video por ID en la lista filtrada
+      final correctIndex = currentState.filteredVideos.indexWhere((v) => v.id == video.id);
+      final useIndex = correctIndex >= 0 ? correctIndex : index;
+      
+      AppLogger.videoInfo(
+        '📊 Índice en grid: $index, Índice correcto en lista: $useIndex',
+      );
+      
+      context.read<VideoExplorerBloc>().add(
+        SelectVideoEvent(videoId: video.id, startIndex: useIndex),
+      );
+    } else {
+      // Si no tenemos el estado cargado, usar el índice original
+      context.read<VideoExplorerBloc>().add(
+        SelectVideoEvent(videoId: video.id, startIndex: index),
+      );
+    }
   }
 
   void _closeExplorer() {

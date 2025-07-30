@@ -792,23 +792,38 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
         _currentVideoController!.value.isInitialized) {
       _currentVideoController!.pause();
     }
+    
+    // Verificar que el índice corresponda al video correcto
+    int verifiedIndex = startIndex;
+    if (startIndex < playlist.length) {
+      if (playlist[startIndex].id != video.id) {
+        // El índice no corresponde al video seleccionado, buscar el índice correcto
+        final correctIndex = playlist.indexWhere((v) => v.id == video.id);
+        if (correctIndex >= 0) {
+          verifiedIndex = correctIndex;
+          AppLogger.videoInfo(
+            '⚠️ Corrigiendo índice: $startIndex → $verifiedIndex para video ID: ${video.id}',
+          );
+        }
+      }
+    }
 
     // Recreate PageController
     _pageController.dispose();
-    _pageController = PageController(initialPage: startIndex);
+    _pageController = PageController(initialPage: verifiedIndex);
 
     // Actualizar VideoManager
     _videoManager.updateVideos(playlist);
 
     setState(() {
-      _currentIndex = startIndex;
+      _currentIndex = verifiedIndex;
       _pageViewKey = UniqueKey();
     });
 
-    _videoManager.goToVideo(startIndex);
+    _videoManager.goToVideo(verifiedIndex);
 
     AppLogger.videoInfo(
-      '🎬 Video seleccionado desde explorador: ${video.title} (índice: $startIndex)',
+      '🎬 Video seleccionado desde explorador: ${video.title} (índice: $verifiedIndex, ID: ${video.id})',
     );
   }
 
