@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 class FreeUInfoPage extends StatelessWidget {
@@ -15,7 +16,7 @@ class FreeUInfoPage extends StatelessWidget {
             height: 140,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF10B981), Color(0xFF6B46C1)],
+                colors: [Colors.green, Colors.deepPurple],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -40,9 +41,10 @@ class FreeUInfoPage extends StatelessWidget {
                       const Spacer(),
                       Image.asset(
                         'assets/images/homeimage/FreeU.png',
-                        height: 50,
+                        height: 35,
+                        fit: BoxFit.contain,
                       ),
-                      const Spacer(flex: 2), // Para mantener el logo centrado
+                      const Spacer(), // Para mantener el logo centrado
                     ],
                   ),
                   const SizedBox(height: 45),
@@ -126,33 +128,43 @@ class FreeUInfoPage extends StatelessWidget {
                         SizedBox(height: 5),
                         _NumberedList([
                           'Your points reset at the beginning of your service cycle (not the calendar month).',
-                          'If you reach a milestone (2410, 2420, 2430, or the max 2438), that amount will automatically be applied as a discount on your next payment.',
+                          'If you reach a milestone (10,000, 20,000 or the max 38,000), that amount will automatically be applied as a discount on your next payment.',
                         ]),
                       ],
                     ),
                   ),
                   const SizedBox(height: 32),
                   // Botón de acción
-                  ElevatedButton(
+                  OutlinedButton(
                     onPressed: () {},
-                    style: ElevatedButton.styleFrom(
+                    style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 48,
                         vertical: 16,
                       ),
                       shape: const StadiumBorder(),
-                      backgroundColor: const Color(0xFF10B981),
-                      elevation: 8,
-                      shadowColor: const Color(
-                        0xFF6B46C1,
-                      ).withValues(alpha: 0.3),
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.green, width: 2),
                     ),
-                    child: const Text(
-                      'Go to FREE U',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Go to ',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Image.asset(
+                            'assets/images/homeimage/FreeU.png',
+                            height: 35,
+                            fit: BoxFit.contain,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -221,7 +233,7 @@ class _NumberedList extends StatelessWidget {
                   height: 32,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF10B981), Color(0xFF6B46C1)],
+                      colors: [Colors.green, Colors.deepPurple],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
