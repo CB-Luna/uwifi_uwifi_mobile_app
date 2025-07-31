@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../../../core/utils/app_logger.dart';
+
 /// Versión Minimalista del indicador de progreso
 class VideoProgressIndicatorMinimal extends StatefulWidget {
   final VideoPlayerController? controller;
@@ -34,10 +36,12 @@ class _VideoProgressIndicatorMinimalState
   double _progress = 0.0;
   String _remainingTime = '';
   VideoPlayerController? _currentController;
+  bool _isDisposed = false;
 
   @override
   void initState() {
     super.initState();
+    AppLogger.videoInfo('🔄 VideoProgressIndicator: Inicializando');
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -49,28 +53,139 @@ class _VideoProgressIndicatorMinimalState
   void didUpdateWidget(VideoProgressIndicatorMinimal oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
+      AppLogger.videoInfo('🔄 VideoProgressIndicator: Controlador actualizado');
       _setupController();
     }
   }
 
   @override
   void dispose() {
-    _currentController?.removeListener(_updateProgress);
-    _animationController?.dispose();
+    AppLogger.videoInfo('🚮 VideoProgressIndicator: Limpiando recursos');
+    _isDisposed = true;
+    
+    // Eliminar listener de forma segura
+    try {
+      if (_currentController != null) {
+        AppLogger.videoInfo('🔄 Removiendo listener del controlador');
+        _currentController!.removeListener(_updateProgress);
+        _currentController = null;
+      }
+    } catch (e) {
+      AppLogger.videoError('❌ Error al limpiar controlador: $e');
+    }
+    
+    // Limpiar controlador de animación
+    try {
+      if (_animationController != null) {
+        _animationController!.dispose();
+        _animationController = null;
+      }
+    } catch (e) {
+      AppLogger.videoError('❌ Error al limpiar animación: $e');
+    }
+    
     super.dispose();
   }
 
   void _setupController() {
-    _currentController?.removeListener(_updateProgress);
-    _currentController = widget.controller;
+    // Verificar si el widget todavía está montado
+    if (_isDisposed) {
+      AppLogger.videoWarning('⚠️ VideoProgressIndicator: Intento de configurar controlador en widget desmontado');
+      return;
+    }
 
-    if (_currentController != null) {
-      _currentController!.addListener(_updateProgress);
-      if (_currentController!.value.isInitialized) {
-        _updateProgress();
+    // Paso 1: Eliminar listener anterior si existe
+    try {
+      if (_currentController != null) {
+        AppLogger.videoInfo('🔄 Removiendo listener del controlador anterior');
+        _currentController!.removeListener(_updateProgress);
+        _currentController = null;
       }
-    } else {
-      if (mounted) {
+    } catch (e) {
+      AppLogger.videoError('❌ Error al remover listener del controlador anterior: $e');
+    }
+
+    // Verificar si el controlador es válido
+    if (widget.controller == null) {
+      AppLogger.videoWarning('⚠️ VideoProgressIndicator: Controlador nulo recibido');
+      return;
+    }
+
+    try {
+      // Verificar que el nuevo controlador no esté disposed
+      bool isControllerValid = false;
+      try {
+        // Intentar acceder a una propiedad para verificar si está disposed
+        final dataSource = widget.controller?.dataSource ?? 'unknown';
+        AppLogger.videoInfo(
+          '🔄 VideoProgressIndicator: Configurando controlador para $dataSource',
+        );
+        isControllerValid = true;
+      } catch (e) {
+        AppLogger.videoError('❌ El controlador ya está disposed: $e');
+        return; // Salir si el controlador ya está disposed
+      }
+
+      if (isControllerValid) {
+        // Asignar el nuevo controlador
+        _currentController = widget.controller;
+        
+        // Agregar listener para actualizar progreso
+        _currentController!.addListener(_updateProgress);
+        
+        // Actualizar estado inicial
+        if (_currentController!.value.isInitialized) {
+          _updateProgress();
+        } else {
+          AppLogger.videoInfo('⏳ Controlador no inicializado todavía');
+        }
+      }
+    } catch (e) {
+      AppLogger.videoError('❌ Error al configurar nuevo controlador: $e');
+    }
+  }
+
+  void _updateProgress() {
+    try {
+      if (_isDisposed || _currentController == null) {
+        return;
+      }
+      
+      // Verificar si el controlador sigue siendo válido
+      if (!_currentController!.value.isInitialized) {
+        AppLogger.videoInfo('⚠️ Controlador no inicializado en _updateProgress');
+        return;
+      }
+
+      final position = _currentController!.value.position;
+      final duration = _currentController!.value.duration;
+
+      if (duration.inMilliseconds > 0) {
+        final progress = position.inMilliseconds / duration.inMilliseconds;
+        final remainingTime = duration - position;
+        final remainingSeconds = remainingTime.inSeconds;
+
+        final minutes = remainingSeconds ~/ 60;
+        final seconds = remainingSeconds % 60;
+        final timeString =
+            '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+        final newProgress = progress.clamp(0.0, 1.0);
+
+        if (!_isDisposed &&
+            ((_progress - newProgress).abs() > 0.005 ||
+                _remainingTime != timeString)) {
+          setState(() {
+            _progress = newProgress;
+            _remainingTime = timeString;
+          });
+        }
+      }
+    } catch (e) {
+      AppLogger.videoError('❌ Error en _updateProgress: $e');
+      // Si hay un error, probablemente el controlador ya no es válido
+      // Intentamos limpiar la referencia para evitar más errores
+      if (!_isDisposed) {
         setState(() {
           _progress = 0.0;
           _remainingTime = '';
@@ -79,47 +194,20 @@ class _VideoProgressIndicatorMinimalState
     }
   }
 
-  void _updateProgress() {
-    if (!mounted ||
-        _currentController == null ||
-        !_currentController!.value.isInitialized) {
-      return;
-    }
-
-    final position = _currentController!.value.position;
-    final duration = _currentController!.value.duration;
-
-    if (duration.inMilliseconds > 0) {
-      final progress = position.inMilliseconds / duration.inMilliseconds;
-      final remainingTime = duration - position;
-      final remainingSeconds = remainingTime.inSeconds;
-
-      final minutes = remainingSeconds ~/ 60;
-      final seconds = remainingSeconds % 60;
-      final timeString =
-          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-
-      final newProgress = progress.clamp(0.0, 1.0);
-
-      if (mounted &&
-          ((_progress - newProgress).abs() > 0.005 ||
-              _remainingTime != timeString)) {
-        setState(() {
-          _progress = newProgress;
-          _remainingTime = timeString;
-        });
-      }
-    }
-  }
-
   void _handlePlayPause() {
-    if (_currentController != null && _currentController!.value.isInitialized) {
-      if (_currentController!.value.isPlaying) {
-        _currentController!.pause();
-      } else {
-        _currentController!.play();
+    try {
+      if (_currentController != null && _currentController!.value.isInitialized) {
+        if (_currentController!.value.isPlaying) {
+          AppLogger.videoInfo('⏸️ Pausando video');
+          _currentController!.pause();
+        } else {
+          AppLogger.videoInfo('▶️ Reproduciendo video');
+          _currentController!.play();
+        }
+        widget.onPlayPausePressed?.call();
       }
-      widget.onPlayPausePressed?.call();
+    } catch (e) {
+      AppLogger.videoError('❌ Error al manejar play/pause: $e');
     }
   }
 

@@ -86,41 +86,78 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
     final currentController = _controller;
     if (currentController != null) {
       try {
-        AppLogger.videoInfo('🚮 Liberando controlador de video anterior');
+        AppLogger.videoInfo('🚮 Liberando controlador de video anterior: ${widget.videoUrl}');
 
-        // Primero, remover el listener y pausar si es necesario
-        currentController.removeListener(_onVideoProgress);
-
-        // Pausar si está reproduciendo y está inicializado
-        if (currentController.value.isInitialized &&
-            currentController.value.isPlaying) {
-          await currentController.pause();
+        // Primero, remover el listener para evitar callbacks después de dispose
+        try {
+          AppLogger.videoInfo('🎮 Removiendo listener del controlador');
+          currentController.removeListener(_onVideoProgress);
+        } catch (e) {
+          AppLogger.videoError('⚠️ Error al remover listener: $e');
+          // Continuar con el proceso de limpieza aunque falle este paso
         }
 
-        // Dispose del controlador
-        await currentController.dispose();
+        // Pausar si está reproduciendo y está inicializado
+        try {
+          if (currentController.value.isInitialized && 
+              currentController.value.isPlaying) {
+            AppLogger.videoInfo('⏸️ Pausando video antes de liberar');
+            await currentController.pause();
+          }
+        } catch (e) {
+          AppLogger.videoError('⚠️ Error al pausar video: $e');
+          // Continuar con el proceso de limpieza aunque falle este paso
+        }
+
+        // Dispose del controlador - Paso crítico
+        try {
+          AppLogger.videoInfo('🗑️ Ejecutando dispose() del controlador');
+          await currentController.dispose();
+          AppLogger.videoInfo('✅ Controlador liberado correctamente');
+        } catch (e) {
+          AppLogger.videoError('❌ Error crítico al hacer dispose del controlador: $e');
+          // Continuar con la limpieza de referencias aunque falle el dispose
+        }
       } catch (e) {
-        AppLogger.videoError('❌ Error al liberar controlador: $e');
+        AppLogger.videoError('❌ Error general al liberar controlador: $e');
       } finally {
-        // Solo limpiar variables después de disposal exitoso
+        // Limpiar todas las referencias al controlador
+        AppLogger.videoInfo('🧹 Limpiando referencias al controlador');
         _controller = null;
 
         // Notificar que el controlador cambió a null
-        widget.onControllerChanged?.call(null);
+        try {
+          widget.onControllerChanged?.call(null);
+        } catch (e) {
+          AppLogger.videoError('⚠️ Error al notificar cambio de controlador: $e');
+        }
 
-        // Solo actualizar estado si el widget aún está montado
+        // Actualizar estado si el widget aún está montado
         if (mounted) {
           setState(() {
             _isInitialized = false;
+            _hasError = false;
+            _hasFinished = false;
           });
         }
       }
+    } else {
+      AppLogger.videoInfo('ℹ️ No hay controlador que liberar');
     }
   }
 
   Future<void> _initializeVideo() async {
+    // Verificar si el widget todavía está montado antes de inicializar
+    if (!mounted) {
+      AppLogger.videoWarning('⚠️ Intento de inicializar video en widget desmontado');
+      return;
+    }
+    
+    // Asegurar que cualquier controlador anterior se haya liberado
+    await _disposeController();
+    
     try {
-      AppLogger.videoInfo('🎬 Initializing video: ${widget.videoUrl}');
+      AppLogger.videoInfo('🎬 Inicializando video: ${widget.videoUrl}');
 
       // Validar URL antes de intentar reproducir
       if (widget.videoUrl.isEmpty) {
@@ -351,54 +388,44 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
   @override
   void dispose() {
     // Limpiar completamente todos los recursos
-    AppLogger.videoInfo('🚮 Disposing TikTokVideoPlayer resources');
+    AppLogger.videoInfo('🚮 Disposing TikTokVideoPlayer: ${widget.videoUrl}');
 
+    // Usar el método seguro de dispose del controlador
     try {
-      // ✅ CORRECCIÓN: Dispose del controlador de forma segura
-      final currentController = _controller;
-      if (currentController != null) {
-        // Remover listener primero
-        currentController.removeListener(_onVideoProgress);
-
-        // No intentar pausar o hacer operaciones si ya está disposed
-        try {
-          if (currentController.value.isInitialized &&
-              currentController.value.isPlaying) {
-            currentController.pause();
-          }
-        } catch (e) {
-          // Ignorar errores de pausa si el controlador ya está disposed
-          AppLogger.videoInfo('Controller already disposed during pause: $e');
-        }
-
-        // Dispose del controlador
-        try {
-          currentController.dispose();
-        } catch (e) {
-          // Ignorar errores de dispose si ya está disposed
-          AppLogger.videoInfo('Controller already disposed: $e');
-        }
-
-        _controller = null;
-
-        // Notificar que el controlador ya no existe (sin await para evitar problemas)
-        try {
-          widget.onControllerChanged?.call(null);
-        } catch (e) {
-          AppLogger.videoError('Error notifying controller change: $e');
-        }
-      }
+      // Evitar que se ejecuten callbacks durante el proceso de dispose
+      AppLogger.videoInfo('🔒 Bloqueando callbacks durante dispose');
+      _hasError = true; // Evitar que se ejecuten callbacks de progreso
+      
+      // Usar el método seguro para liberar el controlador
+      _disposeController().then((_) {
+        AppLogger.videoInfo('✅ Controlador liberado desde dispose');
+      }).catchError((error) {
+        AppLogger.videoError('❌ Error al liberar controlador desde dispose: $error');
+      });
     } catch (e) {
-      AppLogger.videoError('❌ Error general en dispose: $e');
+      AppLogger.videoError('❌ Error general en dispose del controlador: $e');
     }
 
     // Dispose del animation controller
     try {
+      AppLogger.videoInfo('🔄 Liberando controlador de animación');
       _progressController.dispose();
     } catch (e) {
-      AppLogger.videoError('Error disposing progress controller: $e');
+      AppLogger.videoError('❌ Error al liberar controlador de animación: $e');
     }
 
+    // Limpiar todas las referencias
+    try {
+      AppLogger.videoInfo('🧹 Limpiando referencias finales');
+      _controller = null;
+      _isInitialized = false;
+      _hasError = true; // Marcar como error para evitar operaciones adicionales
+      _hasFinished = true;
+    } catch (e) {
+      AppLogger.videoError('❌ Error al limpiar referencias: $e');
+    }
+
+    AppLogger.videoInfo('🔔 Finalizando dispose de TikTokVideoPlayer');
     super.dispose();
   }
 

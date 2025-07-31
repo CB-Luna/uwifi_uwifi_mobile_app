@@ -190,11 +190,24 @@ class TikTokVideoManager extends ChangeNotifier {
     }
   }
 
-  /// Limpia recursos
+  /// Limpia recursos y asegura que todos los controladores se liberen correctamente
   @override
   void dispose() {
     AppLogger.videoInfo('🧹 TikTok Manager: Disposing resources');
-    // ✅ CORRECCIÓN: Solo limpiar recursos del manager, no controlador duplicado
-    super.dispose();
+    
+    try {
+      // Limpiar referencias a videos para ayudar al garbage collector
+      AppLogger.videoInfo('📋 Limpiando lista de videos');
+      _videos = [];
+      _currentIndex = 0;
+      _error = null;
+      _isLoading = false;
+      
+      AppLogger.videoInfo('✅ TikTok Manager: Recursos liberados correctamente');
+    } catch (e) {
+      AppLogger.videoError('❌ Error al liberar recursos del TikTokVideoManager: $e');
+    } finally {
+      super.dispose();
+    }
   }
 }

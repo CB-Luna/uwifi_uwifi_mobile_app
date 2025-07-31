@@ -739,13 +739,23 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
   void _handleVideoSelection(Ad video, List<Ad> playlist, int startIndex) {
     _manualSelectionActive = true;
 
-    // Pause current video
-    if (_currentVideoController != null &&
-        _currentVideoController!.value.isInitialized) {
-      _currentVideoController!.pause();
+    AppLogger.videoInfo(
+      '🎬 Iniciando selección de video: ${video.title} (ID: ${video.id})',
+    );
+
+    // Paso 1: Pausar y limpiar el video actual
+    if (_currentVideoController != null) {
+      try {
+        AppLogger.videoInfo('⏸️ Pausando video actual');
+        if (_currentVideoController!.value.isInitialized) {
+          _currentVideoController!.pause();
+        }
+      } catch (e) {
+        AppLogger.videoError('❌ Error al pausar video actual: $e');
+      }
     }
 
-    // Verificar que el índice corresponda al video correcto
+    // Paso 2: Verificar que el índice corresponda al video correcto
     int verifiedIndex = startIndex;
     if (startIndex < playlist.length) {
       if (playlist[startIndex].id != video.id) {
@@ -760,22 +770,39 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
       }
     }
 
-    // Recreate PageController
+    // Paso 3: Limpiar el VideoManager antes de actualizar
+    AppLogger.videoInfo('🧹 Limpiando VideoManager');
+    _videoManager.removeListener(_onVideoManagerChanged);
+    _videoManager.dispose();
+    _videoManager = TikTokVideoManager();
+    _videoManager.addListener(_onVideoManagerChanged);
+
+    // Paso 4: Recrear PageController
+    AppLogger.videoInfo('🔄 Recreando PageController');
     _pageController.dispose();
     _pageController = PageController(initialPage: verifiedIndex);
 
-    // Actualizar VideoManager
+    // Paso 5: Actualizar VideoManager con la nueva lista
+    AppLogger.videoInfo('📋 Actualizando lista de videos en VideoManager');
     _videoManager.updateVideos(playlist);
 
+    // Paso 6: Actualizar estado y forzar reconstrucción del PageView
     setState(() {
       _currentIndex = verifiedIndex;
       _pageViewKey = UniqueKey();
+      _currentVideoController = null; // Limpiar referencia al controlador anterior
     });
 
-    _videoManager.goToVideo(verifiedIndex);
+    // Paso 7: Navegar al video seleccionado
+    AppLogger.videoInfo('▶️ Navegando al video seleccionado (índice: $verifiedIndex)');
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _videoManager.goToVideo(verifiedIndex);
+      }
+    });
 
     AppLogger.videoInfo(
-      '🎬 Video seleccionado desde explorador: ${video.title} (índice: $verifiedIndex, ID: ${video.id})',
+      '✅ Video seleccionado desde explorador: ${video.title} (índice: $verifiedIndex, ID: ${video.id})',
     );
   }
 
