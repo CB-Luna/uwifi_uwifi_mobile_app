@@ -11,10 +11,10 @@ class VideoInfoBottomSheet extends StatelessWidget {
 
   const VideoInfoBottomSheet({required this.ad, super.key});
 
-  static void show(BuildContext context, Ad ad) {
+  static Future<void> show(BuildContext context, Ad ad) {
     AppLogger.videoInfo('Showing video information for ad: ${ad.id}');
 
-    showModalBottomSheet(
+    return showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,

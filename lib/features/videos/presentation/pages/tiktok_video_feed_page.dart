@@ -519,7 +519,10 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                           // ✅ CALLBACK MEJORADO: Usar VideoCompletionHandler
                           onVideoFinished: () => _handleVideoFinished(),
                           onMoreInfoPressed: () {
-                            VideoInfoBottomSheet.show(context, video);
+                            _pauseCurrentVideo();
+                            VideoInfoBottomSheet.show(context, video).then((_) {
+                              _resumeCurrentVideo();
+                            });
                           },
                           onControllerChanged: (controller) {
                             if (index == _currentIndex) {
@@ -594,6 +597,12 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                                 startIndex,
                               );
                             },
+                            onExplorerOpened: () {
+                              _pauseCurrentVideo();
+                            },
+                            onExplorerClosed: () {
+                              _resumeCurrentVideo();
+                            },
                           ),
                           const SizedBox(height: 16),
 
@@ -607,6 +616,12 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                               // Usar el constructor con clave global para poder acceder al estado desde VideoCompletionHandler
                               return CoinsActionWidget.withGlobalKey(
                                 video: currentVideo,
+                                onDialogOpened: () {
+                                  _pauseCurrentVideo();
+                                },
+                                onDialogClosed: () {
+                                  _resumeCurrentVideo();
+                                },
                                 onCoinsEarned: () {
                                   // Callback opcional
                                 },
@@ -806,8 +821,37 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     );
   }
 
+  // Método para pausar el video actual
+  void _pauseCurrentVideo() {
+    if (_currentVideoController != null && _currentVideoController!.value.isInitialized) {
+      try {
+        if (_currentVideoController!.value.isPlaying) {
+          AppLogger.videoInfo('⏸️ Pausando video actual por interacción con UI');
+          _currentVideoController!.pause();
+        }
+      } catch (e) {
+        AppLogger.videoError('❌ Error al pausar video: $e');
+      }
+    }
+  }
+
+  // Método para reanudar el video actual
+  void _resumeCurrentVideo() {
+    if (_currentVideoController != null && _currentVideoController!.value.isInitialized) {
+      try {
+        if (!_currentVideoController!.value.isPlaying) {
+          AppLogger.videoInfo('▶️ Reanudando video después de interacción con UI');
+          _currentVideoController!.play();
+        }
+      } catch (e) {
+        AppLogger.videoError('❌ Error al reanudar video: $e');
+      }
+    }
+  }
+
   // Método para mostrar el explorador de videos (usado en el menú de opciones)
   void _showVideoExplorer() {
+    _pauseCurrentVideo();
     HapticFeedback.mediumImpact();
 
     // Mostrar modal con explorador de videos por categoría

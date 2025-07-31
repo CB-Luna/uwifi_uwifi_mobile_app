@@ -10,12 +10,16 @@ class CoinsActionWidget extends StatefulWidget {
       GlobalKey<_CoinsActionWidgetState>();
   final Ad video;
   final VoidCallback? onCoinsEarned;
+  final VoidCallback? onDialogOpened;
+  final VoidCallback? onDialogClosed;
   final int? currentUserPoints;
 
   const CoinsActionWidget({
     required this.video,
     super.key,
     this.onCoinsEarned,
+    this.onDialogOpened,
+    this.onDialogClosed,
     this.currentUserPoints,
   });
 
@@ -23,12 +27,16 @@ class CoinsActionWidget extends StatefulWidget {
   static CoinsActionWidget withGlobalKey({
     required Ad video,
     VoidCallback? onCoinsEarned,
+    VoidCallback? onDialogOpened,
+    VoidCallback? onDialogClosed,
     int? currentUserPoints,
   }) {
     return CoinsActionWidget(
       key: globalKey,
       video: video,
       onCoinsEarned: onCoinsEarned,
+      onDialogOpened: onDialogOpened,
+      onDialogClosed: onDialogClosed,
       currentUserPoints: currentUserPoints,
     );
   }
@@ -125,11 +133,17 @@ class _CoinsActionWidgetState extends State<CoinsActionWidget>
     await _animationController.forward();
     await _animationController.reverse();
 
+    // Notificar que se va a abrir el diálogo para pausar el video
+    widget.onDialogOpened?.call();
+    
     // Mostrar el bottom sheet con la información de puntos
     await Future.delayed(const Duration(milliseconds: 100));
     if (context.mounted) {
       // Mostrar el nuevo PointsInfoBottomSheet
-      PointsInfoBottomSheet.show(context, widget.video);
+      await PointsInfoBottomSheet.show(context, widget.video);
+      
+      // Notificar que se cerró el diálogo para reanudar el video
+      widget.onDialogClosed?.call();
     }
 
     // Restaurar el estado después de un breve retraso

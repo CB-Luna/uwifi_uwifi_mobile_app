@@ -10,11 +10,15 @@ import '../../../../../injection_container.dart' as di;
 /// Botón moderno para abrir el explorador de videos
 class VideoExplorerButton extends StatefulWidget {
   final Function(Ad video, List<Ad> playlist, int startIndex)? onVideoSelected;
+  final VoidCallback? onExplorerOpened;
+  final VoidCallback? onExplorerClosed;
   final bool isActive;
 
   const VideoExplorerButton({
     super.key,
     this.onVideoSelected,
+    this.onExplorerOpened,
+    this.onExplorerClosed,
     this.isActive = false,
   });
 
@@ -59,6 +63,11 @@ class _VideoExplorerButtonState extends State<VideoExplorerButton>
   }
 
   void _showVideoExplorer() {
+    // Notificar que se está abriendo el explorador
+    if (widget.onExplorerOpened != null) {
+      widget.onExplorerOpened!();
+    }
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -71,7 +80,12 @@ class _VideoExplorerButtonState extends State<VideoExplorerButton>
           onClose: () => Navigator.of(context).pop(),
         ),
       ),
-    );
+    ).then((_) {
+      // Notificar que se cerró el explorador
+      if (widget.onExplorerClosed != null) {
+        widget.onExplorerClosed!();
+      }
+    });
   }
 
   @override

@@ -20,7 +20,7 @@ class PointsInfoBottomSheet extends StatelessWidget {
   });
 
   /// Static method to show the bottom sheet
-  static void show(BuildContext context, Ad video) {
+  static Future<void> show(BuildContext context, Ad video) {
     // Log event in the logger
     AppLogger.videoInfo(
       '📊 Showing PointsInfoBottomSheet for video: ${video.id}',
@@ -29,7 +29,7 @@ class PointsInfoBottomSheet extends StatelessWidget {
     // Get current user points from local storage as fallback
     final localPoints = VideoCompletionHandler.currentUserPoints;
 
-    showModalBottomSheet(
+    return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
