@@ -174,7 +174,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   return OnboardingContent(
                     title: "It's all about U!",
                     description:
-                        "Hi ${widget.user?.name ?? '[1]'}! Welcome to U-wifi. Get ready to enjoy a super fast and stable connection wherever you go. Let's get started!",
+                        "Hi${widget.user?.name != null ? ' ${widget.user!.name}' : ''}! Welcome to U-wifi. Get ready to enjoy a super fast and stable connection wherever you go. Let's get started!",
                     imagePath: "assets/images/onboarding/logouwifi.png",
                     buttonText: "Continue",
                     backgroundColor: const Color(0xFF4CAF50),
