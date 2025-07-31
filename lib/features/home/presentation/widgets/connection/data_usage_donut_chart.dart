@@ -99,136 +99,76 @@ class DataUsageDonutChart extends StatelessWidget {
           const downloadColor = Color(0xFF4CAF50); // Verde
           const uploadColor = Color(0xFF9C27B0); // Morado
 
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'Total Used: ${totalGB.toStringAsFixed(2)} GB',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Download info
-                    Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: downloadColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Download: ${downloadGB.toStringAsFixed(2)} GB',
-                          style: const TextStyle(
-                            color: downloadColor,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Upload info
-                    Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: uploadColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Upload: ${uploadGB.toStringAsFixed(2)} GB',
-                          style: const TextStyle(
-                            color: uploadColor,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Usar RepaintBoundary para optimizar el rendimiento
-                RepaintBoundary(
-                  child: SizedBox(
-                    height: 150,
-                    width: 150,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Donut chart
-                        CustomPaint(
-                          size: const Size(150, 150),
-                          painter: DonutChartPainter(
-                            downloadPercentage: downloadPercentage,
-                            uploadPercentage: uploadPercentage,
-                            downloadColor: downloadColor,
-                            uploadColor: uploadColor,
-                          ),
-                        ),
-                        // Textos centrales
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Porcentaje de descarga
-                            Text(
-                              '${(downloadPercentage * 100).toStringAsFixed(1)}%',
-                              style: const TextStyle(
-                                color: downloadColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22,
-                              ),
-                            ),
-                            const Text(
-                              'Download',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                            const SizedBox(height: 4),
-                            // Porcentaje de subida
-                            Text(
-                              '${(uploadPercentage * 100).toStringAsFixed(1)}%',
-                              style: const TextStyle(
-                                color: uploadColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22,
-                              ),
-                            ),
-                            const Text(
-                              'Upload',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ],
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: [
+                  Text(
+                    'Total Used: ${totalGB.toStringAsFixed(2)} GB',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  // Usar RepaintBoundary para optimizar el rendimiento
+                  RepaintBoundary(
+                    child: SizedBox(
+                      height: 150,
+                      width: 150,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Donut chart
+                          CustomPaint(
+                            size: const Size(150, 150),
+                            painter: DonutChartPainter(
+                              downloadPercentage: downloadPercentage,
+                              uploadPercentage: uploadPercentage,
+                              downloadColor: downloadColor,
+                              uploadColor: uploadColor,
+                            ),
+                          ),
+                          // Textos centrales
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Porcentaje de descarga
+                              Text(
+                                '${downloadGB.toStringAsFixed(2)} GB',
+                                style: const TextStyle(
+                                  color: downloadColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const Text(
+                                'Download',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              const SizedBox(height: 4),
+                              // Porcentaje de subida
+                              Text(
+                                '${uploadGB.toStringAsFixed(2)} GB',
+                                style: const TextStyle(
+                                  color: uploadColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const Text(
+                                'Upload',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         } else if (state is DataUsageError) {
