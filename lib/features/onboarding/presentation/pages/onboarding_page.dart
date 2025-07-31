@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/utils/app_logger.dart';
 import '../../../auth/domain/entities/user.dart';
 import '../../data/datasources/onboarding_service.dart';
@@ -230,7 +231,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     ),
                   ),
                   child: const Text(
-                    'Omitir',
+                    'Skip',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                 ),
