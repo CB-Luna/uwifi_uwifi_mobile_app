@@ -176,13 +176,15 @@ class _HelpCenterPageState extends State<HelpCenterPage>
                 const SizedBox(height: 10),
                 _ContactOption(
                   icon: Icons.confirmation_number_outlined,
-                  label: 'Create a ticket',
+                  label: 'Tickets',
                   onTap: () {
                     // Verificamos si podemos obtener el AuthBloc del contexto actual
                     try {
-                      final authBloc = BlocProvider.of<AuthBloc>(context, listen: false);
-                      AppLogger.navInfo('HelpCenterPage: Estado de AuthBloc: ${authBloc.state.runtimeType}');
-                      
+                      final authBloc = BlocProvider.of<AuthBloc>(context);
+                      AppLogger.navInfo(
+                        'HelpCenterPage: Estado de AuthBloc: ${authBloc.state.runtimeType}',
+                      );
+
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => BlocProvider.value(
@@ -192,10 +194,16 @@ class _HelpCenterPageState extends State<HelpCenterPage>
                         ),
                       );
                     } catch (e) {
-                      AppLogger.navError('Error al obtener AuthBloc en HelpCenterPage: $e');
+                      AppLogger.navError(
+                        'Error al obtener AuthBloc en HelpCenterPage: $e',
+                      );
                       // Si no podemos obtener el AuthBloc, mostramos un mensaje de error
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Error: No se pudo acceder a la información de autenticación')),
+                        const SnackBar(
+                          content: Text(
+                            'Error: No se pudo acceder a la información de autenticación',
+                          ),
+                        ),
                       );
                     }
                   },
