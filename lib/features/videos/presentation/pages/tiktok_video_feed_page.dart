@@ -600,8 +600,8 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                                   ? videos[_currentIndex]
                                   : videos.first;
 
-                              return CoinsActionWidget(
-                                key: const ValueKey('coins_widget'),
+                              // Usar el constructor con clave global para poder acceder al estado desde VideoCompletionHandler
+                              return CoinsActionWidget.withGlobalKey(
                                 video: currentVideo,
                                 onCoinsEarned: () {
                                   // Callback opcional

@@ -7,6 +7,7 @@ import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/utils/app_logger.dart';
+import '../widgets/coins/coins_action_widget.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/ad.dart';
@@ -185,6 +186,20 @@ class VideoCompletionHandler {
     );
 
     overlay.insert(overlayEntry);
+  
+    // Animar el botón de monedas simultáneamente
+    try {
+      final coinsWidgetState = CoinsActionWidget.globalKey.currentState;
+      if (coinsWidgetState != null) {
+        // Iniciar la animación del botón de monedas
+        coinsWidgetState.animateCoinsEarned();
+        AppLogger.videoInfo('🪙 Animando botón de monedas');
+      } else {
+        AppLogger.videoWarning('⚠️ No se pudo acceder al estado del botón de monedas');
+      }
+    } catch (e) {
+      AppLogger.videoError('❌ Error al animar el botón de monedas: $e');
+    }
 
     // Wait for animation to finish - increased duration for Lottie animation
     await Future.delayed(const Duration(milliseconds: 3000));

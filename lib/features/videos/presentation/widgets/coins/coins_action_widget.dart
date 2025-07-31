@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+
 import '../../../domain/entities/ad.dart';
 import 'points_info_bottom_sheet.dart';
 
 /// Widget que maneja la funcionalidad de puntos/monedas con animaciones de gaming
 class CoinsActionWidget extends StatefulWidget {
+  // Clave global para acceder al estado del widget desde fuera
+  static final GlobalKey<_CoinsActionWidgetState> globalKey =
+      GlobalKey<_CoinsActionWidgetState>();
   final Ad video;
   final VoidCallback? onCoinsEarned;
   final int? currentUserPoints;
@@ -14,6 +18,20 @@ class CoinsActionWidget extends StatefulWidget {
     this.onCoinsEarned,
     this.currentUserPoints,
   });
+
+  // Constructor con clave global
+  static CoinsActionWidget withGlobalKey({
+    required Ad video,
+    VoidCallback? onCoinsEarned,
+    int? currentUserPoints,
+  }) {
+    return CoinsActionWidget(
+      key: globalKey,
+      video: video,
+      onCoinsEarned: onCoinsEarned,
+      currentUserPoints: currentUserPoints,
+    );
+  }
 
   @override
   State<CoinsActionWidget> createState() => _CoinsActionWidgetState();
@@ -33,13 +51,23 @@ class _CoinsActionWidgetState extends State<CoinsActionWidget>
 
   void _setupAnimation() {
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.9).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
+  }
+
+  // Método público para animar el botón cuando se ganan monedas
+  void animateCoinsEarned() async {
+    // Animación de crecimiento
+    await _animationController.forward();
+    await Future.delayed(const Duration(milliseconds: 1700));
+
+    // Animación de regreso al tamaño normal
+    await _animationController.reverse();
   }
 
   @override
@@ -93,13 +121,17 @@ class _CoinsActionWidgetState extends State<CoinsActionWidget>
       _isProcessing = true;
     });
 
+    // Animar el botón
+    await _animationController.forward();
+    await _animationController.reverse();
+
     // Mostrar el bottom sheet con la información de puntos
     await Future.delayed(const Duration(milliseconds: 100));
     if (context.mounted) {
       // Mostrar el nuevo PointsInfoBottomSheet
       PointsInfoBottomSheet.show(context, widget.video);
     }
-    
+
     // Restaurar el estado después de un breve retraso
     await Future.delayed(const Duration(milliseconds: 300));
     if (mounted) {
