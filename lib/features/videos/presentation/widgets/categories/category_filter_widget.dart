@@ -1,6 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../domain/entities/genre_with_videos.dart';
 
@@ -11,7 +11,9 @@ class CategoryFilterWidget extends StatefulWidget {
   final Function(GenreWithVideos?) onCategorySelected;
 
   const CategoryFilterWidget({
-    required this.categories, required this.onCategorySelected, super.key,
+    required this.categories,
+    required this.onCategorySelected,
+    super.key,
     this.selectedCategory,
   });
 
@@ -48,7 +50,7 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
           if (index == 0) {
             // Opción "Todos"
             return _buildCategoryChip(
-              label: 'Todos',
+              label: 'All',
               isSelected: widget.selectedCategory == null,
               videoCount: widget.categories
                   .map((cat) => cat.totalVideos)
@@ -74,7 +76,10 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
 
   Widget _buildCategoryChip({
     required String label,
-    required bool isSelected, required int videoCount, required VoidCallback onTap, String? posterImageUrl,
+    required bool isSelected,
+    required int videoCount,
+    required VoidCallback onTap,
+    String? posterImageUrl,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -109,7 +114,7 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
+                    color: Colors.black.withValues(alpha: 0.6),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -194,7 +199,7 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.black.withValues(alpha: 0.1),
+                      Colors.black.withValues(alpha: 0.2),
                       Colors.black.withValues(alpha: 0.6),
                     ],
                     begin: Alignment.topCenter,
@@ -230,15 +235,15 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
                         label,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 13,
+                          fontSize: 15,
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.w600,
                           shadows: [
                             Shadow(
                               color: Colors.black.withValues(alpha: 0.8),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
@@ -271,7 +276,7 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
                               color: isSelected
                                   ? Colors.blue[700]
                                   : Colors.white,
-                              fontSize: 10,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

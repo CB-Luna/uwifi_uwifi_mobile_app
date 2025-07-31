@@ -104,8 +104,10 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
       // 1. Primero obtener todos los géneros desde la nueva tabla media_categories
       final genresResponse = await _retryRequest(() async {
         return await _mediaLibraryClient
-            .from('media_categories')
-            .select('media_categories_id, category_name, category_description')
+            .from('categories_posters')
+            .select(
+              'media_categories_id, category_name, category_description, file_url',
+            )
             .order('category_name');
       }, functionName: 'getVideosByGenre.getGenres');
 
@@ -116,8 +118,7 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
           'name': json['category_name'] as String,
           'description': json['category_description'] as String?,
           // Usamos una imagen por defecto para mantener compatibilidad con la UI
-          'poster_img':
-              'https://u-supabase.virtalus.cbluna-dev.com/storage/v1/object/public/assets/placeholder_no_image.jpg',
+          'poster_img': json['file_url'] as String,
         };
       }).toList();
 

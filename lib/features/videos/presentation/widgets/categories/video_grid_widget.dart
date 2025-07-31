@@ -127,7 +127,7 @@ class VideoGridWidget extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${videos.length} videos disponibles',
+                    '${videos.length} Available videos',
                     style: TextStyle(
                       color: Colors.white.withAlpha(179),
                       fontSize: 14,
@@ -164,7 +164,7 @@ class VideoGridWidget extends StatelessWidget {
               CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
               SizedBox(height: 8),
               Text(
-                'Cargando más videos...',
+                'Loading more videos...',
                 style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
             ],
@@ -186,7 +186,7 @@ class VideoGridWidget extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No hay videos disponibles',
+            'No available videos',
             style: TextStyle(
               color: Colors.white.withAlpha(179),
               fontSize: 18,
@@ -196,7 +196,7 @@ class VideoGridWidget extends StatelessWidget {
           if (title != null) ...[
             const SizedBox(height: 8),
             Text(
-              'en la categoría "$title"',
+              'in the category "$title"',
               style: TextStyle(
                 color: Colors.white.withAlpha(128),
                 fontSize: 14,
