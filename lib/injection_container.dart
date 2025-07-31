@@ -181,6 +181,7 @@ Future<void> init() async {
       getAdsUseCase: getIt(),
       getAdsWithParamsUseCase: getIt(),
       getGenresWithVideosUseCase: getIt(),
+      videoSearchService: getIt(),
     ),
   );
   

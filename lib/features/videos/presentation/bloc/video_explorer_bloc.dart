@@ -5,6 +5,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../data/datasources/video_search_service.dart';
 import '../../domain/entities/ad.dart';
 import '../../domain/entities/genre_with_videos.dart';
 import '../../domain/usecases/get_ads.dart';
@@ -18,6 +19,7 @@ class VideoExplorerBloc extends Bloc<VideoExplorerEvent, VideoExplorerState> {
   final GetAds getAdsUseCase;
   final GetAdsWithParams getAdsWithParamsUseCase;
   final GetGenresWithVideos getGenresWithVideosUseCase;
+  final VideoSearchService videoSearchService;
 
   // Cache para optimizar rendimiento
   final Map<String, List<Ad>> _videoCache = {};
@@ -28,6 +30,7 @@ class VideoExplorerBloc extends Bloc<VideoExplorerEvent, VideoExplorerState> {
     required this.getAdsUseCase,
     required this.getAdsWithParamsUseCase,
     required this.getGenresWithVideosUseCase,
+    required this.videoSearchService,
   }) : super(const VideoExplorerInitial()) {
     on<LoadCategoriesEvent>(_onLoadCategories);
     on<FilterByCategory>(_onFilterByCategory);
@@ -208,7 +211,7 @@ class VideoExplorerBloc extends Bloc<VideoExplorerEvent, VideoExplorerState> {
     }
   }
 
-  /// Buscar videos por texto
+  /// Buscar videos por texto usando el servicio RPC de Supabase
   Future<void> _onSearchVideos(
     SearchVideosEvent event,
     Emitter<VideoExplorerState> emit,
@@ -218,39 +221,42 @@ class VideoExplorerBloc extends Bloc<VideoExplorerEvent, VideoExplorerState> {
     final currentState = state as VideoExplorerLoaded;
 
     try {
-      AppLogger.videoInfo('🔍 Buscando videos: "${event.query}"');
+      AppLogger.videoInfo('🔍 Buscando videos con RPC: "${event.query}"');
 
+      // Si la consulta está vacía, mostrar todos los videos
       if (event.query.isEmpty) {
-        // Si no hay query, mostrar todos los videos de la categoría actual
         emit(
           currentState.copyWith(
             searchQuery: '',
             filteredVideos: currentState.videos,
+            isRefreshing: false,
           ),
         );
         return;
       }
 
-      // Filtrar videos localmente primero
-      final query = event.query.toLowerCase();
-      final filteredVideos = currentState.videos.where((video) {
-        return video.title.toLowerCase().contains(query) ||
-            video.description.toLowerCase().contains(query);
-        // Se eliminó la referencia a overview ya que ya no existe en la entidad Ad
-      }).toList();
+      // Mostrar estado de carga
+      emit(currentState.copyWith(isRefreshing: true));
 
+      // Usar el servicio de búsqueda RPC
+      final searchResults = await videoSearchService.searchVideos(event.query);
+
+      // Actualizar el estado con los resultados de la búsqueda
       emit(
         currentState.copyWith(
           searchQuery: event.query,
-          filteredVideos: filteredVideos,
+          filteredVideos: searchResults,
+          isRefreshing: false,
         ),
       );
 
       AppLogger.videoInfo(
-        '✅ Búsqueda completada: ${filteredVideos.length} resultados',
+        '✅ Búsqueda RPC completada: ${searchResults.length} resultados',
       );
     } catch (e) {
-      AppLogger.videoError('❌ Error en búsqueda: $e');
+      AppLogger.videoError('❌ Error en búsqueda RPC: $e');
+      // En caso de error, mantener el estado actual pero quitar el indicador de carga
+      emit(currentState.copyWith(isRefreshing: false));
     }
   }
 
