@@ -7,15 +7,18 @@ class VideoProgressIndicatorMinimal extends StatefulWidget {
   final double size;
   final double strokeWidth;
   final Color backgroundColor;
-  final Color progressColor;
+  final Color progressColor1;
+  final Color progressColor2;
   final VoidCallback? onPlayPausePressed;
 
   const VideoProgressIndicatorMinimal({
-    required this.controller, super.key,
+    required this.controller,
+    super.key,
     this.size = 120,
     this.strokeWidth = 6,
     this.backgroundColor = const Color.fromARGB(100, 255, 255, 255),
-    this.progressColor = Colors.green,
+    this.progressColor1 = Colors.green,
+    this.progressColor2 = Colors.deepPurple,
     this.onPlayPausePressed,
   });
 
@@ -150,7 +153,9 @@ class _VideoProgressIndicatorMinimalState
                 value: _progress,
                 strokeWidth: 1.5, // Ultra delgado
                 backgroundColor: Colors.white.withAlpha(20), // 0.08
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  widget.progressColor2,
+                ),
                 strokeCap: StrokeCap.round,
               ),
             ),
@@ -164,7 +169,7 @@ class _VideoProgressIndicatorMinimalState
                 strokeWidth: 3,
                 backgroundColor: Colors.transparent,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  widget.progressColor.withAlpha(153), // 0.6
+                  widget.progressColor1, // 0.6
                 ),
                 strokeCap: StrokeCap.round,
               ),
@@ -223,7 +228,7 @@ class _VideoProgressIndicatorMinimalState
               height: 3,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: widget.progressColor,
+                color: widget.progressColor1,
               ),
             ),
           ],

@@ -45,10 +45,6 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
   int _currentIndex = 0;
   VideoPlayerController? _currentVideoController;
 
-  // Para controlar el estilo del indicador de progreso
-  ProgressIndicatorStyle _currentProgressStyle =
-      ProgressIndicatorStyle.glassmorphism;
-
   // Flag para prevenir carga automática después de selección manual
   bool _manualSelectionActive = false;
 
@@ -529,7 +525,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                             if (index == _currentIndex) {
                               // Actualizar el controlador sin setState para evitar errores durante el build
                               _currentVideoController = controller;
-                              
+
                               // Programar el setState para después del ciclo de build actual
                               Future.microtask(() {
                                 if (mounted) {
@@ -671,60 +667,8 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                               );
                             },
                           ),
+                          // Espacio adicional al final de la columna de botones
                           const SizedBox(height: 16),
-
-                          // Botón selector de estilos
-                          GestureDetector(
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              setState(() {
-                                final styles = ProgressIndicatorStyle.values;
-                                final currentIndex = styles.indexOf(
-                                  _currentProgressStyle,
-                                );
-                                final nextIndex =
-                                    (currentIndex + 1) % styles.length;
-                                _currentProgressStyle = styles[nextIndex];
-                              });
-                              AppLogger.videoInfo(
-                                '🎨 Cambiando estilo a: ${_currentProgressStyle.name}',
-                              );
-                            },
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withAlpha(76),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: _getStyleColor(),
-                                  border: Border.all(color: Colors.white),
-                                ),
-                                child: const Icon(
-                                  Icons.palette,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _getStyleName(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -738,12 +682,12 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                               _currentVideoController!.value.isInitialized
                           ? SmartVideoProgressIndicator(
                               key: ValueKey(
-                                'smart_progress_indicator_${_currentProgressStyle.name}_$_currentIndex',
+                                'smart_progress_indicator_minimal_$_currentIndex',
                               ),
                               controller: _currentVideoController,
                               size: 84,
                               strokeWidth: 5,
-                              initialStyle: _currentProgressStyle,
+                              initialStyle: ProgressIndicatorStyle.minimal,
                             )
                           : const SizedBox(width: 84, height: 84),
                     ),
@@ -1035,34 +979,6 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
           }
         });
       }
-    }
-  }
-
-  // Get color of current style
-  Color _getStyleColor() {
-    switch (_currentProgressStyle) {
-      case ProgressIndicatorStyle.glassmorphism:
-        return Colors.red;
-      case ProgressIndicatorStyle.neumorphism:
-        return Colors.blue;
-      case ProgressIndicatorStyle.minimal:
-        return Colors.green;
-      case ProgressIndicatorStyle.gaming:
-        return Colors.purple;
-    }
-  }
-
-  // Get abbreviated name of current style
-  String _getStyleName() {
-    switch (_currentProgressStyle) {
-      case ProgressIndicatorStyle.glassmorphism:
-        return 'GLAS';
-      case ProgressIndicatorStyle.neumorphism:
-        return 'NEUR';
-      case ProgressIndicatorStyle.minimal:
-        return 'MINI';
-      case ProgressIndicatorStyle.gaming:
-        return 'GAME';
     }
   }
 }
