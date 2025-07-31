@@ -128,7 +128,7 @@ class FreeUInfoPage extends StatelessWidget {
                         SizedBox(height: 5),
                         _NumberedList([
                           'Your points reset at the beginning of your service cycle (not the calendar month).',
-                          'If you reach a milestone (10,000, 20,000 or the max 38,000), that amount will automatically be applied as a discount on your next payment.',
+                          'If you reach a milestone (\$10, \$20 or the max \$38), that amount will automatically be applied as a discount on your next payment.',
                         ]),
                       ],
                     ),
