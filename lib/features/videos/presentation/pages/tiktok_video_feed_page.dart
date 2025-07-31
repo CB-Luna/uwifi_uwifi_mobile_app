@@ -527,8 +527,16 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                           },
                           onControllerChanged: (controller) {
                             if (index == _currentIndex) {
-                              setState(() {
-                                _currentVideoController = controller;
+                              // Actualizar el controlador sin setState para evitar errores durante el build
+                              _currentVideoController = controller;
+                              
+                              // Programar el setState para después del ciclo de build actual
+                              Future.microtask(() {
+                                if (mounted) {
+                                  setState(() {
+                                    // El estado ya fue actualizado, esto solo notifica a Flutter
+                                  });
+                                }
                               });
                             }
                           },

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 
 import '../../../../core/utils/app_logger.dart';
 import '../widgets/coins/coins_action_widget.dart';
@@ -264,7 +265,32 @@ class _PointsEarnedWidgetState extends State<_PointsEarnedWidget>
   void _startAnimations() async {
     // Mostrar la animación
     _fadeController.value = 1.0; // Comenzar visible
-    await _lottieController.forward(); // Reproducir animación Lottie
+    
+    // Verificar si el dispositivo soporta vibración
+    bool? hasVibrator = await Vibration.hasVibrator();
+    
+    // Vibración inicial al mostrar la animación (patrón de monedas)
+    if (hasVibrator == true) {
+      try {
+        // Patrón de vibración tipo "monedas cayendo"
+        Vibration.vibrate(pattern: [0, 100, 50, 100, 50, 150]);
+      } catch (e) {
+        // Ignorar errores de vibración
+      }
+    }
+    
+    // Reproducir animación Lottie
+    await _lottieController.forward();
+    
+    // Vibración final al completar la animación
+    if (hasVibrator == true) {
+      try {
+        // Vibración final más fuerte
+        Vibration.vibrate(duration: 150, amplitude: 128);
+      } catch (e) {
+        // Ignorar errores de vibración
+      }
+    }
 
     // Desvanecer al final
     await _fadeController.animateTo(0.0);
