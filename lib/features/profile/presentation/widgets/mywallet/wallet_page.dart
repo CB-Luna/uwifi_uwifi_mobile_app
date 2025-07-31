@@ -496,30 +496,40 @@ class _WalletPageState extends State<WalletPage> {
               },
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                const Text(
-                  'Payment Methods',
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                ),
-                const Spacer(),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pushNamed('/addcard');
-                  },
-                  icon: const Icon(Icons.add, color: Colors.green),
-                  label: const Text(
-                    'Add Card',
-                    style: TextStyle(color: Colors.green),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.green),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+            BlocBuilder<PaymentBloc, PaymentState>(
+              builder: (context, paymentState) {
+                // Obtener el número de tarjetas
+                int cardCount = 0;
+                if (paymentState is PaymentLoaded) {
+                  cardCount = paymentState.creditCards.length;
+                }
+                
+                return Row(
+                  children: [
+                    Text(
+                      'Payment Methods${cardCount > 0 ? ' ($cardCount)' : ''}',
+                      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
                     ),
-                  ),
-                ),
-              ],
+                    const Spacer(),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/addcard');
+                      },
+                      icon: const Icon(Icons.add, color: Colors.green),
+                      label: const Text(
+                        'Add Card',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.green),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 24),
             BlocBuilder<PaymentBloc, PaymentState>(
