@@ -14,19 +14,23 @@ class HowItWorksWidget extends StatelessWidget {
         const Text(
           'How it works?',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
 
         // Lista de pasos en rectángulos separados
-        Column(
-          children: InviteSteps.steps.map((step) {
-            return _buildStepCard(step);
-          }).toList(),
+        Expanded(
+          child: ListView.builder(
+            padding: EdgeInsets.zero,
+            itemCount: InviteSteps.steps.length,
+            itemBuilder: (context, index) {
+              return _buildStepCard(InviteSteps.steps[index]);
+            },
+          ),
         ),
       ],
     );
@@ -34,47 +38,39 @@ class HowItWorksWidget extends StatelessWidget {
 
   Widget _buildStepCard(InviteStep step) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 6,
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Número del paso con diseño destacado
           Container(
-            width: 50,
-            height: 50,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF6B46C1), // Purple
-                  Color(0xFF10B981), // Green
-                ],
+                colors: [Colors.green, Colors.deepPurple],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6B46C1).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+                  color: Colors.deepPurple.withValues(alpha: 0.2),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -83,38 +79,38 @@ class HowItWorksWidget extends StatelessWidget {
                 '${step.stepNumber}',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
 
-          const SizedBox(width: 20),
+          const SizedBox(width: 12),
 
           // Contenido del paso
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   step.title,
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                     color: Colors.black87,
-                    height: 1.2,
                   ),
                 ),
 
-                if (step.description.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+                if (step.description.isNotEmpty) ...[  
+                  const SizedBox(height: 4),
                   Text(
                     step.description,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 13,
                       color: Colors.grey[600],
-                      height: 1.5,
+                      height: 1.3,
                     ),
                   ),
                 ],

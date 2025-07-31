@@ -21,90 +21,85 @@ class ReferralLinkWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título
-          const Text(
-            'Share your invitation link',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+          // Título y contenedor del enlace en una sola fila
+          Row(
+            children: [
+              const Text(
+                'Share your invitation link',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const Spacer(),
+              // Botón de copiar
+              GestureDetector(
+                onTap: () {
+                  final customerState = context.read<CustomerDetailsBloc>().state;
+                  CustomerDetails? customerDetails;
+                  
+                  if (customerState is CustomerDetailsLoaded) {
+                    customerDetails = customerState.customerDetails;
+                    AppLogger.navInfo(
+                      'ReferralLinkWidget: Copiando enlace - sharedLinkId: ${customerDetails.sharedLinkId}',
+                    );
+                  }
+                  
+                  context.read<InviteBloc>().add(
+                    CopyReferralLinkEvent(referralLink, customerDetails: customerDetails),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.copy,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
 
           // Contenedor del enlace
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.grey[200]!),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    referralLink,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // Botón de copiar
-                GestureDetector(
-                  onTap: () {
-                    // Obtener los detalles del cliente actuales
-                    final customerState = context.read<CustomerDetailsBloc>().state;
-                    CustomerDetails? customerDetails;
-                    
-                    if (customerState is CustomerDetailsLoaded) {
-                      customerDetails = customerState.customerDetails;
-                      AppLogger.navInfo(
-                        'ReferralLinkWidget: Copiando enlace con CustomerDetails - sharedLinkId: ${customerDetails.sharedLinkId}',
-                      );
-                    }
-                    
-                    context.read<InviteBloc>().add(
-                      CopyReferralLinkEvent(referralLink, customerDetails: customerDetails),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.copy,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
+            child: Text(
+              referralLink,
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
 
           // Botones de acción
           Row(
@@ -113,35 +108,31 @@ class ReferralLinkWidget extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // Obtener los detalles del cliente actuales
                     final customerState = context.read<CustomerDetailsBloc>().state;
                     CustomerDetails? customerDetails;
                     
                     if (customerState is CustomerDetailsLoaded) {
                       customerDetails = customerState.customerDetails;
-                      AppLogger.navInfo(
-                        'ReferralLinkWidget: Compartiendo enlace con CustomerDetails - sharedLinkId: ${customerDetails.sharedLinkId}',
-                      );
                     }
                     
                     context.read<InviteBloc>().add(
                       ShareReferralLinkEvent(referralLink, customerDetails: customerDetails),
                     );
                   },
-                  icon: const Icon(Icons.share, size: 20),
+                  icon: const Icon(Icons.share, size: 16),
                   label: const Text('Share Link'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
 
               // Botón QR Code
               Expanded(
@@ -149,13 +140,13 @@ class ReferralLinkWidget extends StatelessWidget {
                   onPressed: () {
                     _showQRCodeDialog(context);
                   },
-                  icon: const Icon(Icons.qr_code, size: 20),
+                  icon: const Icon(Icons.qr_code, size: 16),
                   label: const Text('QR Code'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.grey[700],
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     side: BorderSide(color: Colors.grey[300]!),
                   ),

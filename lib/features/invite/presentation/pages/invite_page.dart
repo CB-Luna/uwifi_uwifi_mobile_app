@@ -44,14 +44,14 @@ class _InvitePageState extends State<InvitePage> {
           FetchCustomerDetails(customerIdInt),
         );
       } else {
-        AppLogger.navError(
-          'InvitePage: Could not get a valid customerId',
-        );
+        AppLogger.navError('InvitePage: Could not get a valid customerId');
         // If there is no valid customerId, load referral data directly
         context.read<InviteBloc>().add(const LoadUserReferralEvent());
       }
     } else {
-      AppLogger.navError('InvitePage: User not authenticated or without customerId');
+      AppLogger.navError(
+        'InvitePage: User not authenticated or without customerId',
+      );
       // If there is no authenticated user, load referral data directly
       context.read<InviteBloc>().add(const LoadUserReferralEvent());
     }
@@ -98,24 +98,24 @@ class _InvitePageState extends State<InvitePage> {
               if (state is InviteLoading) {
                 return const Center(child: CircularProgressIndicator());
               } else if (state is InviteLoaded) {
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header with gradient
+                      // Header with gradient - más compacto
                       const InviteHeaderWidget(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
                       // Referral link widget
                       ReferralLinkWidget(
                         referralLink: state.referral.referralLink,
                         referralCode: state.referral.referralCode,
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
 
-                      // "How it works" section
-                      const HowItWorksWidget(),
+                      // "How it works" section - en un Expanded para que se adapte al espacio disponible
+                      const Expanded(child: HowItWorksWidget()),
                     ],
                   ),
                 );
