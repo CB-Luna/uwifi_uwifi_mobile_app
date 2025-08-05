@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/responsive_font_sizes.dart';
 
 class OnboardingContent extends StatefulWidget {
   final String title;
@@ -167,7 +168,7 @@ class _OnboardingContentState extends State<OnboardingContent>
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: const Color(0xFF4CAF50),
-                              fontSize: 28,
+                              fontSize: responsiveFontSizes.onboardingTitle(context),
                             ),
                         textAlign: TextAlign.center,
                       ),
@@ -194,7 +195,7 @@ class _OnboardingContentState extends State<OnboardingContent>
                               ?.copyWith(
                                 height: 1.5,
                                 color: const Color(0xFF14181b),
-                                fontSize: 16,
+                                fontSize: responsiveFontSizes.onboardingDescription(context),
                               ),
                           textAlign: TextAlign.center,
                         ),
@@ -233,8 +234,8 @@ class _OnboardingContentState extends State<OnboardingContent>
                             ),
                             child: Text(
                               widget.buttonText!,
-                              style: const TextStyle(
-                                fontSize: 18,
+                              style: TextStyle(
+                                fontSize: responsiveFontSizes.buttonLarge(context),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

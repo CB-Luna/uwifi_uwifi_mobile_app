@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
 import 'package:uwifiapp/injection_container.dart' as di;
+import '../../../../../core/utils/responsive_font_sizes.dart';
 
 import '../../bloc/connection_bloc.dart';
 import '../../bloc/connection_event.dart';
@@ -112,7 +113,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
                           connectionStatus,
                           style: TextStyle(
                             color: statusColor,
-                            fontSize: 16,
+                            fontSize: responsiveFontSizes.labelLarge(context),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -122,8 +123,8 @@ class _ConnectionCardState extends State<ConnectionCard> {
                         // WiFi name
                         Text(
                           wifiName,
-                          style: const TextStyle(
-                            fontSize: 24,
+                          style: TextStyle(
+                            fontSize: responsiveFontSizes.titleLarge(context),
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                           ),

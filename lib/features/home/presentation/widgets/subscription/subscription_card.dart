@@ -7,6 +7,7 @@ import 'package:uwifiapp/features/home/presentation/bloc/transaction_bloc.dart';
 import 'package:uwifiapp/features/profile/presentation/widgets/myuwifiplan/plan_checkout_page.dart';
 import 'package:uwifiapp/injection_container.dart' as di;
 
+import '../../../../../core/utils/responsive_font_sizes.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../auth/presentation/bloc/auth_state.dart';
 import '../../../presentation/bloc/billing_bloc.dart';
@@ -102,6 +103,9 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Detectar si la pantalla es pequeña
+    final bool isSmallScreen = MediaQuery.of(context).size.width < 600;
+    
     // Escuchar cambios en el estado de autenticación
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -129,7 +133,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
         child: Column(
           children: [
             // Encabezado con icono y texto
-            Row(
+            Wrap(
+              spacing: 12, // Espacio horizontal entre elementos
+              runSpacing: 8, // Espacio vertical cuando hay salto de línea
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Container(
                   width: 40,
@@ -148,25 +155,24 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
                 BlocBuilder<ServiceBloc, ServiceState>(
                   builder: (context, state) {
                     if (state is ServiceLoading) {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Loading Service...',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: responsiveFontSizes.bodyLarge(context),
                             ),
                           ),
                           Text(
                             'Please wait',
                             style: TextStyle(
                               color: Colors.grey.shade600,
-                              fontSize: 14,
+                              fontSize: responsiveFontSizes.bodyMedium(context),
                             ),
                           ),
                         ],
@@ -180,16 +186,16 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                         children: [
                           Text(
                             service.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: responsiveFontSizes.bodyLarge(context),
                             ),
                           ),
                           Text(
                             service.type,
                             style: TextStyle(
                               color: Colors.grey.shade600,
-                              fontSize: 14,
+                              fontSize: responsiveFontSizes.bodyMedium(context),
                             ),
                           ),
                         ],
@@ -198,18 +204,18 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Error al cargar servicio',
+                          Text(
+                            'Error',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: responsiveFontSizes.bodyLarge(context),
                             ),
                           ),
                           Text(
                             state.message,
                             style: TextStyle(
                               color: Colors.red.shade600,
-                              fontSize: 14,
+                              fontSize: responsiveFontSizes.bodyMedium(context),
                             ),
                           ),
                         ],
@@ -219,18 +225,18 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'U-wifi Internet',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: responsiveFontSizes.bodyLarge(context),
                             ),
                           ),
                           Text(
                             'Recurring Charge',
                             style: TextStyle(
                               color: Colors.grey.shade600,
-                              fontSize: 14,
+                              fontSize: responsiveFontSizes.bodyMedium(context),
                             ),
                           ),
                         ],
@@ -239,110 +245,125 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                   },
                 ),
                 const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade100,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'Active',
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Fecha de vencimiento y monto
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Fecha de vencimiento
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_month,
-                      size: 16,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 8),
-                    BlocBuilder<BillingBloc, BillingState>(
-                      builder: (context, state) {
-                        if (state is BillingLoaded) {
-                          // Formatear la fecha para mostrarla en formato MMM dd
-                          final dueDate = state.billingPeriod.dueDate;
-                          final formattedDate = _formatDate(dueDate);
-                          return Text(
-                            'Due Date: $formattedDate',
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontSize: 14,
-                            ),
-                          );
-                        }
-                        return Text(
-                          'Due Date: Loading...',
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontSize: 14,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-
-                // Monto a pagar
-                BlocBuilder<BillingBloc, BillingState>(
+                BlocBuilder<ServiceBloc, ServiceState>(
                   builder: (context, state) {
-                    String amountText = 'Amount Due: --';
-
-                    if (state is BillingLoaded && state.balance != null) {
-                      // Formatear el balance como moneda
-                      final formatter = NumberFormat.currency(symbol: '\$');
-                      amountText =
-                          'Amount Due: ${formatter.format(state.balance)}';
-                    }
-
-                    return Row(
-                      children: [
-                        Icon(
-                          Icons.monetization_on_outlined,
-                          size: 16,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          amountText,
-                          style: TextStyle(
-                            color: Colors.grey.shade700,
-                            fontSize: 14,
+                    if (state is ServiceLoading) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Loading...',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: responsiveFontSizes.bodyLarge(context),
+                            ),
                           ),
+                          Text(
+                            'Please wait',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: responsiveFontSizes.bodyMedium(context),
+                            ),
+                          ),
+                        ],
+                      );
+                    } else if (state is ServiceLoaded &&
+                        state.services.isNotEmpty) {
+                      return Container(
+                        width: 150, // Ancho fijo para el indicador de estado
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
                         ),
-                      ],
-                    );
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade100,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center, // Centrar el contenido
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Active',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: responsiveFontSizes.bodyMedium(
+                                  context,
+                                ),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else if (state is ServiceError) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Error',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: responsiveFontSizes.bodyLarge(context),
+                            ),
+                          ),
+                          Text(
+                            state.message,
+                            style: TextStyle(
+                              color: Colors.red.shade600,
+                              fontSize: responsiveFontSizes.bodyMedium(context),
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      // Estado inicial o sin servicios
+                      return Container(
+                        width: 90, // Ancho fijo para el indicador de estado
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center, // Centrar el contenido
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Inactive',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: responsiveFontSizes.bodyMedium(
+                                  context,
+                                ),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                   },
                 ),
               ],
@@ -350,79 +371,181 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
 
             const SizedBox(height: 16),
 
-            // Botones de acción
-            Row(
-              children: [
-                // Botón de detalles del plan
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => MultiBlocProvider(
-                            providers: [
-                              BlocProvider<BillingBloc>(
-                                create: (_) => di.getIt<BillingBloc>(),
-                              ),
-                              BlocProvider<ServiceBloc>(
-                                create: (_) => di.getIt<ServiceBloc>(),
-                              ),
-                              BlocProvider<TransactionBloc>(
-                                create: (_) => di.getIt<TransactionBloc>(),
-                              ),
-                            ],
-                            child: const PlanDetailsPage(),
-                          ),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade300,
-                      foregroundColor: Colors.black87,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+            // Fecha de vencimiento y monto
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Información de fecha
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_month,
+                        size: 16,
+                        color: Colors.grey.shade600,
                       ),
-                    ),
-                    child: const Text('Plan Details'),
+                      const SizedBox(width: 8),
+                      BlocBuilder<BillingBloc, BillingState>(
+                        builder: (context, state) {
+                          if (state is BillingLoaded) {
+                            // Formatear la fecha para mostrarla en formato MMM dd
+                            final dueDate = state.billingPeriod.dueDate;
+                            final formattedDate = _formatDate(dueDate);
+                            return Text(
+                              'Due Date: $formattedDate',
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: responsiveFontSizes.bodyMedium(
+                                  context,
+                                ),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            );
+                          } else {
+                            return Text(
+                              'Due Date: Loading...',
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: responsiveFontSizes.bodyMedium(
+                                  context,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                ),
 
-                const SizedBox(width: 12),
+                  // Monto a pagar
+                  BlocBuilder<BillingBloc, BillingState>(
+                    builder: (context, state) {
+                      String amountText = 'Amount Due: --';
 
-                // Botón de pago
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Obtener el valor del servicio actual
-                      List<ActiveService> activeServices =
-                          []; // Valor por defecto
-                      final serviceState = context.read<ServiceBloc>().state;
-                      if (serviceState is ServiceLoaded &&
-                          serviceState.services.isNotEmpty) {
-                        activeServices = serviceState.services;
+                      if (state is BillingLoaded && state.balance != null) {
+                        // Formatear el balance como moneda
+                        final formatter = NumberFormat.currency(symbol: '\$');
+                        amountText =
+                            'Amount Due: ${formatter.format(state.balance)}';
                       }
 
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              PlanPayNowPage(services: activeServices),
-                        ),
+                      return Row(
+                        children: [
+                          Icon(
+                            Icons.monetization_on_outlined,
+                            size: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            amountText,
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontSize: responsiveFontSizes.bodyMedium(context),
+                            ),
+                          ),
+                        ],
                       );
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.green,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: const BorderSide(color: Colors.green),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Botones de acción
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  // Botón de detalles del plan
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => MultiBlocProvider(
+                              providers: [
+                                BlocProvider<BillingBloc>(
+                                  create: (_) => di.getIt<BillingBloc>(),
+                                ),
+                                BlocProvider<ServiceBloc>(
+                                  create: (_) => di.getIt<ServiceBloc>(),
+                                ),
+                                BlocProvider<TransactionBloc>(
+                                  create: (_) => di.getIt<TransactionBloc>(),
+                                ),
+                              ],
+                              child: const PlanDetailsPage(),
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade200,
+                        foregroundColor: Colors.black87,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Text(
+                        'Plan Details',
+                        style: TextStyle(
+                          fontSize: responsiveFontSizes.buttonMedium(context),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                    child: const Text('Pay Now'),
                   ),
-                ),
-              ],
+
+                  const SizedBox(width: 12),
+
+                  // Botón de pago
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Obtener el valor del servicio actual
+                        List<ActiveService> activeServices =
+                            []; // Valor por defecto
+                        final serviceState = context.read<ServiceBloc>().state;
+                        if (serviceState is ServiceLoaded &&
+                            serviceState.services.isNotEmpty) {
+                          activeServices = serviceState.services;
+                        }
+
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                PlanPayNowPage(services: activeServices),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.green,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: const BorderSide(color: Colors.green),
+                        ),
+                      ),
+                      child: Text(
+                        'Pay Now',
+                        style: TextStyle(
+                          fontSize: responsiveFontSizes.buttonMedium(context),
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

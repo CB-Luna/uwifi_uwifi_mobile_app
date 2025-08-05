@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uwifiapp/injection_container.dart' as di;
-import '../bloc/connection_bloc.dart';
 
 import '../../presentation/bloc/billing_bloc.dart';
 import '../../presentation/bloc/service_bloc.dart';
+import '../bloc/connection_bloc.dart';
 import 'connection/connection_card.dart';
 import 'services/service_carousel.dart';
 import 'subscription/subscription_card.dart';
@@ -49,7 +49,7 @@ class HomeContent extends StatelessWidget {
               const ServiceCarousel(),
 
               // Space for navigation bar
-              const SizedBox(height: 80),
+              const SizedBox(height: 130),
             ],
           ),
         ),

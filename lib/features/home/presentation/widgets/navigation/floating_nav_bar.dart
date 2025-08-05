@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../pages/my_flutter_app_icons.dart';
+import '../../../../../core/utils/responsive_font_sizes.dart';
 
 class FloatingNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -33,24 +34,28 @@ class FloatingNavigationBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(
+            context: context,
             icon: MyFlutterApp.u,
             label: 'Videos',
             index: 0,
             isSelected: currentIndex == 0,
           ),
           _buildNavItem(
+            context: context,
             icon: Icons.home_outlined,
             label: 'Home',
             index: 1,
             isSelected: currentIndex == 1,
           ),
           _buildNavItem(
+            context: context,
             icon: Icons.person_add_outlined,
             label: 'Invite',
             index: 2,
             isSelected: currentIndex == 2,
           ),
           _buildNavItem(
+            context: context,
             icon: Icons.person_outline,
             label: 'Profile',
             index: 3,
@@ -62,6 +67,7 @@ class FloatingNavigationBar extends StatelessWidget {
   }
 
   Widget _buildNavItem({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required int index,
@@ -147,7 +153,7 @@ class FloatingNavigationBar extends StatelessWidget {
                             : Colors
                                   .grey
                                   .shade600), // ✅ Colores normales para otras pantallas
-                  fontSize: isSelected ? 14 : 12,
+                  fontSize: isSelected ? responsiveFontSizes.navBar(context) : responsiveFontSizes.labelSmall(context),
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),
