@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../../core/utils/app_logger.dart';
@@ -560,26 +561,29 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                                   ? videos[_currentIndex]
                                   : null;
 
-                              return Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withAlpha(
-                                    128,
-                                  ), // 0.5 * 255 = 128
-                                  shape: BoxShape.circle,
-                                ),
-                                child: InkWell(
-                                  onTap: currentVideo != null
-                                      ? () => VideoInfoBottomSheet.show(
-                                          context,
-                                          currentVideo,
-                                        )
-                                      : null,
-                                  borderRadius: BorderRadius.circular(25),
-                                  child: const Icon(
-                                    Icons.info,
-                                    color: Colors.white,
-                                    size: 28,
+                              // Crear un contenedor circular con el efecto shimmer
+                              return ClipOval(
+                                child: Shimmer(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withAlpha(128),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: InkWell(
+                                      onTap: currentVideo != null
+                                          ? () => VideoInfoBottomSheet.show(
+                                              context,
+                                              currentVideo,
+                                            )
+                                          : null,
+                                      borderRadius: BorderRadius.circular(25),
+                                      child: const Icon(
+                                        Icons.info,
+                                        color: Colors.white,
+                                        size: 28,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               );
@@ -700,7 +704,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
                                 'smart_progress_indicator_minimal_$_currentIndex',
                               ),
                               controller: _currentVideoController,
-                              size: 84,
+                              size: 40,
                               strokeWidth: 5,
                               initialStyle: ProgressIndicatorStyle.minimal,
                             )
@@ -805,11 +809,14 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     setState(() {
       _currentIndex = verifiedIndex;
       _pageViewKey = UniqueKey();
-      _currentVideoController = null; // Limpiar referencia al controlador anterior
+      _currentVideoController =
+          null; // Limpiar referencia al controlador anterior
     });
 
     // Paso 7: Navegar al video seleccionado
-    AppLogger.videoInfo('▶️ Navegando al video seleccionado (índice: $verifiedIndex)');
+    AppLogger.videoInfo(
+      '▶️ Navegando al video seleccionado (índice: $verifiedIndex)',
+    );
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
         _videoManager.goToVideo(verifiedIndex);
@@ -823,10 +830,13 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
 
   // Método para pausar el video actual
   void _pauseCurrentVideo() {
-    if (_currentVideoController != null && _currentVideoController!.value.isInitialized) {
+    if (_currentVideoController != null &&
+        _currentVideoController!.value.isInitialized) {
       try {
         if (_currentVideoController!.value.isPlaying) {
-          AppLogger.videoInfo('⏸️ Pausando video actual por interacción con UI');
+          AppLogger.videoInfo(
+            '⏸️ Pausando video actual por interacción con UI',
+          );
           _currentVideoController!.pause();
         }
       } catch (e) {
@@ -837,10 +847,13 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
 
   // Método para reanudar el video actual
   void _resumeCurrentVideo() {
-    if (_currentVideoController != null && _currentVideoController!.value.isInitialized) {
+    if (_currentVideoController != null &&
+        _currentVideoController!.value.isInitialized) {
       try {
         if (!_currentVideoController!.value.isPlaying) {
-          AppLogger.videoInfo('▶️ Reanudando video después de interacción con UI');
+          AppLogger.videoInfo(
+            '▶️ Reanudando video después de interacción con UI',
+          );
           _currentVideoController!.play();
         }
       } catch (e) {

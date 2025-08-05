@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/utils/app_logger.dart';
@@ -171,46 +172,54 @@ class VideoInfoBottomSheet extends StatelessWidget {
       visible: hasUrl,
       child: SizedBox(
         width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () async {
-            // Make sure the URL has the correct format
-            String urlString = ad.metadata!.urlAd!;
-            if (!urlString.startsWith('http://') &&
-                !urlString.startsWith('https://')) {
-              urlString = 'https://$urlString';
-            }
-
-            try {
-              final url = Uri.parse(urlString);
-              // Use launchUrl with specific options to ensure it opens in the external browser
-              await launchUrl(url, mode: LaunchMode.externalApplication).then((
-                success,
-              ) {
-                if (!success && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Could not open URL')),
-                  );
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Shimmer(
+            colorOpacity: 0.4,
+            duration: const Duration(seconds: 2),
+            child: ElevatedButton(
+              onPressed: () async {
+                // Make sure the URL has the correct format
+                String urlString = ad.metadata!.urlAd!;
+                if (!urlString.startsWith('http://') &&
+                    !urlString.startsWith('https://')) {
+                  urlString = 'https://$urlString';
                 }
-              });
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error opening URL: $e')),
-                );
-              }
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+
+                try {
+                  final url = Uri.parse(urlString);
+                  // Use launchUrl with specific options to ensure it opens in the external browser
+                  await launchUrl(
+                    url,
+                    mode: LaunchMode.externalApplication,
+                  ).then((success) {
+                    if (!success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Could not open URL')),
+                      );
+                    }
+                  });
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error opening URL: $e')),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Visit URL',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          child: const Text(
-            'Visit URL',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ),
