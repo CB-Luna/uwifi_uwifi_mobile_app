@@ -88,29 +88,31 @@ class _LoginPageState extends State<LoginPage> {
 
   void _showForgotPasswordSheet(BuildContext context) {
     AppLogger.authInfo('Showing forgot password sheet');
+    
+    // Usamos showModalBottomSheet con isScrollControlled: true para permitir que
+    // el sheet se expanda cuando el teclado está abierto
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black54,
-      // Configuramos para que aparezca más arriba en la pantalla
-      constraints: BoxConstraints(
-        maxHeight:
-            MediaQuery.of(context).size.height *
-            0.85, // Limita la altura al 85% de la pantalla
-      ),
+      // Eliminamos las restricciones de altura para permitir que se ajuste automáticamente
       builder: (context) => DraggableScrollableSheet(
-        // Hacemos que inicialmente ocupe más espacio vertical
-        initialChildSize:
-            0.7, // Antes era aproximadamente 0.5 (valor por defecto)
-        minChildSize: 0.5, // Mínimo tamaño al deslizar hacia abajo
+        // Hacemos que inicialmente ocupe menos espacio para que el teclado no cubra el botón
+        initialChildSize: 0.6,
+        minChildSize: 0.4, // Mínimo tamaño al deslizar hacia abajo
         maxChildSize: 0.95, // Máximo tamaño al expandir
         expand: false,
         builder: (context, scrollController) => Padding(
+          // Ajustamos el padding para que el contenido se desplace hacia arriba cuando el teclado aparece
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: const ForgotPasswordSheet(),
+          // Usamos SingleChildScrollView para asegurar que todo el contenido sea desplazable
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: const ForgotPasswordSheet(),
+          ),
         ),
       ),
     );
