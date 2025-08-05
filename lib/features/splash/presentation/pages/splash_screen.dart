@@ -100,18 +100,35 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Widget _buildVideoWidget() {
-    // Calcular dimensiones para mostrar el video a pantalla completa
-    final size = MediaQuery.of(context).size;
+    // Dimensiones exactas del video: 607x1080
+    const double videoWidth = 607.0;
+    const double videoHeight = 1080.0;
+    const double videoAspectRatio =
+        videoWidth / videoHeight; // Aproximadamente 0.56
+
+    // Obtener las dimensiones de la pantalla
+    final screenSize = MediaQuery.of(context).size;
 
     return GestureDetector(
       onTap:
           _navigateToAuthWrapper, // Permitir omitir con un toque en cualquier parte
-      child: FittedBox(
-        fit: BoxFit.cover,
-        child: SizedBox(
-          width: size.width,
-          height: size.height,
-          child: VideoPlayer(_controller),
+      child: Container(
+        color: const Color(0xFFE4ECEC), // Color fondo de video
+        width: double.infinity,
+        height: double.infinity,
+        child: Center(
+          child: Container(
+            // Usar FittedBox con BoxFit.contain para asegurar que el video
+            // se muestre completo sin distorsión
+            constraints: BoxConstraints(
+              maxWidth: screenSize.width,
+              maxHeight: screenSize.height,
+            ),
+            child: AspectRatio(
+              aspectRatio: videoAspectRatio,
+              child: VideoPlayer(_controller),
+            ),
+          ),
         ),
       ),
     );
