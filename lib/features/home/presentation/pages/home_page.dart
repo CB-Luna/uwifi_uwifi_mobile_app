@@ -176,7 +176,7 @@ class _HomePageState extends State<HomePage> {
           // Barra de navegación flotante
           Positioned(
             // Ajustar posición para que quede por encima del anuncio y con suficiente margen
-            bottom: _isAdLoaded ? 100 : 30, // Aumentamos el margen inferior
+            bottom: _isAdLoaded ? 110 : 30, // Aumentamos el margen inferior
             left: 0,
             right: 0,
             child: FloatingNavigationBar(
@@ -201,7 +201,9 @@ class _HomePageState extends State<HomePage> {
               left: 0,
               right: 0,
               child: Container(
-                width: MediaQuery.of(context).size.width, // Ancho explícito de la pantalla
+                width: MediaQuery.of(
+                  context,
+                ).size.width, // Ancho explícito de la pantalla
                 color: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Container(

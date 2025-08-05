@@ -29,25 +29,33 @@ class FreeUInfoPage extends StatelessWidget {
                 children: [
                   const SizedBox(height: 8),
                   // Encabezado con flecha a la izquierda y logo centrado
-                  Row(
+                  Stack(
+                    alignment: Alignment.center,
                     children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.black87,
+                      // Logo centrado en toda la pantalla
+                      Positioned(
+                        child: Center(
+                          child: Image.asset(
+                            'assets/images/homeimage/FreeU.png',
+                            height: 35,
+                            fit: BoxFit.contain,
+                          ),
                         ),
-                        onPressed: () => Navigator.of(context).pop(),
                       ),
-                      const Spacer(),
-                      Image.asset(
-                        'assets/images/homeimage/FreeU.png',
-                        height: 35,
-                        fit: BoxFit.contain,
+                      // Botón de retroceso alineado a la izquierda
+                      Positioned(
+                        left: 0,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.black87,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
                       ),
-                      const Spacer(), // Para mantener el logo centrado
                     ],
                   ),
-                  const SizedBox(height: 45),
+                  const SizedBox(height: 55),
                   // Texto principal más grande y en negrita
                   const Text(
                     'Turn your time into savings. Start watching, start earning, and pay less every month!',
@@ -150,12 +158,13 @@ class FreeUInfoPage extends StatelessWidget {
                       width: MediaQuery.of(context).size.width * 0.4,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           const Text(
                             'Go to ',
                             style: TextStyle(
                               color: Colors.green,
-                              fontSize: 18,
+                              fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

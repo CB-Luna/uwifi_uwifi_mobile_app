@@ -15,7 +15,7 @@ class FloatingNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 70,
+      height: 80,
       decoration: BoxDecoration(
         // ✅ Fondo transparente para Videos, blanco para otras pantallas
         color: currentIndex == 0 ? Colors.transparent : Colors.white,
@@ -73,7 +73,7 @@ class FloatingNavigationBar extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTap(index),
       child: Container(
-        width: 60,
+        width: 80,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
@@ -114,7 +114,7 @@ class FloatingNavigationBar extends StatelessWidget {
                           : Colors
                                 .grey
                                 .shade600), // ✅ Colores normales para otras pantallas
-                size: isSelected ? 24 : 20,
+                size: isSelected ? 28 : 22,
               ),
             ),
             const SizedBox(height: 4),
@@ -147,8 +147,8 @@ class FloatingNavigationBar extends StatelessWidget {
                             : Colors
                                   .grey
                                   .shade600), // ✅ Colores normales para otras pantallas
-                  fontSize: isSelected ? 10 : 8,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontSize: isSelected ? 14 : 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),
             ),
