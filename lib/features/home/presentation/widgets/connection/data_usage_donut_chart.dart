@@ -105,7 +105,7 @@ class DataUsageDonutChart extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'Total Used: ${totalGB.toStringAsFixed(2)} GB',
+                    'Total Used: ${totalGB.toStringAsFixed(1)} GB',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
@@ -136,7 +136,7 @@ class DataUsageDonutChart extends StatelessWidget {
                             children: [
                               // Porcentaje de descarga
                               Text(
-                                '${downloadGB.toStringAsFixed(2)} GB',
+                                '${downloadGB.toStringAsFixed(1)} GB',
                                 style: const TextStyle(
                                   color: downloadColor,
                                   fontWeight: FontWeight.bold,
@@ -150,7 +150,7 @@ class DataUsageDonutChart extends StatelessWidget {
                               const SizedBox(height: 4),
                               // Porcentaje de subida
                               Text(
-                                '${uploadGB.toStringAsFixed(2)} GB',
+                                '${uploadGB.toStringAsFixed(1)} GB',
                                 style: const TextStyle(
                                   color: uploadColor,
                                   fontWeight: FontWeight.bold,
