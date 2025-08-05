@@ -186,22 +186,24 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     title: "Total control in your hand!",
                     description:
                         "Take full control of your network. Monitor your connection status, switch between networks, update passwords, and manage your devices. Everything you need to manage your network in one place.",
-                    imagePath: "assets/images/onboarding/onbor2.png",
+                    imagePath: "", // Eliminar la imagen para dejar más espacio
                     backgroundColor: const Color(0xFF4CAF50),
                     buttonText: "Continue",
                     onButtonPressed: _nextPage,
                     currentPage: _currentPage,
+                    showImage: false, // No mostrar la imagen en esta pantalla
                   );
                 case 2:
                   return OnboardingContent(
                     title: "Want your service for free?",
                     description:
                         "With FREE U, it's possible! Watch videos, earn points, and redeem them for free service or whatever you like best! Customize your experience and enjoy your connection to the fullest.",
-                    imagePath: "assets/images/onboarding/onbor3.png",
+                    imagePath: "",
                     backgroundColor: const Color(0xFF4CAF50),
                     buttonText: "Get Started",
                     onButtonPressed: _nextPage,
                     currentPage: _currentPage,
+                    showImage: false,
                   );
                 default:
                   return const SizedBox.shrink();
