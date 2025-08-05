@@ -217,6 +217,17 @@ class _LoginPageState extends State<LoginPage> {
                             TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
+                              autocorrect: false,
+                              textCapitalization: TextCapitalization.none,
+                              onChanged: (value) {
+                                // Convertir automáticamente a minúsculas
+                                if (value != value.toLowerCase()) {
+                                  _emailController.value = TextEditingValue(
+                                    text: value.toLowerCase(),
+                                    selection: TextSelection.collapsed(offset: value.toLowerCase().length),
+                                  );
+                                }
+                              },
                               validator: _validateEmail,
                               decoration: InputDecoration(
                                 labelText: 'Email',
