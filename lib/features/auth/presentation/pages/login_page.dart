@@ -24,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _scrollController = ScrollController();
   bool _isPasswordVisible = false;
   late final BiometricAuthService _biometricAuthService;
   // Variables para el manejo de anuncios
@@ -35,9 +36,24 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     AppLogger.navInfo('LoginPage initialized');
     _biometricAuthService = di.getIt<BiometricAuthService>();
-
-    // Cargar el anuncio banner
     _loadBannerAd();
+    
+    // Configurar listeners para los campos de texto
+    _emailController.addListener(_scrollToBottomOnFocus);
+    _passwordController.addListener(_scrollToBottomOnFocus);
+  }
+
+  void _scrollToBottomOnFocus() {
+    // Pequeño retraso para asegurar que el teclado ya esté visible
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
@@ -155,6 +171,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      // Configurar para que el contenido se ajuste cuando aparece el teclado
+      resizeToAvoidBottomInset: true,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
@@ -171,6 +189,11 @@ class _LoginPageState extends State<LoginPage> {
           builder: (context, state) {
             return SafeArea(
               child: SingleChildScrollView(
+                controller: _scrollController,
+                // Añadir padding inferior para evitar que el teclado cubra el botón
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 80,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -219,6 +242,7 @@ class _LoginPageState extends State<LoginPage> {
                               keyboardType: TextInputType.emailAddress,
                               autocorrect: false,
                               textCapitalization: TextCapitalization.none,
+                              onTap: _scrollToBottomOnFocus,
                               onChanged: (value) {
                                 // Convertir automáticamente a minúsculas
                                 if (value != value.toLowerCase()) {
@@ -270,6 +294,7 @@ class _LoginPageState extends State<LoginPage> {
                             // Password field
                             TextFormField(
                               controller: _passwordController,
+                              onTap: _scrollToBottomOnFocus,
                               obscureText: !_isPasswordVisible,
                               validator: _validatePassword,
                               decoration: InputDecoration(
