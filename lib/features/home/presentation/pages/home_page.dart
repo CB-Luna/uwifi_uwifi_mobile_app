@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -175,8 +177,14 @@ class _HomePageState extends State<HomePage> {
 
           // Barra de navegación flotante
           Positioned(
-            // Ajustar posición para que quede por encima del anuncio y con suficiente margen
-            bottom: _isAdLoaded ? 110 : 30, // Aumentamos el margen inferior
+            // Ajustar posición según la plataforma y si hay anuncios
+            bottom: _isAdLoaded
+                ? (Platform.isIOS
+                      ? 50
+                      : 110) // iOS: 5, Android: 110 cuando hay anuncios
+                : (Platform.isIOS
+                      ? 10
+                      : 30), // iOS: 5, Android: 30 cuando no hay anuncios
             left: 0,
             right: 0,
             child: FloatingNavigationBar(
@@ -197,7 +205,7 @@ class _HomePageState extends State<HomePage> {
           // Banner de anuncios en la parte inferior
           if (_isAdLoaded && _bannerAd != null)
             Positioned(
-              bottom: 50,
+              bottom: Platform.isIOS ? 0 : 50, // iOS: 0, Android: 50
               left: 0,
               right: 0,
               child: Container(
