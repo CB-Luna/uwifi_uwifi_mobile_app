@@ -130,10 +130,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
         child: Column(
           children: [
             // Encabezado con icono y texto
-            Wrap(
-              spacing: 12, // Espacio horizontal entre elementos
-              runSpacing: 8, // Espacio vertical cuando hay salto de línea
-              crossAxisAlignment: WrapCrossAlignment.center,
+            Row(
               children: [
                 Container(
                   width: 40,
@@ -349,7 +346,8 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                     } else {
                       // Estado inicial o sin servicios
                       return Container(
-                        width: 90, // Ancho fijo para el indicador de estado
+                        // Quitamos el ancho fijo para evitar overflow
+                        constraints: const BoxConstraints(minWidth: 90),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
@@ -359,8 +357,9 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center, // Centrar el contenido
+                          mainAxisSize: MainAxisSize
+                              .min, // Para que se ajuste al contenido
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
                               width: 8,
@@ -448,31 +447,32 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                           color: Colors.grey.shade600,
                         ),
                         const SizedBox(width: 8),
-                        BlocBuilder<BillingBloc, BillingState>(
-                          builder: (context, state) {
-                            String amountText = 'Amount Due: --';
+                        Flexible(
+                          child: BlocBuilder<BillingBloc, BillingState>(
+                            builder: (context, state) {
+                              String amountText = 'Amount Due: --';
 
-                            if (state is BillingLoaded &&
-                                state.balance != null) {
-                              // Formatear el balance como moneda
-                              final formatter = NumberFormat.currency(
-                                symbol: '\$',
-                              );
-                              amountText =
-                                  'Amount Due: ${formatter.format(state.balance)}';
-                            }
+                              if (state is BillingLoaded &&
+                                  state.balance != null) {
+                                // Formatear el balance como moneda
+                                final formatter = NumberFormat.currency(
+                                  symbol: '\$',
+                                );
+                                amountText =
+                                    'Amount Due: ${formatter.format(state.balance)}';
+                              }
 
-                            return Flexible(
-                              child: Text(
+                              return Text(
                                 amountText,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   color: Colors.grey.shade700,
                                   fontSize: responsiveFontSizesScreen
                                       .bodyMedium(context),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),
