@@ -284,7 +284,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                     } else if (state is ServiceLoaded &&
                         state.services.isNotEmpty) {
                       return Container(
-                        width: 150, // Ancho fijo para el indicador de estado
+                        width: 120, // Ancho fijo para el indicador de estado
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
