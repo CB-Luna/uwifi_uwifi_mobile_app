@@ -10,6 +10,9 @@ class SupportTicketModel extends SupportTicket {
     super.id,
     super.files,
     super.createdAt,
+    super.status,
+    super.title,
+    super.assignedTo,
   });
 
   /// Crea un modelo a partir de un mapa JSON
@@ -22,9 +25,10 @@ class SupportTicketModel extends SupportTicket {
       description: json['description'],
       customerId: json['customer_id_fk'],
       files: json['file'] != null ? List<String>.from(json['file']) : null,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : null,
+      createdAt: json['created_at'],
+      status: json['status'],
+      title: json['title'],
+      assignedTo: json['assigned_to'],
     );
   }
 
@@ -38,7 +42,10 @@ class SupportTicketModel extends SupportTicket {
       'description': description,
       'customer_id_fk': customerId,
       if (files != null) 'file': files,
-      if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+      if (createdAt != null) 'created_at': createdAt,
+      if (status != null) 'status': status,
+      if (title != null) 'title': title,
+      if (assignedTo != null) 'assigned_to': assignedTo,
     };
   }
 }

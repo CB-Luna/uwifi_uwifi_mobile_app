@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:uwifiapp/features/auth/presentation/bloc/auth_state.dart';
 import 'package:uwifiapp/injection_container.dart' as di;
-import '../../../../../core/utils/responsive_font_sizes.dart';
 
+import '../../../../../core/utils/responsive_font_sizes_screen.dart';
 import '../../bloc/connection_bloc.dart';
 import '../../bloc/connection_event.dart';
 import '../../bloc/connection_state.dart' as connection_state;
@@ -113,7 +113,9 @@ class _ConnectionCardState extends State<ConnectionCard> {
                           connectionStatus,
                           style: TextStyle(
                             color: statusColor,
-                            fontSize: responsiveFontSizes.labelLarge(context),
+                            fontSize: responsiveFontSizesScreen.labelLarge(
+                              context,
+                            ),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -124,7 +126,9 @@ class _ConnectionCardState extends State<ConnectionCard> {
                         Text(
                           wifiName,
                           style: TextStyle(
-                            fontSize: responsiveFontSizes.titleLarge(context),
+                            fontSize: responsiveFontSizesScreen.titleLarge(
+                              context,
+                            ),
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                           ),
@@ -141,7 +145,8 @@ class _ConnectionCardState extends State<ConnectionCard> {
                   onPressed: () {
                     // Get customer ID from authentication state
                     final authState = context.read<AuthBloc>().state;
-                    if (authState is AuthAuthenticated && authState.user.customerId != null) {
+                    if (authState is AuthAuthenticated &&
+                        authState.user.customerId != null) {
                       final customerId = authState.user.customerId!;
                       Navigator.of(context).push(
                         MaterialPageRoute(

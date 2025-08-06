@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/utils/responsive_font_sizes_screen.dart';
 import '../../pages/my_flutter_app_icons.dart';
-import '../../../../../core/utils/responsive_font_sizes.dart';
 
 class FloatingNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -153,7 +153,9 @@ class FloatingNavigationBar extends StatelessWidget {
                             : Colors
                                   .grey
                                   .shade600), // ✅ Colores normales para otras pantallas
-                  fontSize: isSelected ? responsiveFontSizes.navBar(context) : responsiveFontSizes.labelSmall(context),
+                  fontSize: isSelected
+                      ? responsiveFontSizesScreen.navBar(context)
+                      : responsiveFontSizesScreen.labelSmall(context),
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),

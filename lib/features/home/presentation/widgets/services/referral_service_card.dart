@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uwifiapp/core/utils/responsive_font_sizes_screen.dart';
+
 import '../../../../../core/constants/api_endpoints.dart';
 import '../../../../../core/utils/app_logger.dart';
 import '../../../../customer/presentation/bloc/customer_details_bloc.dart';
@@ -63,11 +65,13 @@ class ReferralServiceCard extends StatelessWidget {
                             fit: BoxFit.contain,
                           ),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'Refer & Win!',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: responsiveFontSizesScreen.bodyLarge(
+                                context,
+                              ),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -77,11 +81,13 @@ class ReferralServiceCard extends StatelessWidget {
                       const SizedBox(height: 8),
 
                       // Texto descriptivo
-                      const Text(
+                      Text(
                         'Invite a friend — you\'ll both get exclusive\nperks when they sign up with your link.',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 14,
+                          fontSize: responsiveFontSizesScreen.bodyMedium(
+                            context,
+                          ),
                           height: 1.2,
                         ),
                         maxLines: 2,
@@ -96,27 +102,35 @@ class ReferralServiceCard extends StatelessWidget {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             // Obtener los detalles del cliente actuales
-                            final customerState = context.read<CustomerDetailsBloc>().state;
+                            final customerState = context
+                                .read<CustomerDetailsBloc>()
+                                .state;
                             String referralLink;
-                            
-                            if (customerState is CustomerDetailsLoaded && 
-                                customerState.customerDetails.sharedLinkId.isNotEmpty) {
+
+                            if (customerState is CustomerDetailsLoaded &&
+                                customerState
+                                    .customerDetails
+                                    .sharedLinkId
+                                    .isNotEmpty) {
                               // Usar el sharedLinkId del cliente para generar el enlace
-                              final sharedLinkId = customerState.customerDetails.sharedLinkId;
-                              referralLink = '${ApiEndpoints.inviteBaseUrl}/$sharedLinkId';
-                              
+                              final sharedLinkId =
+                                  customerState.customerDetails.sharedLinkId;
+                              referralLink =
+                                  '${ApiEndpoints.inviteBaseUrl}/$sharedLinkId';
+
                               AppLogger.navInfo(
                                 'ReferralServiceCard: Usando sharedLinkId para QR - $sharedLinkId',
                               );
                             } else {
                               // Enlace de fallback si no hay sharedLinkId disponible
-                              referralLink = '${ApiEndpoints.inviteBaseUrl}/DEMO001';
-                              
+                              referralLink =
+                                  '${ApiEndpoints.inviteBaseUrl}/DEMO001';
+
                               AppLogger.navInfo(
                                 'ReferralServiceCard: Usando enlace de fallback para QR',
                               );
                             }
-                            
+
                             showModalBottomSheet(
                               context: context,
                               isScrollControlled: true,
@@ -134,7 +148,14 @@ class ReferralServiceCard extends StatelessWidget {
                             color: Colors.green,
                             size: 16,
                           ),
-                          label: const Text('QR Code'),
+                          label: Text(
+                            'QR Code',
+                            style: TextStyle(
+                              fontSize: responsiveFontSizesScreen.bodySmall(
+                                context,
+                              ),
+                            ),
+                          ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.green,
                             side: const BorderSide(color: Colors.green),

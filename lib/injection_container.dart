@@ -153,15 +153,20 @@ import 'features/videos/presentation/bloc/videos_bloc.dart';
 import 'features/support/data/datasources/ticket_category_remote_data_source.dart';
 import 'features/support/data/datasources/support_ticket_remote_data_source.dart';
 import 'features/support/data/datasources/support_ticket_remote_data_source_impl.dart';
+import 'features/support/data/datasources/support_remote_data_source.dart';
 import 'features/support/data/repositories/ticket_category_repository_impl.dart';
 import 'features/support/data/repositories/support_ticket_repository_impl.dart';
+import 'features/support/data/repositories/support_repository_impl.dart';
 import 'features/support/domain/repositories/ticket_category_repository.dart';
 import 'features/support/domain/repositories/support_ticket_repository.dart';
+import 'features/support/domain/repositories/support_repository.dart';
 import 'features/support/domain/usecases/get_ticket_categories.dart';
 import 'features/support/domain/usecases/create_support_ticket.dart';
 import 'features/support/domain/usecases/upload_ticket_files.dart';
+import 'features/support/domain/usecases/get_customer_tickets.dart';
 import 'features/support/presentation/bloc/ticket_category_bloc.dart';
 import 'features/support/presentation/bloc/support_ticket_bloc.dart';
+import 'features/support/presentation/bloc/tickets_list_bloc.dart';
 
 // Affiliate feature imports
 import 'features/profile/data/datasources/affiliate_remote_data_source.dart';
@@ -214,7 +219,13 @@ Future<void> init() async {
       getTicketCategories: getIt(),
     ),
   );
+  getIt.registerFactory(
+    () => TicketsListBloc(
+      getCustomerTickets: getIt(),
+    ),
+  );
   getIt.registerLazySingleton(() => GetTicketCategories(getIt()));
+  getIt.registerLazySingleton(() => GetCustomerTickets(getIt()));
   getIt.registerLazySingleton<TicketCategoryRepository>(
     () => TicketCategoryRepositoryImpl(
       remoteDataSource: getIt(),
@@ -224,7 +235,6 @@ Future<void> init() async {
   getIt.registerLazySingleton<TicketCategoryRemoteDataSource>(
     () => TicketCategoryRemoteDataSourceImpl(supabaseClient: getIt()),
   );
-
   getIt.registerFactory(
     () => SupportTicketBloc(
       uploadTicketFiles: getIt(),
@@ -239,10 +249,18 @@ Future<void> init() async {
       networkInfo: getIt(),
     ),
   );
+  getIt.registerLazySingleton<SupportRepository>(
+    () => SupportRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
   getIt.registerLazySingleton<SupportTicketRemoteDataSource>(
     () => SupportTicketRemoteDataSourceImpl(supabaseClient: getIt()),
   );
-
+  getIt.registerLazySingleton<SupportRemoteDataSource>(
+    () => SupportRemoteDataSourceImpl(client: getIt()),
+  );
   getIt.registerLazySingleton(() => GenresBloc(getGenres: getIt()));
 
   // VideoExplorerBloc ya está registrado al inicio del método init()

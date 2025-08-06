@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'free_service_card.dart';
 import 'referral_service_card.dart';
 
@@ -31,7 +32,7 @@ class _ServiceCarouselState extends State<ServiceCarousel> {
       children: [
         // Carrusel de tarjetas
         SizedBox(
-          height: 180, // Altura aumentada para evitar overflow
+          height: 200, // Altura aumentada para evitar overflow
           child: PageView(
             controller: _pageController,
             onPageChanged: (index) {

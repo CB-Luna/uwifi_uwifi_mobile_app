@@ -7,7 +7,7 @@ import 'package:uwifiapp/features/home/presentation/bloc/transaction_bloc.dart';
 import 'package:uwifiapp/features/profile/presentation/widgets/myuwifiplan/plan_checkout_page.dart';
 import 'package:uwifiapp/injection_container.dart' as di;
 
-import '../../../../../core/utils/responsive_font_sizes.dart';
+import '../../../../../core/utils/responsive_font_sizes_screen.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../auth/presentation/bloc/auth_state.dart';
 import '../../../presentation/bloc/billing_bloc.dart';
@@ -103,9 +103,6 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
 
   @override
   Widget build(BuildContext context) {
-    // Detectar si la pantalla es pequeña
-    final bool isSmallScreen = MediaQuery.of(context).size.width < 600;
-    
     // Escuchar cambios en el estado de autenticación
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -165,14 +162,18 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                             'Loading Service...',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: responsiveFontSizes.bodyLarge(context),
+                              fontSize: responsiveFontSizesScreen.bodyLarge(
+                                context,
+                              ),
                             ),
                           ),
                           Text(
                             'Please wait',
                             style: TextStyle(
                               color: Colors.grey.shade600,
-                              fontSize: responsiveFontSizes.bodyMedium(context),
+                              fontSize: responsiveFontSizesScreen.bodyMedium(
+                                context,
+                              ),
                             ),
                           ),
                         ],
@@ -188,14 +189,18 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                             service.name,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: responsiveFontSizes.bodyLarge(context),
+                              fontSize: responsiveFontSizesScreen.bodyLarge(
+                                context,
+                              ),
                             ),
                           ),
                           Text(
                             service.type,
                             style: TextStyle(
                               color: Colors.grey.shade600,
-                              fontSize: responsiveFontSizes.bodyMedium(context),
+                              fontSize: responsiveFontSizesScreen.bodyMedium(
+                                context,
+                              ),
                             ),
                           ),
                         ],
@@ -208,14 +213,18 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                             'Error',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: responsiveFontSizes.bodyLarge(context),
+                              fontSize: responsiveFontSizesScreen.bodyLarge(
+                                context,
+                              ),
                             ),
                           ),
                           Text(
                             state.message,
                             style: TextStyle(
                               color: Colors.red.shade600,
-                              fontSize: responsiveFontSizes.bodyMedium(context),
+                              fontSize: responsiveFontSizesScreen.bodyMedium(
+                                context,
+                              ),
                             ),
                           ),
                         ],
@@ -229,14 +238,18 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                             'U-wifi Internet',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: responsiveFontSizes.bodyLarge(context),
+                              fontSize: responsiveFontSizesScreen.bodyLarge(
+                                context,
+                              ),
                             ),
                           ),
                           Text(
                             'Recurring Charge',
                             style: TextStyle(
                               color: Colors.grey.shade600,
-                              fontSize: responsiveFontSizes.bodyMedium(context),
+                              fontSize: responsiveFontSizesScreen.bodyMedium(
+                                context,
+                              ),
                             ),
                           ),
                         ],
@@ -255,14 +268,18 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                             'Loading...',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: responsiveFontSizes.bodyLarge(context),
+                              fontSize: responsiveFontSizesScreen.bodyLarge(
+                                context,
+                              ),
                             ),
                           ),
                           Text(
                             'Please wait',
                             style: TextStyle(
                               color: Colors.grey.shade600,
-                              fontSize: responsiveFontSizes.bodyMedium(context),
+                              fontSize: responsiveFontSizesScreen.bodyMedium(
+                                context,
+                              ),
                             ),
                           ),
                         ],
@@ -296,7 +313,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               'Active',
                               style: TextStyle(
                                 color: Colors.grey,
-                                fontSize: responsiveFontSizes.bodyMedium(
+                                fontSize: responsiveFontSizesScreen.bodyMedium(
                                   context,
                                 ),
                                 fontWeight: FontWeight.w500,
@@ -313,14 +330,18 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                             'Error',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: responsiveFontSizes.bodyLarge(context),
+                              fontSize: responsiveFontSizesScreen.bodyLarge(
+                                context,
+                              ),
                             ),
                           ),
                           Text(
                             state.message,
                             style: TextStyle(
                               color: Colors.red.shade600,
-                              fontSize: responsiveFontSizes.bodyMedium(context),
+                              fontSize: responsiveFontSizesScreen.bodyMedium(
+                                context,
+                              ),
                             ),
                           ),
                         ],
@@ -354,7 +375,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               'Inactive',
                               style: TextStyle(
                                 color: Colors.grey,
-                                fontSize: responsiveFontSizes.bodyMedium(
+                                fontSize: responsiveFontSizesScreen.bodyMedium(
                                   context,
                                 ),
                                 fontWeight: FontWeight.w500,
@@ -372,84 +393,91 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
             const SizedBox(height: 16),
 
             // Fecha de vencimiento y monto
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Información de fecha
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_month,
-                        size: 16,
-                        color: Colors.grey.shade600,
-                      ),
-                      const SizedBox(width: 8),
-                      BlocBuilder<BillingBloc, BillingState>(
-                        builder: (context, state) {
-                          if (state is BillingLoaded) {
-                            // Formatear la fecha para mostrarla en formato MMM dd
-                            final dueDate = state.billingPeriod.dueDate;
-                            final formattedDate = _formatDate(dueDate);
-                            return Text(
-                              'Due Date: $formattedDate',
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: responsiveFontSizes.bodyMedium(
-                                  context,
+            SizedBox(
+              width: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Información de fecha
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_month,
+                          size: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        BlocBuilder<BillingBloc, BillingState>(
+                          builder: (context, state) {
+                            if (state is BillingLoaded) {
+                              // Formatear la fecha para mostrarla en formato MMM dd
+                              final dueDate = state.billingPeriod.dueDate;
+                              final formattedDate = _formatDate(dueDate);
+                              return Text(
+                                'Due Date: $formattedDate',
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontSize: responsiveFontSizesScreen
+                                      .bodyMedium(context),
+                                  fontWeight: FontWeight.w500,
                                 ),
-                                fontWeight: FontWeight.w500,
+                              );
+                            } else {
+                              return Text(
+                                'Due Date: Loading...',
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontSize: responsiveFontSizesScreen
+                                      .bodyMedium(context),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Monto a pagar
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.monetization_on_outlined,
+                          size: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        BlocBuilder<BillingBloc, BillingState>(
+                          builder: (context, state) {
+                            String amountText = 'Amount Due: --';
+
+                            if (state is BillingLoaded &&
+                                state.balance != null) {
+                              // Formatear el balance como moneda
+                              final formatter = NumberFormat.currency(
+                                symbol: '\$',
+                              );
+                              amountText =
+                                  'Amount Due: ${formatter.format(state.balance)}';
+                            }
+
+                            return Flexible(
+                              child: Text(
+                                amountText,
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontSize: responsiveFontSizesScreen
+                                      .bodyMedium(context),
+                                ),
                               ),
                             );
-                          } else {
-                            return Text(
-                              'Due Date: Loading...',
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: responsiveFontSizes.bodyMedium(
-                                  context,
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-
-                  // Monto a pagar
-                  BlocBuilder<BillingBloc, BillingState>(
-                    builder: (context, state) {
-                      String amountText = 'Amount Due: --';
-
-                      if (state is BillingLoaded && state.balance != null) {
-                        // Formatear el balance como moneda
-                        final formatter = NumberFormat.currency(symbol: '\$');
-                        amountText =
-                            'Amount Due: ${formatter.format(state.balance)}';
-                      }
-
-                      return Row(
-                        children: [
-                          Icon(
-                            Icons.monetization_on_outlined,
-                            size: 16,
-                            color: Colors.grey.shade600,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            amountText,
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontSize: responsiveFontSizes.bodyMedium(context),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -495,7 +523,9 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                       child: Text(
                         'Plan Details',
                         style: TextStyle(
-                          fontSize: responsiveFontSizes.buttonMedium(context),
+                          fontSize: responsiveFontSizesScreen.buttonMedium(
+                            context,
+                          ),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -537,7 +567,9 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                       child: Text(
                         'Pay Now',
                         style: TextStyle(
-                          fontSize: responsiveFontSizes.buttonMedium(context),
+                          fontSize: responsiveFontSizesScreen.buttonMedium(
+                            context,
+                          ),
                           fontWeight: FontWeight.w600,
                           color: Colors.green,
                         ),

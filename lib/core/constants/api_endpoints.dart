@@ -39,7 +39,10 @@ class ApiEndpoints {
       '$airflowBaseUrl/register-new-creditcard';
       
   // Support endpoints
-  static const String supportTicketCategories = '$supabaseBaseUrl/get_support_ticket_categories';
+  static const String ticketCategories = '$supabaseBaseUrl/get_support_ticket_categories';
+  static const String createSupportTicket = '$baseUrl/uwifi_create_support_ticket';
+  static const String customerTickets = '$supabaseBaseUrl/get_customer_tickets';
+  static const String uploadTicketFiles = '$baseUrl/uwifi_upload_ticket_files';
 
   // Affiliate endpoints
   static const String sendAffiliateInvitation = '$airflowBaseUrl/afiliate';

@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/utils/app_logger.dart';
+import '../../../../../injection_container.dart' as di;
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../../support/presentation/bloc/tickets_list_bloc.dart';
+import '../../../../support/presentation/pages/tickets_list_page.dart';
 import 'account_security_faq_page.dart';
-import 'submit_ticket_page.dart';
 
 class HelpCenterPage extends StatefulWidget {
   const HelpCenterPage({super.key});
@@ -182,27 +184,29 @@ class _HelpCenterPageState extends State<HelpCenterPage>
                     try {
                       final authBloc = BlocProvider.of<AuthBloc>(context);
                       AppLogger.navInfo(
-                        'HelpCenterPage: Estado de AuthBloc: ${authBloc.state.runtimeType}',
+                        'HelpCenterPage: Navegando a TicketsListPage con AuthBloc: ${authBloc.state.runtimeType}',
                       );
 
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => BlocProvider.value(
-                            value: authBloc,
-                            child: const SubmitTicketPageProvider(),
+                          builder: (context) => MultiBlocProvider(
+                            providers: [
+                              BlocProvider.value(value: authBloc),
+                              BlocProvider(
+                                create: (_) => di.getIt<TicketsListBloc>(),
+                              ),
+                            ],
+                            child: const TicketsListPage(),
                           ),
                         ),
                       );
                     } catch (e) {
                       AppLogger.navError(
-                        'Error al obtener AuthBloc en HelpCenterPage: $e',
+                        'Error al navegar a TicketsListPage: $e',
                       );
-                      // Si no podemos obtener el AuthBloc, mostramos un mensaje de error
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text(
-                            'Error: No se pudo acceder a la información de autenticación',
-                          ),
+                          content: Text('Error al acceder a los tickets'),
                         ),
                       );
                     }

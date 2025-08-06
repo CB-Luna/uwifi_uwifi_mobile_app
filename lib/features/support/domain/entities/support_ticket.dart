@@ -9,7 +9,10 @@ class SupportTicket extends Equatable {
   final String description;
   final int customerId;
   final List<String>? files;
-  final DateTime? createdAt;
+  final String? createdAt;
+  final String? status;
+  final String? title;
+  final String? assignedTo;
 
   const SupportTicket({
     required this.customerName,
@@ -20,6 +23,9 @@ class SupportTicket extends Equatable {
     this.id,
     this.files,
     this.createdAt,
+    this.status,
+    this.title,
+    this.assignedTo,
   });
 
   @override
@@ -32,5 +38,8 @@ class SupportTicket extends Equatable {
     customerId,
     files,
     createdAt,
+    status,
+    title,
+    assignedTo,
   ];
 }

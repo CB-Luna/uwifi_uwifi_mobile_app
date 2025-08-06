@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uwifiapp/core/utils/responsive_font_sizes_screen.dart';
+
 import 'free_u_info_page.dart';
 
 class FreeServiceCard extends StatelessWidget {
@@ -13,24 +15,45 @@ class FreeServiceCard extends StatelessWidget {
         color: Colors.black,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
+      child: Stack(
         children: [
+          // Contenedor del lado derecho con GIF justificado a la derecha
+          Positioned(
+            right: 0,
+            child: Container(
+              width: 100,
+              height: 120,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(15)),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(15)),
+                child: Image.asset(
+                  'assets/images/homeimage/mainCoinGif.gif',
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
           // Contenido del lado izquierdo
-          Expanded(
-            flex: 3,
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.6,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Título con imagen FREE U
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.end,
                   children: [
-                    const Text(
+                    Text(
                       'Free Service with ',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: responsiveFontSizesScreen.bodyLarge(context),
                         fontWeight: FontWeight.bold,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Image.asset(
                       'assets/images/homeimage/FreeU.png',
@@ -43,14 +66,14 @@ class FreeServiceCard extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 // Texto descriptivo
-                const Text(
+                Text(
                   'Earn While You Watch. Seriously. Free.',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: responsiveFontSizesScreen.bodyMedium(context),
                     height: 1.0,
                   ),
-                  maxLines: 1,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
 
@@ -72,7 +95,12 @@ class FreeServiceCard extends StatelessWidget {
                       color: Colors.green,
                       size: 16,
                     ),
-                    label: const Text('See More'),
+                    label: Text(
+                      'See More',
+                      style: TextStyle(
+                        fontSize: responsiveFontSizesScreen.bodySmall(context),
+                      ),
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.green,
                       side: const BorderSide(color: Colors.green),
@@ -83,22 +111,6 @@ class FreeServiceCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-
-          // Contenedor del lado derecho con GIF justificado a la derecha
-          Container(
-            width: 100,
-            height: 120,
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(15)),
-            ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(15)),
-              child: Image.asset(
-                'assets/images/homeimage/mainCoinGif.gif',
-                fit: BoxFit.cover,
-              ),
             ),
           ),
         ],
