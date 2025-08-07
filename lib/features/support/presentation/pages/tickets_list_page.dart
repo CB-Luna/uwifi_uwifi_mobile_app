@@ -11,6 +11,7 @@ import '../../domain/entities/support_ticket.dart';
 import '../bloc/tickets_list_bloc.dart';
 import '../bloc/tickets_list_event.dart';
 import '../bloc/tickets_list_state.dart';
+import 'ticket_detail_page.dart';
 
 class TicketsListPage extends StatefulWidget {
   const TicketsListPage({super.key});
@@ -200,18 +201,32 @@ class _TicketCard extends StatelessWidget {
 
   const _TicketCard({required this.ticket});
 
+  // Formatea la fecha para mostrarla en formato legible
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) {
+      return 'No date';
+    }
+
+    try {
+      final date = DateTime.parse(dateString);
+      return DateFormat('MMM dd, yyyy').format(date);
+    } catch (e) {
+      return dateString;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Determinar el color de la barra lateral y el badge según el estado
+    // Determinar el color y texto del estado
     Color statusColor;
     String statusText;
     Color badgeColor;
 
     switch (ticket.status?.toLowerCase() ?? 'created') {
       case 'active':
-        statusColor = Colors.green;
+        statusColor = Colors.blue;
         statusText = 'Active';
-        badgeColor = Colors.green.shade100;
+        badgeColor = Colors.blue.shade100;
         break;
       case 'in progress':
         statusColor = Colors.orange;
@@ -219,137 +234,139 @@ class _TicketCard extends StatelessWidget {
         badgeColor = Colors.orange.shade100;
         break;
       default:
-        statusColor = Colors.blue;
+        statusColor = Colors.green;
         statusText = 'Resolved';
-        badgeColor = Colors.blue.shade100;
+        badgeColor = Colors.green.shade100;
     }
 
-    // Formatear la fecha
-    String formattedDate = '';
-    if (ticket.createdAt != null) {
-      try {
-        final date = DateTime.parse(ticket.createdAt!);
-        formattedDate = DateFormat('MMM dd, yyyy').format(date);
-      } catch (e) {
-        formattedDate = ticket.createdAt ?? '';
-      }
-    }
+    // Formatear la fecha para mostrarla
+    String formattedDate = _formatDate(ticket.createdAt);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Barra lateral de color según estado
-            Container(
-              width: 6,
-              decoration: BoxDecoration(
-                color: statusColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
+    return GestureDetector(
+      onTap: () {
+        // Navegar a la página de detalles al hacer tap
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => TicketDetailPage(ticket: ticket),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Barra lateral de color según estado
+              Container(
+                width: 6,
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  ),
                 ),
               ),
-            ),
-            // Contenido principal
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ID y estado
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '#${ticket.id ?? '000'}',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: badgeColor,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            statusText,
+              // Contenido principal
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ID y estado
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '#${ticket.id ?? '000'}',
                             style: TextStyle(
-                              color: statusColor,
+                              color: Colors.grey.shade600,
                               fontWeight: FontWeight.w500,
-                              fontSize: 12,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Título
-                    Text(
-                      ticket.type,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: badgeColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              statusText,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Información adicional
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.person_outline,
-                          size: 16,
-                          color: Colors.grey.shade600,
+                      const SizedBox(height: 12),
+                      // Título
+                      Text(
+                        ticket.type,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          ticket.assignedTo != null &&
-                                  ticket.assignedTo!.isNotEmpty
-                              ? 'Assigned to ${ticket.assignedTo}'
-                              : 'Waiting for Assignment',
-                          style: TextStyle(
+                      ),
+                      const SizedBox(height: 8),
+                      // Información adicional
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            size: 16,
                             color: Colors.grey.shade600,
-                            fontSize: 14,
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    // Fecha
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 16,
-                          color: Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          formattedDate,
-                          style: TextStyle(
+                          const SizedBox(width: 4),
+                          Text(
+                            ticket.assignedTo != null &&
+                                    ticket.assignedTo!.isNotEmpty
+                                ? 'Assigned to ${ticket.assignedTo}'
+                                : 'Waiting for Assignment',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      // Fecha
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: 16,
                             color: Colors.grey.shade600,
-                            fontSize: 14,
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(width: 4),
+                          Text(
+                            formattedDate,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
