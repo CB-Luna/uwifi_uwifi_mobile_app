@@ -8,6 +8,7 @@ import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../support/presentation/bloc/tickets_list_bloc.dart';
 import '../../../../support/presentation/pages/tickets_list_page.dart';
 import 'account_security_faq_page.dart';
+import 'chatbot_page.dart';
 
 class HelpCenterPage extends StatefulWidget {
   const HelpCenterPage({super.key});
@@ -228,9 +229,16 @@ class _HelpCenterPageState extends State<HelpCenterPage>
                   },
                 ),
                 const SizedBox(height: 10),
-                const _ContactOption(
+                _ContactOption(
                   icon: Icons.chat_bubble_outline,
                   label: 'Chatbot',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ChatbotPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
