@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 
 import '../../../../core/presentation/widgets/loading_indicator.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -21,6 +22,8 @@ class TicketsListPage extends StatefulWidget {
 }
 
 class _TicketsListPageState extends State<TicketsListPage> {
+  // Variable para controlar el orden de los tickets
+  bool _newestFirst = true;
   @override
   void initState() {
     super.initState();
@@ -52,11 +55,75 @@ class _TicketsListPageState extends State<TicketsListPage> {
         foregroundColor: Colors.black,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // Implementar filtrado de tickets
-            },
+          // Toggle switch animado para ordenar tickets
+          Container(
+            width: 150,
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: AnimatedToggleSwitch<bool>.dual(
+              current: _newestFirst,
+              first: false,
+              second: true,
+              spacing: 10.0,
+              height: 38,
+              borderWidth: 1.0,
+              style: ToggleStyle(
+                borderColor: Colors.grey[300],
+                backgroundColor: Colors.grey[100]!,
+                borderRadius: BorderRadius.circular(10.0),
+                indicatorBorderRadius: BorderRadius.circular(8.0),
+                indicatorColor: Colors.white,
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    spreadRadius: 0.5,
+                    blurRadius: 1.5,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+              iconBuilder: (value) => Transform(
+                transform: value
+                    ? Matrix4.rotationX(3.14159) // Invertir para Newest
+                    : Matrix4.identity(), // Normal para Oldest
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.sort,
+                  size: 20,
+                  color: Colors.grey[700],
+                ),
+              ),
+              textBuilder: (value) => value
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        'Newest',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    )
+                  : const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        'Oldest',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+              onChanged: (value) {
+                setState(() {
+                  _newestFirst = value;
+                });
+              },
+            ),
           ),
         ],
       ),
@@ -185,11 +252,23 @@ class _TicketsListPageState extends State<TicketsListPage> {
   }
 
   Widget _buildTicketsList(List<SupportTicket> tickets) {
+    // Ordenar los tickets según la selección del usuario
+    final sortedTickets = List<SupportTicket>.from(tickets);
+    sortedTickets.sort((a, b) {
+      // Convertir las fechas de string a DateTime para comparar
+      final dateA = a.createdAt != null ? DateTime.parse(a.createdAt!) : DateTime(1970);
+      final dateB = b.createdAt != null ? DateTime.parse(b.createdAt!) : DateTime(1970);
+      
+      // Si _newestFirst es true, ordenar de más reciente a más antiguo (b comparado con a)
+      // Si _newestFirst es false, ordenar de más antiguo a más reciente (a comparado con b)
+      return _newestFirst ? dateB.compareTo(dateA) : dateA.compareTo(dateB);
+    });
+    
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: tickets.length,
+      itemCount: sortedTickets.length,
       itemBuilder: (context, index) {
-        final ticket = tickets[index];
+        final ticket = sortedTickets[index];
         return _TicketCard(ticket: ticket);
       },
     );
