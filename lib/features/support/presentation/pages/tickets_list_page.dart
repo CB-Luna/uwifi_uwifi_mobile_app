@@ -29,7 +29,7 @@ class _TicketsListPageState extends State<TicketsListPage> {
   void _loadTickets() {
     final authBloc = context.read<AuthBloc>();
     final authState = authBloc.state;
-    
+
     if (authState is AuthAuthenticated && authState.user.customerId != null) {
       final customerId = authState.user.customerId!;
       context.read<TicketsListBloc>().add(LoadTicketsEvent(customerId));
@@ -73,11 +73,7 @@ class _TicketsListPageState extends State<TicketsListPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 60,
-                    color: Colors.red,
-                  ),
+                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
                   const SizedBox(height: 16),
                   Text(
                     'Error: ${state.message}',
@@ -105,17 +101,19 @@ class _TicketsListPageState extends State<TicketsListPage> {
               'TicketsListPage: Estado de AuthBloc: ${authBloc.state.runtimeType}',
             );
 
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => BlocProvider.value(
-                  value: authBloc,
-                  child: const SubmitTicketPageProvider(),
-                ),
-              ),
-            ).then((_) {
-              // Recargar la lista de tickets cuando regresemos
-              _loadTickets();
-            });
+            Navigator.of(context)
+                .push(
+                  MaterialPageRoute(
+                    builder: (context) => BlocProvider.value(
+                      value: authBloc,
+                      child: const SubmitTicketPageProvider(),
+                    ),
+                  ),
+                )
+                .then((_) {
+                  // Recargar la lista de tickets cuando regresemos
+                  _loadTickets();
+                });
           } catch (e) {
             AppLogger.navError(
               'Error al obtener AuthBloc en TicketsListPage: $e',
@@ -141,40 +139,32 @@ class _TicketsListPageState extends State<TicketsListPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.support_agent,
-            size: 80,
-            color: Colors.grey,
-          ),
+          const Icon(Icons.support_agent, size: 80, color: Colors.grey),
           const SizedBox(height: 16),
           const Text(
             'No tienes tickets activos',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Text(
             'Crea un nuevo ticket para recibir ayuda',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
               try {
                 final authBloc = BlocProvider.of<AuthBloc>(context);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => BlocProvider.value(
-                      value: authBloc,
-                      child: const SubmitTicketPageProvider(),
-                    ),
-                  ),
-                ).then((_) => _loadTickets());
+                Navigator.of(context)
+                    .push(
+                      MaterialPageRoute(
+                        builder: (context) => BlocProvider.value(
+                          value: authBloc,
+                          child: const SubmitTicketPageProvider(),
+                        ),
+                      ),
+                    )
+                    .then((_) => _loadTickets());
               } catch (e) {
                 AppLogger.navError('Error al navegar: $e');
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -184,10 +174,7 @@ class _TicketsListPageState extends State<TicketsListPage> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             child: const Text('Crear ticket'),
           ),
@@ -221,9 +208,9 @@ class _TicketCard extends StatelessWidget {
     Color badgeColor;
 
     switch (ticket.status?.toLowerCase() ?? 'created') {
-      case 'resolved':
+      case 'active':
         statusColor = Colors.green;
-        statusText = 'Resolved';
+        statusText = 'Active';
         badgeColor = Colors.green.shade100;
         break;
       case 'in progress':
@@ -231,10 +218,9 @@ class _TicketCard extends StatelessWidget {
         statusText = 'In Progress';
         badgeColor = Colors.orange.shade100;
         break;
-      case 'created':
       default:
         statusColor = Colors.blue;
-        statusText = 'Created';
+        statusText = 'Resolved';
         badgeColor = Colors.blue.shade100;
     }
 
@@ -312,7 +298,7 @@ class _TicketCard extends StatelessWidget {
                     const SizedBox(height: 12),
                     // Título
                     Text(
-                      ticket.title ?? 'Feature request for dark mode',
+                      ticket.type,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -329,7 +315,8 @@ class _TicketCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          ticket.assignedTo != null && ticket.assignedTo!.isNotEmpty
+                          ticket.assignedTo != null &&
+                                  ticket.assignedTo!.isNotEmpty
                               ? 'Assigned to ${ticket.assignedTo}'
                               : 'Waiting for Assignment',
                           style: TextStyle(

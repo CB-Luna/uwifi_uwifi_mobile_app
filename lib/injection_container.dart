@@ -259,7 +259,10 @@ Future<void> init() async {
     () => SupportTicketRemoteDataSourceImpl(supabaseClient: getIt()),
   );
   getIt.registerLazySingleton<SupportRemoteDataSource>(
-    () => SupportRemoteDataSourceImpl(client: getIt()),
+    () => SupportRemoteDataSourceImpl(
+      client: getIt(),
+      supabaseClient: getIt<SupabaseClient>(),
+    ),
   );
   getIt.registerLazySingleton(() => GenresBloc(getGenres: getIt()));
 
