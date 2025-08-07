@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -9,8 +10,43 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../customer/presentation/bloc/customer_details_bloc.dart';
 import '../widgets/settings/settings_modal.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  // Variables para almacenar la información de la aplicación
+  String appName = '';
+  String appVersion = '';
+  String appBuild = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppInfo();
+  }
+
+  // Función para cargar la información de la aplicación
+  Future<void> _loadAppInfo() async {
+    try {
+      final PackageInfo info = await PackageInfo.fromPlatform();
+      setState(() {
+        appName = info.appName;
+        appVersion = info.version;
+        appBuild = '27';
+      });
+    } catch (e) {
+      // En caso de error, usar valores predeterminados
+      setState(() {
+        appName = 'U-wifi';
+        appVersion = '1.0.0';
+        appBuild = '27';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +241,7 @@ class ProfilePage extends StatelessWidget {
                                 child: Column(
                                   children: [
                                     Text(
-                                      '© 2025 U-wifi. All rights reserved. | Version 1.0.0',
+                                      '© 2025 $appName. All rights reserved. | Version $appVersion',
                                       style: TextStyle(
                                         color: Colors.grey.shade400,
                                         fontSize: 13,
@@ -213,7 +249,7 @@ class ProfilePage extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Test Version: 1.0.0 (19)',
+                                      'Test Version: $appVersion ($appBuild)',
                                       style: TextStyle(
                                         color: Colors.grey.shade400,
                                         fontSize: 13,
