@@ -294,13 +294,15 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               width: MediaQuery.of(context).size.width,
               color: Colors.white,
-              child: _isAdLoaded && _bannerAd != null
-                  ? SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      height: _bannerAd!.size.height.toDouble(),
-                      child: AdWidget(ad: _bannerAd!),
-                    )
-                  : _buildTestAdBanner(),
+              child:
+                  // _isAdLoaded && _bannerAd != null
+                  // ? SizedBox(
+                  //     width: MediaQuery.of(context).size.width,
+                  //     height: _bannerAd!.size.height.toDouble(),
+                  //     child: AdWidget(ad: _bannerAd!),
+                  //   )
+                  // :
+                  _buildTestAdBanner(),
             ),
           ),
         ],

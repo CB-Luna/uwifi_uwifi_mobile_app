@@ -564,16 +564,22 @@ class _LoginPageState extends State<LoginPage> {
                                   top: 8,
                                 ),
                                 alignment: Alignment.center,
-                                width: _isAdLoaded && _bannerAd != null
-                                    ? _bannerAd!.size.width.toDouble()
-                                    : MediaQuery.of(context).size.width,
-                                height: _isAdLoaded && _bannerAd != null
-                                    ? _bannerAd!.size.height.toDouble() + 8
-                                    : 50 +
-                                          16, // Altura del banner de prueba + padding
-                                child: _isAdLoaded && _bannerAd != null
-                                    ? AdWidget(ad: _bannerAd!)
-                                    : _buildTestAdBanner(),
+                                width:
+                                    // _isAdLoaded && _bannerAd != null
+                                    //     ? _bannerAd!.size.width.toDouble()
+                                    //     :
+                                    MediaQuery.of(context).size.width,
+                                height:
+                                    // _isAdLoaded && _bannerAd != null
+                                    //     ? _bannerAd!.size.height.toDouble() + 8
+                                    //     :
+                                    50 +
+                                    16, // Altura del banner de prueba + padding
+                                child:
+                                    // _isAdLoaded && _bannerAd != null
+                                    // ? AdWidget(ad: _bannerAd!)
+                                    // :
+                                    _buildTestAdBanner(),
                               ),
                             ),
                           ],
