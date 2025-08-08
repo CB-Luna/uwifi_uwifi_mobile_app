@@ -24,11 +24,15 @@ class ConnectionLoading extends ConnectionState {
 
 class ConnectionLoaded extends ConnectionState {
   final GatewayInfo gatewayInfo;
+  final bool fromCache;
 
-  const ConnectionLoaded({required this.gatewayInfo});
+  const ConnectionLoaded({
+    required this.gatewayInfo,
+    this.fromCache = false,
+  });
 
   @override
-  List<Object?> get props => [gatewayInfo];
+  List<Object?> get props => [gatewayInfo, fromCache];
 }
 
 class ConnectionError extends ConnectionState {

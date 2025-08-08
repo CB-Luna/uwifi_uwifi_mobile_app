@@ -17,3 +17,12 @@ class GetDataUsageEvent extends DataUsageEvent {
 }
 
 class ResetDataUsageEvent extends DataUsageEvent {}
+
+class ForceRefreshDataUsageEvent extends DataUsageEvent {
+  final String customerId;
+
+  const ForceRefreshDataUsageEvent({required this.customerId});
+
+  @override
+  List<Object> get props => [customerId];
+}

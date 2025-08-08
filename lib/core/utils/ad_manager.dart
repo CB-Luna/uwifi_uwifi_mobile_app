@@ -6,11 +6,11 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 class AdManager {
   static String get bannerAdUnitId {
     if (kDebugMode) {
-      // Usar IDs de prueba en modo debug
+      // Usar IDs de prueba oficiales de Google AdMob en modo debug
       if (Platform.isAndroid) {
-        return 'ca-app-pub-3940256099942544/6300978111'; // ID de prueba para Android
+        return 'ca-app-pub-3940256099942544/9214589741'; // ID de prueba oficial para Android
       } else if (Platform.isIOS) {
-        return 'ca-app-pub-3940256099942544/2934735716'; // ID de prueba para iOS
+        return 'ca-app-pub-3940256099942544/2435281174'; // ID de prueba oficial para iOS
       }
     } else {
       // Usar IDs reales en producción
@@ -46,11 +46,53 @@ class AdManager {
     }
   }
 
-  /// Crea un BannerAd
+  /// Crea un BannerAd estándar (método original para mantener compatibilidad)
   static BannerAd createBannerAd() {
     return BannerAd(
       adUnitId: bannerAdUnitId,
       size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (kDebugMode) {
+            print('Ad loaded: ${ad.adUnitId}');
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          if (kDebugMode) {
+            print('Ad failed to load: ${ad.adUnitId}, $error');
+          }
+          ad.dispose();
+        },
+        onAdOpened: (ad) {
+          if (kDebugMode) {
+            print('Ad opened: ${ad.adUnitId}');
+          }
+        },
+        onAdClosed: (ad) {
+          if (kDebugMode) {
+            print('Ad closed: ${ad.adUnitId}');
+          }
+        },
+      ),
+    );
+  }
+
+  /// Crea un BannerAd adaptativo que se ajusta al ancho de la pantalla
+  static Future<BannerAd?> createAdaptiveBannerAd(int width) async {
+    // Obtener el tamaño adaptativo para la orientación actual
+    final AdSize? size = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(width);
+    
+    if (size == null) {
+      if (kDebugMode) {
+        print('No se pudo obtener el tamaño adaptativo del banner');
+      }
+      return null;
+    }
+    
+    return BannerAd(
+      adUnitId: bannerAdUnitId,
+      size: size,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (ad) {

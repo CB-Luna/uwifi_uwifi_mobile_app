@@ -244,10 +244,13 @@ class _ConnectionDetailsPageState extends State<ConnectionDetailsPage> {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onPressed: () {
-                          // Recargar los datos de uso
-                          context.read<DataUsageBloc>().add(
-                            const GetDataUsageEvent(customerId: 'customer_id'),
-                          );
+                          // Recargar los datos de uso forzando actualización
+                          final authState = context.read<AuthBloc>().state;
+                          if (authState is AuthAuthenticated && authState.user.customerId != null) {
+                            context.read<DataUsageBloc>().add(
+                              ForceRefreshDataUsageEvent(customerId: authState.user.customerId.toString()),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(width: 8),

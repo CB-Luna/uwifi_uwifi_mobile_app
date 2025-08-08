@@ -55,20 +55,53 @@ class _HomePageState extends State<HomePage> {
     _loadBannerAd();
   }
 
-  // Método para cargar el anuncio banner
+  // Método para cargar el anuncio banner adaptativo
   void _loadBannerAd() {
+    // Primero cargamos un banner estándar para asegurar que haya un anuncio
     _bannerAd = AdManager.createBannerAd();
     _bannerAd!
         .load()
         .then((value) {
-          setState(() {
-            _isAdLoaded = true;
-          });
+          if (mounted) {
+            setState(() {
+              _isAdLoaded = true;
+            });
+          }
         })
         .catchError((error) {
           AppLogger.navInfo('Error al cargar el anuncio: $error');
           _isAdLoaded = false;
         });
+
+    // Luego, una vez que el widget esté completamente montado, intentamos cargar un banner adaptativo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final width = MediaQuery.of(context).size.width.truncate();
+      AdManager.createAdaptiveBannerAd(width).then((adaptiveBanner) {
+        if (adaptiveBanner != null && mounted) {
+          // Disponer del banner anterior si existe
+          _bannerAd?.dispose();
+
+          // Asignar y cargar el nuevo banner adaptativo
+          _bannerAd = adaptiveBanner;
+          _bannerAd!
+              .load()
+              .then((_) {
+                if (mounted) {
+                  setState(() {
+                    _isAdLoaded = true;
+                  });
+                }
+              })
+              .catchError((error) {
+                AppLogger.navInfo(
+                  'Error al cargar el anuncio adaptativo: $error',
+                );
+              });
+        }
+      });
+    });
   }
 
   @override
@@ -181,10 +214,10 @@ class _HomePageState extends State<HomePage> {
             bottom: _isAdLoaded
                 ? (Platform.isIOS
                       ? 50
-                      : 110) // iOS: 5, Android: 110 cuando hay anuncios
+                      : 100) // iOS: 5, Android: 110 cuando hay anuncios
                 : (Platform.isIOS
                       ? 10
-                      : 30), // iOS: 5, Android: 30 cuando no hay anuncios
+                      : 40), // iOS: 5, Android: 30 cuando no hay anuncios
             left: 0,
             right: 0,
             child: FloatingNavigationBar(
@@ -205,7 +238,7 @@ class _HomePageState extends State<HomePage> {
           // Banner de anuncios en la parte inferior
           if (_isAdLoaded && _bannerAd != null)
             Positioned(
-              bottom: Platform.isIOS ? 0 : 50, // iOS: 0, Android: 50
+              bottom: Platform.isIOS ? 0 : 40, // iOS: 0, Android: 50
               left: 0,
               right: 0,
               child: Container(
@@ -213,7 +246,6 @@ class _HomePageState extends State<HomePage> {
                   context,
                 ).size.width, // Ancho explícito de la pantalla
                 color: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Container(
                   width: MediaQuery.of(context).size.width,
                   height: _bannerAd!.size.height.toDouble(),

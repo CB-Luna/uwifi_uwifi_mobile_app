@@ -10,15 +10,23 @@ abstract class DataUsageState extends Equatable {
 
 class DataUsageInitial extends DataUsageState {}
 
-class DataUsageLoading extends DataUsageState {}
+class DataUsageLoading extends DataUsageState {
+  final DataUsage? previousData;
+  
+  const DataUsageLoading({this.previousData});
+  
+  @override
+  List<Object> get props => previousData != null ? [previousData!] : [];
+}
 
 class DataUsageLoaded extends DataUsageState {
   final DataUsage dataUsage;
+  final bool fromCache;
   
-  const DataUsageLoaded(this.dataUsage);
+  const DataUsageLoaded(this.dataUsage, {this.fromCache = false});
   
   @override
-  List<Object> get props => [dataUsage];
+  List<Object> get props => [dataUsage, fromCache];
 }
 
 class DataUsageError extends DataUsageState {

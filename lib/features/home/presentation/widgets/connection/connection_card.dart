@@ -85,6 +85,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
                     String connectionStatus = 'Loading...';
                     String wifiName = 'Searching...';
                     Color statusColor = Colors.grey;
+                    bool isLoading = state is connection_state.ConnectionLoading;
 
                     if (state is connection_state.ConnectionLoaded) {
                       connectionStatus = state.gatewayInfo.connectionStatus;
@@ -108,16 +109,49 @@ class _ConnectionCardState extends State<ConnectionCard> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Connection status
-                        Text(
-                          connectionStatus,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontSize: responsiveFontSizesScreen.labelLarge(
-                              context,
+                        // Connection status with refresh button
+                        Row(
+                          children: [
+                            Text(
+                              connectionStatus,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontSize: responsiveFontSizesScreen.labelLarge(
+                                  context,
+                                ),
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                            fontWeight: FontWeight.w500,
-                          ),
+                            const SizedBox(width: 8),
+                            // Botón de recarga manual
+                            SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: IconButton(
+                                icon: isLoading 
+                                  ? const SizedBox(
+                                      width: 12,
+                                      height: 12,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                                      ),
+                                    )
+                                  : const Icon(Icons.refresh, size: 16),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: isLoading ? null : () {
+                                  // Forzar recarga de la información de conexión
+                                  final authState = context.read<AuthBloc>().state;
+                                  if (authState is AuthAuthenticated && authState.user.customerId != null) {
+                                    context.read<ConnectionBloc>().add(
+                                      ForceRefreshConnectionInfoEvent(authState.user.customerId!),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
                         ),
 
                         const SizedBox(height: 8),

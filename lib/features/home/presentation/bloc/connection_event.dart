@@ -16,6 +16,15 @@ class GetConnectionInfoEvent extends ConnectionEvent {
   List<Object> get props => [customerId];
 }
 
+class ForceRefreshConnectionInfoEvent extends ConnectionEvent {
+  final int customerId;
+
+  const ForceRefreshConnectionInfoEvent(this.customerId);
+
+  @override
+  List<Object> get props => [customerId];
+}
+
 class UpdateWifiNetworkNameEvent extends ConnectionEvent {
   final String serialNumber;
   final String newName;

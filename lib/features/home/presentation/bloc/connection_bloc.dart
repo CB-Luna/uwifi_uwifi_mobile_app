@@ -21,6 +21,11 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
   
   // Cache to maintain information between reloads
   GatewayInfo? _cachedGatewayInfo;
+  DateTime? _lastFetchTime;
+  int? _lastCustomerId;
+  
+  // Tiempo máximo de caché en minutos
+  static const int _cacheMaxAgeMinutes = 30;
 
   ConnectionBloc({
     required this.getCustomerBundle,
@@ -31,9 +36,133 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     required this.secureStorage,
   }) : super(const ConnectionInitial()) {
     on<GetConnectionInfoEvent>(_onGetConnectionInfo);
+    on<ForceRefreshConnectionInfoEvent>(_onForceRefreshConnectionInfo);
     on<UpdateWifiNetworkNameEvent>(_onUpdateWifiNetworkName);
     on<UpdateWifiPasswordEvent>(_onUpdateWifiPassword);
     on<RebootGatewayEvent>(_onRebootGateway);
+  }
+
+  /// Verifica si debemos usar los datos en caché basado en el tiempo transcurrido
+  /// desde la última actualización y si el customerId es el mismo
+  bool _shouldUseCachedData(int customerId) {
+    // Si no tenemos tiempo de última actualización o customerId, no podemos usar caché
+    if (_lastFetchTime == null || _lastCustomerId == null) {
+      return false;
+    }
+    
+    // Si el customerId cambió, no podemos usar la caché
+    if (_lastCustomerId != customerId) {
+      return false;
+    }
+    
+    // Verificar si han pasado menos de _cacheMaxAgeMinutes desde la última actualización
+    final now = DateTime.now();
+    final difference = now.difference(_lastFetchTime!);
+    return difference.inMinutes < _cacheMaxAgeMinutes;
+  }
+
+  Future<void> _onForceRefreshConnectionInfo(
+    ForceRefreshConnectionInfoEvent event,
+    Emitter<ConnectionState> emit,
+  ) async {
+    try {
+      // Siempre mostrar estado de carga pero preservar datos anteriores
+      if (_cachedGatewayInfo != null) {
+        emit(ConnectionLoading(previousInfo: _cachedGatewayInfo));
+      } else {
+        emit(const ConnectionLoading());
+      }
+
+      AppLogger.navInfo(
+        'Forzando actualización de información de conexión para customerId: ${event.customerId}',
+      );
+
+      // Step 1: Get customer bundle
+      final bundleResult = await getCustomerBundle(event.customerId);
+
+      await bundleResult.fold(
+        (failure) async {
+          AppLogger.navError(
+            'Error getting customer bundle: ${failure.message}',
+          );
+          
+          // Si tenemos información en caché, la usamos a pesar del error
+          if (_cachedGatewayInfo != null) {
+            emit(ConnectionLoaded(gatewayInfo: _cachedGatewayInfo!));
+          } else {
+            emit(ConnectionError(message: failure.message));
+          }
+        },
+        (bundles) async {
+          if (bundles.isEmpty) {
+            AppLogger.navError('No bundles found for customer');
+            
+            // Si tenemos información en caché, la usamos
+            if (_cachedGatewayInfo != null) {
+              emit(ConnectionLoaded(gatewayInfo: _cachedGatewayInfo!));
+            } else {
+              emit(const ConnectionError(message: 'No bundles found'));
+            }
+            return;
+          }
+
+          // Take the first bundle (we assume it's the main one)
+          final bundle = bundles.first;
+          
+          // Check if we have a serial number
+          if (bundle.gatewaySerialNumber.isEmpty) {
+            AppLogger.navError('Bundle has no serial number');
+            
+            // Si tenemos información en caché, la usamos
+            if (_cachedGatewayInfo != null) {
+              emit(ConnectionLoaded(gatewayInfo: _cachedGatewayInfo!));
+            } else {
+              emit(const ConnectionError(message: 'Device without serial number'));
+            }
+            return;
+          }
+
+          // Step 2: Get gateway information using serial number
+          final gatewayInfoResult = await getGatewayInfo(bundle.gatewaySerialNumber);
+
+          await gatewayInfoResult.fold(
+            (failure) async {
+              AppLogger.navError(
+                'Error getting gateway information: ${failure.message}',
+              );
+              
+              // Si tenemos información en caché, la usamos
+              if (_cachedGatewayInfo != null) {
+                emit(ConnectionLoaded(gatewayInfo: _cachedGatewayInfo!));
+              } else {
+                emit(ConnectionError(message: failure.message));
+              }
+            },
+            (gatewayInfo) async {
+              try {
+                AppLogger.navInfo(
+                  'Gateway information obtained successfully',
+                );
+                
+                // Actualizar la caché y el tiempo de última actualización
+                _cachedGatewayInfo = gatewayInfo;
+                _lastFetchTime = DateTime.now();
+                
+                emit(ConnectionLoaded(gatewayInfo: gatewayInfo));
+              } catch (e) {
+                AppLogger.navError(
+                  'Error processing gateway information: $e',
+                );
+                emit(ConnectionError(message: e.toString()));
+              }
+            },
+          );
+        },
+      );
+    } catch (e) {
+      AppLogger.navError('Unexpected error: $e');
+      emit(ConnectionError(message: e.toString()));
+    }
   }
 
   Future<void> _onGetConnectionInfo(
@@ -41,6 +170,9 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     Emitter<ConnectionState> emit,
   ) async {
     try {
+      // Verificar si podemos usar la caché
+      final bool useCachedData = _shouldUseCachedData(event.customerId);
+      
       // Preserve previous state if it exists
       final currentState = state;
       if (currentState is ConnectionLoaded) {
@@ -52,12 +184,27 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
         emit(const ConnectionLoading());
       }
 
+      // Si tenemos datos en caché válidos, los usamos directamente
+      if (useCachedData && _cachedGatewayInfo != null) {
+        AppLogger.navInfo(
+          'Usando información de conexión en caché para customerId: ${event.customerId}',
+        );
+        emit(ConnectionLoaded(
+          gatewayInfo: _cachedGatewayInfo!,
+          fromCache: true,
+        ));
+        return;
+      }
+
       AppLogger.navInfo(
         'Requesting connection information for customerId: ${event.customerId}',
       );
 
       // Step 1: Get customer bundle
       final bundleResult = await getCustomerBundle(event.customerId);
+      
+      // Actualizar el último customerId consultado
+      _lastCustomerId = event.customerId;
 
       await bundleResult.fold(
         (failure) async {
@@ -125,8 +272,9 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
                   wifi5GPassword: wifi5GPassword ?? gatewayInfo.wifi5GPassword,
                 );
                 
-                // Actualizar el caché
+                // Actualizar el caché y el tiempo de última actualización
                 _cachedGatewayInfo = updatedGatewayInfo;
+                _lastFetchTime = DateTime.now();
                 
                 // Emitir el estado final después de todas las operaciones asíncronas
                 emit(ConnectionLoaded(gatewayInfo: updatedGatewayInfo));

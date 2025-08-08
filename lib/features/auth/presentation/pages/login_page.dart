@@ -151,20 +151,45 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-  // Método para cargar el anuncio banner
+  // Método para cargar el anuncio banner adaptativo
   void _loadBannerAd() {
+    // Primero cargamos un banner estándar para asegurar que haya un anuncio
     _bannerAd = AdManager.createBannerAd();
-    _bannerAd!
-        .load()
-        .then((value) {
-          setState(() {
-            _isAdLoaded = true;
-          });
-        })
-        .catchError((error) {
-          AppLogger.navInfo('Error al cargar el anuncio: $error');
-          _isAdLoaded = false;
+    _bannerAd!.load().then((value) {
+      if (mounted) {
+        setState(() {
+          _isAdLoaded = true;
         });
+      }
+    }).catchError((error) {
+      AppLogger.authWarning('Error al cargar el anuncio: $error');
+      _isAdLoaded = false;
+    });
+    
+    // Luego, una vez que el widget esté completamente montado, intentamos cargar un banner adaptativo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      
+      final width = MediaQuery.of(context).size.width.truncate();
+      AdManager.createAdaptiveBannerAd(width).then((adaptiveBanner) {
+        if (adaptiveBanner != null && mounted) {
+          // Disponer del banner anterior si existe
+          _bannerAd?.dispose();
+          
+          // Asignar y cargar el nuevo banner adaptativo
+          _bannerAd = adaptiveBanner;
+          _bannerAd!.load().then((_) {
+            if (mounted) {
+              setState(() {
+                _isAdLoaded = true;
+              });
+            }
+          }).catchError((error) {
+            AppLogger.authWarning('Error al cargar el anuncio adaptativo: $error');
+          });
+        }
+      });
+    });
   }
 
   @override
