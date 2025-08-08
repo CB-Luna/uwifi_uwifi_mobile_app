@@ -104,6 +104,57 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Widget para mostrar un banner de prueba cuando no se puede cargar un anuncio real
+  Widget _buildTestAdBanner() {
+    return Container(
+      height: 60,
+      width: double.infinity,
+      color: Colors.black87,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 15.0),
+            child: Text(
+              'Nice job!',
+              style: TextStyle(
+                color: Colors.blue.shade400,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 6.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'Test mode',
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 15.0),
+            child: Row(
+              children: [
+                const Text(
+                  'Test ad.',
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(width: 8),
+                Image.asset('assets/admob.png', width: 24, height: 24),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     // Liberar recursos del anuncio
@@ -236,24 +287,22 @@ class _HomePageState extends State<HomePage> {
           ),
 
           // Banner de anuncios en la parte inferior
-          if (_isAdLoaded && _bannerAd != null)
-            Positioned(
-              bottom: Platform.isIOS ? 0 : 40, // iOS: 0, Android: 50
-              left: 0,
-              right: 0,
-              child: Container(
-                width: MediaQuery.of(
-                  context,
-                ).size.width, // Ancho explícito de la pantalla
-                color: Colors.white,
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  height: _bannerAd!.size.height.toDouble(),
-                  alignment: Alignment.center,
-                  child: AdWidget(ad: _bannerAd!),
-                ),
-              ),
+          Positioned(
+            bottom: Platform.isIOS ? 0 : 40, // iOS: 0, Android: 40
+            left: 0,
+            right: 0,
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              color: Colors.white,
+              child: _isAdLoaded && _bannerAd != null
+                  ? SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: _bannerAd!.size.height.toDouble(),
+                      child: AdWidget(ad: _bannerAd!),
+                    )
+                  : _buildTestAdBanner(),
             ),
+          ),
         ],
       ),
     );

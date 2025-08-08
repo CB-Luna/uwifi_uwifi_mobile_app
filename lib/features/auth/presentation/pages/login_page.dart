@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
     AppLogger.navInfo('LoginPage initialized');
     _biometricAuthService = di.getIt<BiometricAuthService>();
     _loadBannerAd();
-    
+
     // Configurar listeners para los campos de texto
     _emailController.addListener(_scrollToBottomOnFocus);
     _passwordController.addListener(_scrollToBottomOnFocus);
@@ -60,7 +60,59 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _bannerAd?.dispose();
     super.dispose();
+  }
+
+  // Widget para mostrar un banner de prueba cuando no se puede cargar un anuncio real
+  Widget _buildTestAdBanner() {
+    return Container(
+      height: 50,
+      width: double.infinity,
+      color: Colors.black87,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 15.0),
+            child: Text(
+              'Nice job!',
+              style: TextStyle(
+                color: Colors.blue.shade400,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 6.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            alignment: Alignment.center,
+            child: const Text(
+              'Test mode',
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 15.0),
+            child: Row(
+              children: [
+                const Text(
+                  'Test ad.',
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(width: 8),
+                Image.asset('assets/admob.png', width: 24, height: 24),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleLogin() {
@@ -104,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _showForgotPasswordSheet(BuildContext context) {
     AppLogger.authInfo('Showing forgot password sheet');
-    
+
     // Usamos showModalBottomSheet con isScrollControlled: true para permitir que
     // el sheet se expanda cuando el teclado está abierto
     showModalBottomSheet(
@@ -155,38 +207,46 @@ class _LoginPageState extends State<LoginPage> {
   void _loadBannerAd() {
     // Primero cargamos un banner estándar para asegurar que haya un anuncio
     _bannerAd = AdManager.createBannerAd();
-    _bannerAd!.load().then((value) {
-      if (mounted) {
-        setState(() {
-          _isAdLoaded = true;
+    _bannerAd!
+        .load()
+        .then((value) {
+          if (mounted) {
+            setState(() {
+              _isAdLoaded = true;
+            });
+          }
+        })
+        .catchError((error) {
+          AppLogger.authWarning('Error al cargar el anuncio: $error');
+          _isAdLoaded = false;
         });
-      }
-    }).catchError((error) {
-      AppLogger.authWarning('Error al cargar el anuncio: $error');
-      _isAdLoaded = false;
-    });
-    
+
     // Luego, una vez que el widget esté completamente montado, intentamos cargar un banner adaptativo
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      
+
       final width = MediaQuery.of(context).size.width.truncate();
       AdManager.createAdaptiveBannerAd(width).then((adaptiveBanner) {
         if (adaptiveBanner != null && mounted) {
           // Disponer del banner anterior si existe
           _bannerAd?.dispose();
-          
+
           // Asignar y cargar el nuevo banner adaptativo
           _bannerAd = adaptiveBanner;
-          _bannerAd!.load().then((_) {
-            if (mounted) {
-              setState(() {
-                _isAdLoaded = true;
+          _bannerAd!
+              .load()
+              .then((_) {
+                if (mounted) {
+                  setState(() {
+                    _isAdLoaded = true;
+                  });
+                }
+              })
+              .catchError((error) {
+                AppLogger.authWarning(
+                  'Error al cargar el anuncio adaptativo: $error',
+                );
               });
-            }
-          }).catchError((error) {
-            AppLogger.authWarning('Error al cargar el anuncio adaptativo: $error');
-          });
         }
       });
     });
@@ -266,14 +326,15 @@ class _LoginPageState extends State<LoginPage> {
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               autocorrect: false,
-                              textCapitalization: TextCapitalization.none,
                               onTap: _scrollToBottomOnFocus,
                               onChanged: (value) {
                                 // Convertir automáticamente a minúsculas
                                 if (value != value.toLowerCase()) {
                                   _emailController.value = TextEditingValue(
                                     text: value.toLowerCase(),
-                                    selection: TextSelection.collapsed(offset: value.toLowerCase().length),
+                                    selection: TextSelection.collapsed(
+                                      offset: value.toLowerCase().length,
+                                    ),
                                   );
                                 }
                               },
@@ -496,21 +557,25 @@ class _LoginPageState extends State<LoginPage> {
                             // Ad banner
                             const SizedBox(height: 24),
                             // Banner de anuncios en la parte inferior
-                            if (_isAdLoaded && _bannerAd != null)
-                              Center(
-                                child: Container(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 8,
-                                    top: 8,
-                                  ), // Padding inferior para evitar solapamiento
-                                  alignment: Alignment.center,
-                                  width: _bannerAd!.size.width.toDouble(),
-                                  height:
-                                      _bannerAd!.size.height.toDouble() +
-                                      8, // Añadimos espacio extra para el padding
-                                  child: AdWidget(ad: _bannerAd!),
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.only(
+                                  bottom: 8,
+                                  top: 8,
                                 ),
+                                alignment: Alignment.center,
+                                width: _isAdLoaded && _bannerAd != null
+                                    ? _bannerAd!.size.width.toDouble()
+                                    : MediaQuery.of(context).size.width,
+                                height: _isAdLoaded && _bannerAd != null
+                                    ? _bannerAd!.size.height.toDouble() + 8
+                                    : 50 +
+                                          16, // Altura del banner de prueba + padding
+                                child: _isAdLoaded && _bannerAd != null
+                                    ? AdWidget(ad: _bannerAd!)
+                                    : _buildTestAdBanner(),
                               ),
+                            ),
                           ],
                         ),
                       ),
