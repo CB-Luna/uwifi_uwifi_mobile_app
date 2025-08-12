@@ -739,18 +739,25 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
         final currentVideo = videoList[_currentIndex];
 
         // ✅ USE VideoCompletionHandler to handle video completion
+        // Pero NO avanzar automáticamente al siguiente video
         VideoCompletionHandler.handleVideoCompletion(
           context,
           currentVideo, // Pasar el video completo con sus puntos específicos
           onAnimationComplete: () {
-            // After animation, advance to next video
-            _advanceToNextVideo(videoList, videosState);
+            // No avanzar automáticamente al siguiente video
+            // El usuario debe hacer swipe manualmente para continuar
+            AppLogger.videoInfo('🛑 Video terminado. Esperando interacción del usuario para continuar');
+            
+            // Pausar el video actual para indicar visualmente que ha terminado
+            if (_currentVideoController != null && _currentVideoController!.value.isPlaying) {
+              _currentVideoController!.pause();
+            }
           },
           customPoints: currentVideo.metadata?.points,
         );
-      } else {
-        _advanceToNextVideo(videoList, videosState);
       }
+      // Eliminamos el else que llamaba a _advanceToNextVideo
+      // para que nunca avance automáticamente
     });
   }
 
