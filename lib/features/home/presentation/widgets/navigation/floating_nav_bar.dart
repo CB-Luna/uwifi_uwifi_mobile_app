@@ -36,7 +36,7 @@ class FloatingNavigationBar extends StatelessWidget {
           _buildNavItem(
             context: context,
             icon: MyFlutterApp.u,
-            label: 'Videos',
+            label: 'Free U',
             index: 0,
             isSelected: currentIndex == 0,
           ),

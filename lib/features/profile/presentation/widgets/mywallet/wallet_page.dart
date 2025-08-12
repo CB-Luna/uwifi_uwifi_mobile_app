@@ -246,7 +246,7 @@ class _WalletPageState extends State<WalletPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'My Wallet',
+          'U Wallet',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -503,12 +503,15 @@ class _WalletPageState extends State<WalletPage> {
                 if (paymentState is PaymentLoaded) {
                   cardCount = paymentState.creditCards.length;
                 }
-                
+
                 return Row(
                   children: [
                     Text(
                       'Payment Methods${cardCount > 0 ? ' ($cardCount)' : ''}',
-                      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                      ),
                     ),
                     const Spacer(),
                     OutlinedButton.icon(

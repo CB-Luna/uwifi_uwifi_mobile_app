@@ -106,7 +106,7 @@ class FreeUInfoPage extends StatelessWidget {
                         ]),
                         SizedBox(height: 5),
                         Text(
-                          'Each ad you watch adds points to your account, which you can check anytime in the "My Wallet" section.',
+                          'Each ad you watch adds points to your account, which you can check anytime in the "U Wallet" section.',
                           style: TextStyle(fontSize: 14),
                         ),
                       ],

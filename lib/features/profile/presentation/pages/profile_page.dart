@@ -109,194 +109,194 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                              ),
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(
-                                    color: Colors.grey.shade400,
-                                    width: 1.2,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.05,
-                                      ),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Header
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
                                 ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 32,
-                                      backgroundColor: Colors.grey.shade200,
-                                      child: Text(
-                                        initials,
-                                        style: const TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(
+                                      color: Colors.grey.shade400,
+                                      width: 1.2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 32,
+                                        backgroundColor: Colors.grey.shade200,
+                                        child: Text(
+                                          initials,
+                                          style: const TextStyle(
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
                                         ),
                                       ),
+                                      const SizedBox(width: 20),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              name,
+                                              style: const TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              email,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              const Text(
+                                'Account',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _ProfileOption(
+                                icon: Icons.account_balance_wallet_outlined,
+                                label: 'U Wallet',
+                                onTap: () {
+                                  Navigator.of(
+                                    context,
+                                  ).pushNamed(AppRouter.wallet);
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              _ProfileOption(
+                                icon: Icons.storefront_outlined,
+                                label: 'U-wifi Store',
+                                onTap: () {
+                                  Navigator.of(
+                                    context,
+                                  ).pushNamed(AppRouter.uwifiStore);
+                                },
+                              ),
+                              const SizedBox(height: 28),
+                              const Text(
+                                'App Settings',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _ProfileOption(
+                                icon: Icons.wifi_tethering,
+                                label: 'My U-Wifi Plan',
+                                onTap: () {
+                                  Navigator.of(
+                                    context,
+                                  ).pushNamed(AppRouter.myUwifiPlan);
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              _ProfileOption(
+                                icon: Icons.settings,
+                                label: 'Settings',
+                                onTap: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    builder: (context) => const SettingsModal(),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 36),
+                              Center(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '© 2025 $appName. All rights reserved. | Version $appVersion',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 13,
+                                      ),
                                     ),
-                                    const SizedBox(width: 20),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            name,
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            email,
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.black54,
-                                            ),
-                                          ),
-                                        ],
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Test Version: $appVersion ($appBuild)',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade400,
+                                        fontSize: 13,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 32),
-                            const Text(
-                              'Account',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            _ProfileOption(
-                              icon: Icons.account_balance_wallet_outlined,
-                              label: 'My Wallet',
-                              onTap: () {
-                                Navigator.of(
-                                  context,
-                                ).pushNamed(AppRouter.wallet);
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            _ProfileOption(
-                              icon: Icons.storefront_outlined,
-                              label: 'U-wifi Store',
-                              onTap: () {
-                                Navigator.of(
-                                  context,
-                                ).pushNamed(AppRouter.uwifiStore);
-                              },
-                            ),
-                            const SizedBox(height: 28),
-                            const Text(
-                              'App Settings',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            _ProfileOption(
-                              icon: Icons.wifi_tethering,
-                              label: 'My U-Wifi Plan',
-                              onTap: () {
-                                Navigator.of(
-                                  context,
-                                ).pushNamed(AppRouter.myUwifiPlan);
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            _ProfileOption(
-                              icon: Icons.settings,
-                              label: 'Settings',
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (context) => const SettingsModal(),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 36),
-                            Center(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    '© 2025 $appName. All rights reserved. | Version $appVersion',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade400,
-                                      fontSize: 13,
+                              const SizedBox(height: 24),
+                              Center(
+                                child: SizedBox(
+                                  width: 180,
+                                  child: OutlinedButton(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                      side: const BorderSide(color: Colors.red),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Test Version: $appVersion ($appBuild)',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade400,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Center(
-                              child: SizedBox(
-                                width: 180,
-                                child: OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                    side: const BorderSide(color: Colors.red),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(24),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 14,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    _showLogoutDialog(context);
-                                  },
-                                  child: const Text(
-                                    'Log Out',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
+                                    onPressed: () {
+                                      _showLogoutDialog(context);
+                                    },
+                                    child: const Text(
+                                      'Log Out',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                            // Agregamos espacio adicional para evitar que el botón de Logout quede tapado por la barra de navegación
-                            const SizedBox(height: 100),
-                          ],
+                              // Agregamos espacio adicional para evitar que el botón de Logout quede tapado por la barra de navegación
+                              const SizedBox(height: 100),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   ],
                 ),
               ),

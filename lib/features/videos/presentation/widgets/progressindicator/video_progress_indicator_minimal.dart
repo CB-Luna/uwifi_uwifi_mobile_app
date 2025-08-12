@@ -229,12 +229,17 @@ class _VideoProgressIndicatorMinimalState
             SizedBox(
               width: widget.size,
               height: widget.size,
-              child: CircularProgressIndicator(
-                value: _progress,
-                strokeWidth: widget.strokeWidth,
-                backgroundColor: widget.backgroundColor,
-                valueColor: AlwaysStoppedAnimation<Color>(widget.progressColor),
-                strokeCap: StrokeCap.round,
+              child: Transform(  
+                // Aplicar una transformación para invertir la dirección
+                alignment: Alignment.center,
+                transform: Matrix4.rotationY(3.14159), // Rotar en el eje Y (pi radianes)
+                child: CircularProgressIndicator(
+                  value: _progress,
+                  strokeWidth: widget.strokeWidth,
+                  backgroundColor: widget.backgroundColor,
+                  valueColor: AlwaysStoppedAnimation<Color>(widget.progressColor),
+                  strokeCap: StrokeCap.round,
+                ),
               ),
             ),
 
