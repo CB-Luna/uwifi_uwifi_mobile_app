@@ -309,6 +309,9 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
             categories: sortedCategories, // Usar la lista ordenada
             selectedCategory: state.selectedCategory,
             onCategorySelected: (category) {
+              // Ocultar el teclado si está abierto
+              FocusScope.of(context).unfocus();
+              
               if (category == null) {
                 // Show all videos
                 context.read<VideoExplorerBloc>().add(
@@ -323,6 +326,9 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                   ),
                 );
               }
+              
+              // Registrar acción para depuración
+              AppLogger.videoInfo('Categoría seleccionada: ${category?.name ?? "All"}, teclado ocultado');
             },
           );
         }
