@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/utils/app_logger.dart';
 import '../../../domain/entities/ad.dart';
+import '../../../domain/entities/genre_with_videos.dart';
 import '../../bloc/video_explorer_bloc.dart';
 import '../../bloc/video_explorer_event.dart';
 import '../../bloc/video_explorer_state.dart';
@@ -297,8 +298,15 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
     return BlocBuilder<VideoExplorerBloc, VideoExplorerState>(
       builder: (context, state) {
         if (state is VideoExplorerLoaded) {
+          // Ordenar las categorías alfabéticamente por nombre
+          final sortedCategories = List<GenreWithVideos>.from(state.categories)
+            ..sort((a, b) => a.name.compareTo(b.name));
+            
+          // Registrar en log para depuración
+          AppLogger.videoInfo('Categorías ordenadas alfabéticamente: ${sortedCategories.map((c) => c.name).join(', ')}');
+            
           return CategoryFilterWidget(
-            categories: state.categories,
+            categories: sortedCategories, // Usar la lista ordenada
             selectedCategory: state.selectedCategory,
             onCategorySelected: (category) {
               if (category == null) {
