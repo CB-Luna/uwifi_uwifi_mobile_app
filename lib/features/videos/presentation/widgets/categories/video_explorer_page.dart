@@ -60,11 +60,21 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
       if (mounted) {
         context.read<VideoExplorerBloc>().add(const LoadCategoriesEvent());
         // ✅ NUEVO: Cargar automáticamente todos los videos al inicio
-        Future.delayed(const Duration(milliseconds: 100), () {
+        // Aumentar el delay para asegurar que las categorías se hayan cargado completamente
+        Future.delayed(const Duration(milliseconds: 800), () {
           if (mounted) {
+            AppLogger.videoInfo('🚀 Iniciando carga automática de todos los videos');
+            
+            // Ocultar el teclado si está abierto
+            FocusScope.of(context).unfocus();
+            
+            // Enviar evento para cargar todos los videos (categoría "All")
             context.read<VideoExplorerBloc>().add(
-              const FilterByCategory(categoryName: 'Todos'),
+              const FilterByCategory(categoryName: 'All', clearCache: true),
             );
+            
+            // Log adicional para depuración
+            AppLogger.videoInfo('🔍 Evento FilterByCategory enviado con categoryName: All');
           }
         });
       }
@@ -410,6 +420,9 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
         }
 
         if (state is VideoExplorerLoaded) {
+          // Log para verificar la cantidad de videos cargados
+          AppLogger.videoInfo('📊 Mostrando ${state.filteredVideos.length} videos en UI');
+          
           if (state.filteredVideos.isEmpty) {
             return Center(
               child: Column(
