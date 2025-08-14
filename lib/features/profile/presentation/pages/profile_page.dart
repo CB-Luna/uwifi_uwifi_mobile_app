@@ -82,10 +82,10 @@ class _ProfilePageState extends State<ProfilePage> {
               name = customerState.customerDetails.fullName;
               AppLogger.navInfo('Usando nombre del cliente: $name');
             } else if (authState is AuthAuthenticated) {
-              name = authState.user.name ?? 'Usuario';
+              name = authState.user.name ?? 'User';
               AppLogger.navInfo('Usando nombre del usuario autenticado: $name');
             } else {
-              name = 'Usuario';
+              name = 'User';
               AppLogger.navInfo('Usando nombre predeterminado: $name');
             }
 

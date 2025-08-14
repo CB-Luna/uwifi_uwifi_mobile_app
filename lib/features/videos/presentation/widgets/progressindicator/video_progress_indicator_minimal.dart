@@ -18,8 +18,8 @@ class VideoProgressIndicatorMinimal extends StatefulWidget {
     super.key,
     this.size = 20,
     this.strokeWidth = 4,
-    this.backgroundColor = const Color.fromARGB(50, 255, 255, 255),
-    this.progressColor = Colors.green,
+    this.backgroundColor = Colors.green,
+    this.progressColor = Colors.grey,
     this.textColor = Colors.white,
     this.onPlayPausePressed,
   });
@@ -229,15 +229,19 @@ class _VideoProgressIndicatorMinimalState
             SizedBox(
               width: widget.size,
               height: widget.size,
-              child: Transform(  
+              child: Transform(
                 // Aplicar una transformación para invertir la dirección
                 alignment: Alignment.center,
-                transform: Matrix4.rotationY(3.14159), // Rotar en el eje Y (pi radianes)
+                transform: Matrix4.rotationY(
+                  3.14159,
+                ), // Rotar en el eje Y (pi radianes)
                 child: CircularProgressIndicator(
                   value: _progress,
                   strokeWidth: widget.strokeWidth,
                   backgroundColor: widget.backgroundColor,
-                  valueColor: AlwaysStoppedAnimation<Color>(widget.progressColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    widget.progressColor,
+                  ),
                   strokeCap: StrokeCap.round,
                 ),
               ),
