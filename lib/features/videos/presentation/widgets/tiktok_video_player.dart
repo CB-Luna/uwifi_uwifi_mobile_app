@@ -251,11 +251,20 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
             _progressController.value = progress.clamp(0.0, 1.0);
           }
 
+          // Log adicional para diagnosticar el primer video
+          if (progress > 0.8) {
+            AppLogger.videoInfo(
+              '📊 DIAGNÓSTICO PRIMER VIDEO: Progreso actual: ${(progress * 100).toStringAsFixed(1)}%',
+            );
+          }
+
           // ✅ MEJORADO: Múltiples condiciones para detectar fin de video
-          final isNearEnd = progress >= 0.98;
+          // Reducimos el umbral para detectar el final (de 0.98 a 0.90)
+          // para asegurar que se detecte incluso en el primer video
+          final isNearEnd = progress >= 0.90;
           final hasEnded =
               currentController.value.position >=
-              currentController.value.duration;
+              currentController.value.duration - const Duration(milliseconds: 500);
           final hasReachedEnd = position.inSeconds >= (duration.inSeconds - 1);
 
           if ((isNearEnd || hasEnded || hasReachedEnd) &&

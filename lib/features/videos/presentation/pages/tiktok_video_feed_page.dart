@@ -724,26 +724,40 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
 
   // ✅ MÉTODO PRINCIPAL: Manejar cuando termina un video
   void _handleVideoFinished() {
-    AppLogger.videoInfo('🏁 Video finished callback received');
+    AppLogger.videoInfo('🏁 Video finished callback received - Index: $_currentIndex');
+    
+    // Log para depurar estado inicial
+    AppLogger.videoInfo('📍 DIAGNÓSTICO: Estado antes de manejar video finalizado:');
+    AppLogger.videoInfo('📍 - Video actual índice: $_currentIndex');
+    AppLogger.videoInfo('📍 - Widget montado: ${mounted ? "Sí" : "No"}');
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!mounted) {
+        AppLogger.videoError('❌ Widget no está montado en postFrameCallback');
+        return;
+      }
 
       final videosState = context.read<VideosBloc>().state;
       List<Ad> videoList = [];
       if (videosState is VideosLoaded) {
         videoList = videosState.videos;
+        AppLogger.videoInfo('📍 Videos cargados: ${videoList.length}');
+      } else {
+        AppLogger.videoError('❌ Estado de videos no es VideosLoaded: ${videosState.runtimeType}');
       }
 
       if (videoList.isNotEmpty && _currentIndex < videoList.length) {
         final currentVideo = videoList[_currentIndex];
+        AppLogger.videoInfo('🎞️ Procesando finalización de video: "${currentVideo.title}" (ID: ${currentVideo.id})');
 
         // ✅ USE VideoCompletionHandler to handle video completion
         // Pero NO avanzar automáticamente al siguiente video
+        AppLogger.videoInfo('📍 Llamando a VideoCompletionHandler.handleVideoCompletion');
         VideoCompletionHandler.handleVideoCompletion(
           context,
           currentVideo, // Pasar el video completo con sus puntos específicos
           onAnimationComplete: () {
+            AppLogger.videoInfo('🌟 onAnimationComplete callback ejecutado');
             // No avanzar automáticamente al siguiente video
             // El usuario debe hacer swipe manualmente para continuar
             AppLogger.videoInfo('🛑 Video terminado. Esperando interacción del usuario para continuar');
@@ -834,6 +848,8 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
       '✅ Video seleccionado desde explorador: ${video.title} (índice: $verifiedIndex, ID: ${video.id})',
     );
   }
+
+  // Este método fue eliminado para corregir errores de lint
 
   // Método para pausar el video actual
   void _pauseCurrentVideo() {
