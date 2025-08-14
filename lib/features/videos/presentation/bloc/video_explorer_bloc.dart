@@ -129,12 +129,21 @@ class VideoExplorerBloc extends Bloc<VideoExplorerEvent, VideoExplorerState> {
         final cachedVideos = _videoCache[cacheKey]!;
 
         // Encontrar categoría seleccionada
-        final selectedCategory = event.categoryId != null
-            ? currentState.categories.firstWhere(
-                (cat) => cat.id == event.categoryId,
-                orElse: () => currentState.categories.first,
-              )
-            : null;
+        GenreWithVideos? selectedCategory;
+        
+        // Si es la categoría "All", establecer explícitamente a null
+        if (event.categoryName == 'All' || event.categoryId == null) {
+          selectedCategory = null;
+          AppLogger.videoInfo('📍 BLOC CACHE - Categoría "All" seleccionada, estableciendo selectedCategory a null');
+        } else {
+          // Para otras categorías, buscar por ID
+          selectedCategory = currentState.categories.firstWhere(
+            (cat) => cat.id == event.categoryId,
+            orElse: () => currentState.categories.first,
+          );
+        }
+        
+        AppLogger.videoInfo('📍 BLOC CACHE - Emitiendo estado con selectedCategory: ${selectedCategory?.name ?? "null"}');
 
         emit(
           currentState.copyWith(
@@ -182,15 +191,34 @@ class VideoExplorerBloc extends Bloc<VideoExplorerEvent, VideoExplorerState> {
           _videoCache[cacheKey] = videos;
 
           // Encontrar categoría seleccionada
-          final selectedCategory = event.categoryId != null
-              ? currentState.categories.firstWhere(
-                  (cat) => cat.id == event.categoryId,
-                  orElse: () => currentState.categories.first,
-                )
-              : null;
-
+          GenreWithVideos? selectedCategory;
+          
+          // Si es la categoría "All", establecer explícitamente a null
+          if (event.categoryName == 'All' || event.categoryId == null) {
+            selectedCategory = null;
+            AppLogger.videoInfo('📍 BLOC - Categoría "All" seleccionada, estableciendo selectedCategory a null');
+          } else {
+            // Para otras categorías, buscar por ID
+            selectedCategory = currentState.categories.firstWhere(
+              (cat) => cat.id == event.categoryId,
+              orElse: () => currentState.categories.first,
+            );
+          }
+          
+          // Log para depurar el estado de selectedCategory
           AppLogger.videoInfo(
-            '✅ Videos filtrados: ${videos.length} para ${event.categoryName}',
+            '📍 BLOC - Estableciendo selectedCategory: ${selectedCategory?.name ?? "null"} para evento con categoryName: ${event.categoryName}',
+          );
+
+          // Log detallado del resultado de filtrado
+          AppLogger.videoInfo(
+            '📊 Resultado del filtrado - Categoría: ${event.categoryName} (ID: ${event.categoryId})',
+          );
+          AppLogger.videoInfo(
+            '📂 Total videos encontrados: ${videos.length}',
+          );
+          AppLogger.videoInfo(
+            '✅ Videos filtrados exitosamente para ${event.categoryName}',
           );
 
           emit(

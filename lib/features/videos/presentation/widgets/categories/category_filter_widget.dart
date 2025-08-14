@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../../../core/utils/app_logger.dart';
 import '../../../domain/entities/genre_with_videos.dart';
 
 /// Widget para filtrar videos por categorías
@@ -49,9 +50,14 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
         itemBuilder: (context, index) {
           if (index == 0) {
             // Opción "Todos"
+            final isAllSelected = widget.selectedCategory == null;
+            
+            // Log para depurar el estado de selección de "All"
+            AppLogger.videoInfo('📍 Estado de selección de "All": $isAllSelected (selectedCategory: ${widget.selectedCategory?.name ?? "null"})'); 
+            
             return _buildCategoryChip(
               label: 'All',
-              isSelected: widget.selectedCategory == null,
+              isSelected: isAllSelected,
               videoCount: widget.categories
                   .map((cat) => cat.totalVideos)
                   .fold(0, (sum, count) => sum + count),
@@ -60,7 +66,14 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
           }
 
           final category = widget.categories[index - 1];
-          final isSelected = widget.selectedCategory?.id == category.id;
+          
+          // Verificar si esta categoría está seleccionada
+          // Si selectedCategory es null, significa que "All" está seleccionado
+          // por lo tanto, ninguna categoría específica está seleccionada
+          final isSelected = widget.selectedCategory != null && widget.selectedCategory?.id == category.id;
+          
+          // Log para depurar el estado de selección de cada categoría
+          AppLogger.videoInfo('📍 Estado de selección de "${category.name}": $isSelected');
 
           return _buildCategoryChip(
             label: category.name,
@@ -81,8 +94,17 @@ class _CategoryFilterWidgetState extends State<CategoryFilterWidget> {
     required VoidCallback onTap,
     String? posterImageUrl,
   }) {
+    // Log para indicar el estado de selección del filtro
+    if (isSelected) {
+      AppLogger.videoInfo('🔵 Filtro de categoría "$label" está SELECCIONADO (videos: $videoCount)');
+    }
+    
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        // Log al hacer tap en un filtro
+        AppLogger.videoInfo('🔎 Tap en filtro de categoría: "$label" (videos: $videoCount)');
+        onTap();
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,

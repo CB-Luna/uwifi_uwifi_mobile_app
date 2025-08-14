@@ -304,8 +304,29 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
     );
   }
 
+  // Mantener una referencia al estado actual del filtro seleccionado
+  GenreWithVideos? _currentSelectedCategory;
+
   Widget _buildCategoryFilters() {
-    return BlocBuilder<VideoExplorerBloc, VideoExplorerState>(
+    return BlocConsumer<VideoExplorerBloc, VideoExplorerState>(
+      listenWhen: (previous, current) {
+        // Solo escuchar cuando cambia selectedCategory
+        if (previous is VideoExplorerLoaded && current is VideoExplorerLoaded) {
+          return previous.selectedCategory != current.selectedCategory;
+        }
+        return false;
+      },
+      listener: (context, state) {
+        if (state is VideoExplorerLoaded) {
+          // Actualizar la referencia local
+          _currentSelectedCategory = state.selectedCategory;
+          AppLogger.videoInfo('📢 LISTENER - Actualizado _currentSelectedCategory a: ${_currentSelectedCategory?.name ?? "null"}');
+        }
+      },
+      buildWhen: (previous, current) {
+        // Reconstruir en cualquier cambio de estado
+        return true;
+      },
       builder: (context, state) {
         if (state is VideoExplorerLoaded) {
           // Ordenar las categorías alfabéticamente por nombre
@@ -314,21 +335,38 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
             
           // Registrar en log para depuración
           AppLogger.videoInfo('Categorías ordenadas alfabéticamente: ${sortedCategories.map((c) => c.name).join(', ')}');
+          
+          // Log del estado actual
+          AppLogger.videoInfo('📢 WIDGET - Estado actual: selectedCategory: ${state.selectedCategory?.name ?? "null"}');
+          AppLogger.videoInfo('📢 WIDGET - Referencia local: _currentSelectedCategory: ${_currentSelectedCategory?.name ?? "null"}');
             
+          // Usar la referencia local para el estado seleccionado
+          // Esto asegura que el widget siempre tenga el estado más actualizado
           return CategoryFilterWidget(
             categories: sortedCategories, // Usar la lista ordenada
-            selectedCategory: state.selectedCategory,
+            selectedCategory: _currentSelectedCategory, // Usar la referencia local en lugar de state.selectedCategory
             onCategorySelected: (category) {
               // Ocultar el teclado si está abierto
               FocusScope.of(context).unfocus();
               
+              // Log detallado antes de enviar el evento
+              AppLogger.videoInfo('📍 Iniciando selección de categoría: ${category?.name ?? "All"}');
+              
+              // Actualizar inmediatamente la referencia local para una respuesta visual inmediata
+              setState(() {
+                _currentSelectedCategory = category;
+                AppLogger.videoInfo('🔄 Actualizando _currentSelectedCategory inmediatamente a: ${_currentSelectedCategory?.name ?? "null"}');
+              });
+              
               if (category == null) {
                 // Show all videos
+                AppLogger.videoInfo('📡 Enviando evento FilterByCategory con categoryName: "All"');
                 context.read<VideoExplorerBloc>().add(
                   const FilterByCategory(categoryName: 'All'),
                 );
               } else {
                 // Filter by specific category
+                AppLogger.videoInfo('📡 Enviando evento FilterByCategory con categoryId: ${category.id}, categoryName: "${category.name}"');
                 context.read<VideoExplorerBloc>().add(
                   FilterByCategory(
                     categoryId: category.id,
@@ -337,8 +375,11 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                 );
               }
               
-              // Registrar acción para depuración
-              AppLogger.videoInfo('Categoría seleccionada: ${category?.name ?? "All"}, teclado ocultado');
+              // Registrar acción completa para depuración
+              AppLogger.videoInfo('✅ Categoría seleccionada: ${category?.name ?? "All"}, teclado ocultado, evento enviado al bloc');
+              
+              // Vibrar para dar feedback táctil al usuario
+              HapticFeedback.selectionClick();
             },
           );
         }
