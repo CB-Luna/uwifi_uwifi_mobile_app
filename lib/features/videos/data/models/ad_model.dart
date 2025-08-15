@@ -11,6 +11,7 @@ class AdModel extends Ad {
     required super.createdAt,
     required super.mediaType,
     required super.mediaMimeType,
+    required super.priority,
     super.thumbnailUrl,
     super.categoryId,
     super.categoryName,
@@ -39,6 +40,7 @@ class AdModel extends Ad {
           : null,
       mediaType: json['media_type'] ?? '',
       mediaMimeType: json['media_mime_type'] ?? '',
+      priority: json['priority'] ?? '',
       posterTitle: json['poster_title'],
       metadata: json['metadata_json'] != null
           ? MetadataJson.fromJson(json['metadata_json'])
@@ -61,6 +63,7 @@ class AdModel extends Ad {
       'poster_created_at': posterCreatedAt?.toIso8601String(),
       'media_type': mediaType,
       'media_mime_type': mediaMimeType,
+      'priority': priority,
       'poster_title': posterTitle,
       'metadata_json': metadata?.toJson(),
     };
@@ -81,6 +84,7 @@ class AdModel extends Ad {
     DateTime? posterCreatedAt,
     String? mediaType,
     String? mediaMimeType,
+    String? priority,
     String? posterTitle,
     MetadataJson? metadata,
   }) {
@@ -97,6 +101,7 @@ class AdModel extends Ad {
       posterCreatedAt: posterCreatedAt ?? this.posterCreatedAt,
       mediaType: mediaType ?? this.mediaType,
       mediaMimeType: mediaMimeType ?? this.mediaMimeType,
+      priority: priority ?? this.priority,
       posterTitle: posterTitle ?? this.posterTitle,
       metadata: metadata ?? this.metadata,
     );

@@ -16,6 +16,7 @@ class Ad extends Equatable {
   final DateTime? posterCreatedAt; // poster_created_at
   final String mediaType; // media_type
   final String mediaMimeType; // media_mime_type
+  final String priority; // priority
   final String? posterTitle; // poster_title
   final MetadataJson? metadata; // Metadatos adicionales del video
 
@@ -27,6 +28,7 @@ class Ad extends Equatable {
     required this.createdAt,
     required this.mediaType,
     required this.mediaMimeType,
+    required this.priority,
     this.thumbnailUrl,
     this.categoryId,
     this.categoryName,
@@ -50,6 +52,7 @@ class Ad extends Equatable {
     posterCreatedAt,
     mediaType,
     mediaMimeType,
+    priority,
     metadata,
     posterTitle,
   ];
@@ -68,6 +71,7 @@ class Ad extends Equatable {
     DateTime? posterCreatedAt,
     String? mediaType,
     String? mediaMimeType,
+    String? priority,
     String? posterTitle,
   }) {
     return Ad(
@@ -83,6 +87,7 @@ class Ad extends Equatable {
       posterCreatedAt: posterCreatedAt ?? this.posterCreatedAt,
       mediaType: mediaType ?? this.mediaType,
       mediaMimeType: mediaMimeType ?? this.mediaMimeType,
+      priority: priority ?? this.priority,
       posterTitle: posterTitle ?? this.posterTitle,
     );
   }
