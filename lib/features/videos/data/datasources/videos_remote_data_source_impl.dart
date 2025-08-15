@@ -95,6 +95,45 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
       return (response as List).map((json) => AdModel.fromJson(json)).toList();
     });
   }
+  
+  @override
+  Future<List<AdModel>> getRandomVideos({
+    int limit = 10,
+    int? categoryId,
+  }) async {
+    return _retryRequest(() async {
+      debugPrint('🎲 Obteniendo videos aleatorios (límite: $limit, categoría: $categoryId)');
+      
+      var query = _mediaLibraryClient
+          .from('vw_media_files_with_posters')
+          .select();
+
+      // Filtrar solo archivos de tipo video
+      query = query.eq('media_type', 'video');
+
+      // Si se especifica una categoría, filtrar por ella
+      if (categoryId != null && categoryId > 0) {
+        debugPrint('🔎 Filtrando videos aleatorios por categoría ID: $categoryId');
+        query = query.eq('category_id', categoryId);
+      } else {
+        debugPrint('🔎 Mostrando todos los videos aleatorios (sin filtro de categoría)');
+      }
+
+      // Usar la función SQL random() para ordenar aleatoriamente
+      final finalQuery = query.order('priority', ascending: false).limit(limit);
+      
+      final response = await finalQuery;
+      debugPrint('🎬 Obtenidos ${response.length} videos aleatorios');
+      
+      // Convertir la respuesta a una lista de AdModel
+      final videos = (response as List).map((json) => AdModel.fromJson(json)).toList();
+      
+      // Mezclar la lista para mayor aleatoriedad (doble aleatorización)
+      videos.shuffle();
+      
+      return videos;
+    }, functionName: 'getRandomVideos');
+  }
 
   @override
   Future<List<GenreWithVideosModel>> getVideosByGenre() async {

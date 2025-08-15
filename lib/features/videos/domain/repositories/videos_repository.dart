@@ -14,6 +14,12 @@ abstract class VideosRepository {
     int limit = 10,
     int? categoryId,
   });
+  
+  /// Obtiene videos aleatorios con un límite opcional
+  Future<Either<Failure, List<Ad>>> getRandomVideos({
+    int limit = 10,
+    int? categoryId,
+  });
 
   /// Obtiene videos agrupados por género/categoría
   Future<Either<Failure, List<GenreWithVideos>>> getVideosByGenre();

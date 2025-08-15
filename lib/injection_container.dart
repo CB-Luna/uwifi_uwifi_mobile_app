@@ -135,6 +135,7 @@ import 'features/videos/domain/usecases/get_ads_with_params.dart';
 import 'features/videos/domain/usecases/get_genres.dart';
 import 'features/videos/domain/usecases/get_genres_with_videos.dart';
 import 'features/videos/domain/usecases/get_video.dart';
+import 'features/videos/domain/usecases/get_random_videos.dart';
 import 'features/videos/domain/usecases/get_videos.dart';
 import 'features/videos/domain/usecases/get_videos_by_genre.dart';
 import 'features/videos/domain/usecases/get_videos_paginated.dart';
@@ -195,6 +196,7 @@ Future<void> init() async {
     () => VideosBloc(
       getVideos: getIt(),
       getVideosPaginated: getIt(),
+      getRandomVideos: getIt(),
       getVideosByGenre: getIt(),
       getVideo: getIt(),
       markVideoAsViewed: getIt(),
@@ -273,6 +275,7 @@ Future<void> init() async {
   getIt.registerLazySingleton(() => GetVideosByGenre(getIt()));
   getIt.registerLazySingleton(() => GetVideo(getIt()));
   getIt.registerLazySingleton(() => GetVideosPaginated(getIt()));
+  getIt.registerLazySingleton(() => GetRandomVideos(getIt()));
   getIt.registerLazySingleton(() => MarkVideoAsViewed(getIt()));
   getIt.registerLazySingleton(() => LikeVideo(getIt()));
   getIt.registerLazySingleton(() => UnlikeVideo(getIt()));

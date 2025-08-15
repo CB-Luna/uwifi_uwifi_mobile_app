@@ -27,6 +27,7 @@ class VideosLoaded extends VideosState {
   final int currentPage;
   final int? currentCategory;
   final int? userPoints;
+  final bool isRandomMode;
 
   const VideosLoaded({
     required this.videos,
@@ -34,6 +35,7 @@ class VideosLoaded extends VideosState {
     this.currentPage = 1,
     this.currentCategory,
     this.userPoints,
+    this.isRandomMode = false,
   });
 
   @override
@@ -43,6 +45,7 @@ class VideosLoaded extends VideosState {
     currentPage,
     currentCategory,
     userPoints,
+    isRandomMode,
   ];
 
   VideosLoaded copyWith({
@@ -51,6 +54,7 @@ class VideosLoaded extends VideosState {
     int? currentPage,
     int? currentCategory,
     int? userPoints,
+    bool? isRandomMode,
   }) {
     return VideosLoaded(
       videos: videos ?? this.videos,
@@ -58,6 +62,7 @@ class VideosLoaded extends VideosState {
       currentPage: currentPage ?? this.currentPage,
       currentCategory: currentCategory ?? this.currentCategory,
       userPoints: userPoints ?? this.userPoints,
+      isRandomMode: isRandomMode ?? this.isRandomMode,
     );
   }
 }
@@ -70,6 +75,7 @@ class VideosLoadedState extends VideosLoaded {
     super.currentPage,
     super.currentCategory,
     super.userPoints,
+    super.isRandomMode,
   });
 }
 

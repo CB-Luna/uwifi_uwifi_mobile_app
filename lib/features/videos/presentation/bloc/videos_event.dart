@@ -100,6 +100,20 @@ class DeductUserPointsEvent extends VideosEvent {
   List<Object?> get props => [points, reason];
 }
 
+/// Evento para cargar videos aleatorios
+class LoadRandomVideosEvent extends VideosEvent {
+  final int limit;
+  final int? categoryId;
+
+  const LoadRandomVideosEvent({
+    this.limit = 10,
+    this.categoryId,
+  });
+
+  @override
+  List<Object?> get props => [limit, categoryId];
+}
+
 /// Evento para marcar un video como completado y ganar puntos
 class CompleteVideoEvent extends VideosEvent {
   final String videoId;

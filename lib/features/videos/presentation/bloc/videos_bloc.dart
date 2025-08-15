@@ -4,6 +4,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../domain/usecases/get_video.dart';
+import '../../domain/usecases/get_random_videos.dart';
 import '../../domain/usecases/get_videos.dart';
 import '../../domain/usecases/get_videos_by_genre.dart';
 import '../../domain/usecases/get_videos_paginated.dart';
@@ -17,6 +18,7 @@ import 'videos_state.dart';
 class VideosBloc extends Bloc<VideosEvent, VideosState> {
   final GetVideos getVideos;
   final GetVideosPaginated getVideosPaginated;
+  final GetRandomVideos getRandomVideos;
   final GetVideosByGenre getVideosByGenre;
   final GetVideo getVideo;
   final MarkVideoAsViewed markVideoAsViewed;
@@ -29,6 +31,7 @@ class VideosBloc extends Bloc<VideosEvent, VideosState> {
   VideosBloc({
     required this.getVideos,
     required this.getVideosPaginated,
+    required this.getRandomVideos,
     required this.getVideosByGenre,
     required this.getVideo,
     required this.markVideoAsViewed,
@@ -50,6 +53,7 @@ class VideosBloc extends Bloc<VideosEvent, VideosState> {
     on<LoadUserPointsEvent>(_onLoadUserPoints);
     on<DeductUserPointsEvent>(_onDeductUserPoints);
     on<CompleteVideoEvent>(_onCompleteVideo);
+    on<LoadRandomVideosEvent>(_onLoadRandomVideos);
   }
 
   Future<void> _onLoadVideos(
@@ -352,6 +356,44 @@ class VideosBloc extends Bloc<VideosEvent, VideosState> {
     } catch (e) {
       emit(PointsError(message: 'Error al completar video: $e'));
     }
+  }
+  
+  Future<void> _onLoadRandomVideos(
+    LoadRandomVideosEvent event,
+    Emitter<VideosState> emit,
+  ) async {
+    // Logs de depuración para verificar el ID de categoría
+    AppLogger.videoInfo(
+      '🎲 Cargando videos aleatorios - Categoría ID: ${event.categoryId}, Límite: ${event.limit}',
+    );
+    
+    // Mostrar estado de carga
+    emit(const VideosLoading());
+    
+    final params = RandomVideosParams(
+      limit: event.limit,
+      categoryId: event.categoryId,
+    );
+    
+    final result = await getRandomVideos(params);
+    
+    result.fold(
+      (failure) => emit(VideosError(message: _mapFailureToMessage(failure))),
+      (videos) {
+        AppLogger.videoInfo('🎲 Obtenidos ${videos.length} videos aleatorios');
+        
+        // Emitir estado con videos aleatorios
+        emit(
+          VideosLoaded(
+            videos: videos,
+            hasReachedEnd: true, // No hay paginación en videos aleatorios
+            currentPage: 1,
+            currentCategory: event.categoryId,
+            isRandomMode: true, // Indicar que estamos en modo aleatorio
+          ),
+        );
+      },
+    );
   }
 
   String _mapFailureToMessage(Failure failure) {

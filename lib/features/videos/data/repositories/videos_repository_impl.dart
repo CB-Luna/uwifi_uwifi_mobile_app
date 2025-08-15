@@ -60,6 +60,26 @@ class VideosRepositoryImpl implements VideosRepository {
       return const Left(NetworkFailure());
     }
   }
+  
+  @override
+  Future<Either<Failure, List<Ad>>> getRandomVideos({
+    int limit = 10,
+    int? categoryId,
+  }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final videos = await remoteDataSource.getRandomVideos(
+          limit: limit,
+          categoryId: categoryId,
+        );
+        return Right(videos);
+      } on ServerException {
+        return const Left(ServerFailure());
+      }
+    } else {
+      return const Left(NetworkFailure());
+    }
+  }
 
   @override
   Future<Either<Failure, List<GenreWithVideos>>> getVideosByGenre() async {

@@ -391,7 +391,7 @@ class _PointsEarnedWidgetState extends State<_PointsEarnedWidget>
       // Controlador para la animación Lottie
       AppLogger.videoInfo('🌟 DIAGNÓSTICO WIDGET: Creando controlador Lottie');
       _lottieController = AnimationController(
-        duration: const Duration(milliseconds: 2500),
+        duration: const Duration(milliseconds: 3500),
         vsync: this,
       );
 
@@ -435,7 +435,7 @@ class _PointsEarnedWidgetState extends State<_PointsEarnedWidget>
       AppLogger.videoInfo(
         '🌟 DIAGNÓSTICO ANIMACIÓN: Configurando visibilidad inicial',
       );
-      _fadeController.value = 1.0; // Comenzar visible
+      _fadeController.value = 0.5; // Comenzar visible
 
       // Verificar si el dispositivo soporta vibración
       AppLogger.videoInfo(

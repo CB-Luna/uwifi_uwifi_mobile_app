@@ -11,6 +11,12 @@ abstract class VideosRemoteDataSource {
     int limit = 10,
     int? categoryId,
   });
+  
+  /// Obtiene videos aleatorios con soporte para filtrar por categoría
+  Future<List<AdModel>> getRandomVideos({
+    int limit = 10,
+    int? categoryId,
+  });
 
   /// Obtiene videos agrupados por género usando la vista group_ad_by_genre de Supabase
   Future<List<GenreWithVideosModel>> getVideosByGenre();
