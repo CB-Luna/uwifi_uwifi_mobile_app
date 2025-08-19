@@ -64,9 +64,6 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
 
   // Animación para el cambio de categoría
   bool _isAnimatingCategoryChange = false;
-  
-  // Control para el modo de reproducción aleatoria
-  bool _isRandomMode = false;
 
   @override
   void initState() {
@@ -727,10 +724,14 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
 
   // ✅ MÉTODO PRINCIPAL: Manejar cuando termina un video
   void _handleVideoFinished() {
-    AppLogger.videoInfo('🏁 Video finished callback received - Index: $_currentIndex');
-    
+    AppLogger.videoInfo(
+      '🏁 Video finished callback received - Index: $_currentIndex',
+    );
+
     // Log para depurar estado inicial
-    AppLogger.videoInfo('📍 DIAGNÓSTICO: Estado antes de manejar video finalizado:');
+    AppLogger.videoInfo(
+      '📍 DIAGNÓSTICO: Estado antes de manejar video finalizado:',
+    );
     AppLogger.videoInfo('📍 - Video actual índice: $_currentIndex');
     AppLogger.videoInfo('📍 - Widget montado: ${mounted ? "Sí" : "No"}');
 
@@ -746,16 +747,22 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
         videoList = videosState.videos;
         AppLogger.videoInfo('📍 Videos cargados: ${videoList.length}');
       } else {
-        AppLogger.videoError('❌ Estado de videos no es VideosLoaded: ${videosState.runtimeType}');
+        AppLogger.videoError(
+          '❌ Estado de videos no es VideosLoaded: ${videosState.runtimeType}',
+        );
       }
 
       if (videoList.isNotEmpty && _currentIndex < videoList.length) {
         final currentVideo = videoList[_currentIndex];
-        AppLogger.videoInfo('🎞️ Procesando finalización de video: "${currentVideo.title}" (ID: ${currentVideo.id})');
+        AppLogger.videoInfo(
+          '🎞️ Procesando finalización de video: "${currentVideo.title}" (ID: ${currentVideo.id})',
+        );
 
         // ✅ USE VideoCompletionHandler to handle video completion
         // Pero NO avanzar automáticamente al siguiente video
-        AppLogger.videoInfo('📍 Llamando a VideoCompletionHandler.handleVideoCompletion');
+        AppLogger.videoInfo(
+          '📍 Llamando a VideoCompletionHandler.handleVideoCompletion',
+        );
         VideoCompletionHandler.handleVideoCompletion(
           context,
           currentVideo, // Pasar el video completo con sus puntos específicos
@@ -763,10 +770,13 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
             AppLogger.videoInfo('🌟 onAnimationComplete callback ejecutado');
             // No avanzar automáticamente al siguiente video
             // El usuario debe hacer swipe manualmente para continuar
-            AppLogger.videoInfo('🛑 Video terminado. Esperando interacción del usuario para continuar');
-            
+            AppLogger.videoInfo(
+              '🛑 Video terminado. Esperando interacción del usuario para continuar',
+            );
+
             // Pausar el video actual para indicar visualmente que ha terminado
-            if (_currentVideoController != null && _currentVideoController!.value.isPlaying) {
+            if (_currentVideoController != null &&
+                _currentVideoController!.value.isPlaying) {
               _currentVideoController!.pause();
             }
           },
@@ -1026,69 +1036,5 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     Future.delayed(const Duration(milliseconds: 500), () {
       entry?.remove();
     });
-  }
-
-  // Advance to next video
-  void _advanceToNextVideo(List<Ad> videoList, dynamic videosState) {
-    if (videoList.isNotEmpty) {
-      if (_currentIndex < videoList.length - 1) {
-        final nextIndex = _currentIndex + 1;
-        AppLogger.videoInfo('🎬 Auto-advancing to video $nextIndex');
-
-        setState(() {
-          _currentIndex = nextIndex;
-        });
-
-        _pageController.animateToPage(
-          nextIndex,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-
-        _videoManager.goToVideo(nextIndex);
-
-        // Load more videos if we're near the end
-        if (nextIndex >= videoList.length - 2) {
-          AppLogger.videoInfo('🔄 Near end, loading more videos preemptively');
-          if (videosState is VideosLoaded) {
-            context.read<VideosBloc>().add(
-              LoadVideosPaginatedEvent(
-                page: videosState.currentPage + 1,
-                categoryId: videosState.currentCategory,
-              ),
-            );
-          }
-        }
-      } else {
-        // If it's the last video, load more or loop
-        AppLogger.videoInfo('🔄 Reached end, trying to load more videos');
-
-        if (videosState is VideosLoaded) {
-          context.read<VideosBloc>().add(
-            LoadVideosPaginatedEvent(
-              page: videosState.currentPage + 1,
-              categoryId: videosState.currentCategory,
-            ),
-          );
-        }
-
-        // Loop back to first video
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            setState(() {
-              _currentIndex = 0;
-            });
-
-            _pageController.animateToPage(
-              0,
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-            );
-
-            _videoManager.goToVideo(0);
-          }
-        });
-      }
-    }
   }
 }

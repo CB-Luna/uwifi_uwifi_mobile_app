@@ -95,42 +95,45 @@ class VideosRemoteDataSourceImpl implements VideosRemoteDataSource {
       return (response as List).map((json) => AdModel.fromJson(json)).toList();
     });
   }
-  
+
   @override
   Future<List<AdModel>> getRandomVideos({
     int limit = 10,
     int? categoryId,
   }) async {
     return _retryRequest(() async {
-      debugPrint('🎲 Obteniendo videos aleatorios (límite: $limit, categoría: $categoryId)');
-      
-      var query = _mediaLibraryClient
-          .from('vw_media_files_with_posters')
-          .select();
+      debugPrint(
+        '🎲 Obteniendo videos aleatorios usando RPC (límite: $limit, categoría: $categoryId)',
+      );
 
-      // Filtrar solo archivos de tipo video
-      query = query.eq('media_type', 'video');
+      // Llamar a la función RPC get_random_videos_by_genre
+      final response = await _mediaLibraryClient.rpc(
+        'get_random_videos_by_genre',
+        params: {
+          'p_category_id': categoryId != null && categoryId > 0
+              ? categoryId
+              : null,
+        },
+      );
 
-      // Si se especifica una categoría, filtrar por ella
-      if (categoryId != null && categoryId > 0) {
-        debugPrint('🔎 Filtrando videos aleatorios por categoría ID: $categoryId');
-        query = query.eq('category_id', categoryId);
-      } else {
-        debugPrint('🔎 Mostrando todos los videos aleatorios (sin filtro de categoría)');
+      debugPrint('🎬 Obtenidos ${response.length} videos aleatorios desde RPC');
+
+      // Log para verificar el orden aleatorio
+      if (response.isNotEmpty && response.length > 1) {
+        debugPrint('🔍 Verificando orden aleatorio de los primeros 5 videos:');
+        for (int i = 0; i < response.length && i < 5; i++) {
+          final video = response[i];
+          debugPrint(
+            '  Video #$i: ${video['id']} - ${video['media_title']} (prioridad: ${video['priority']})',
+          );
+        }
       }
 
-      // Usar la función SQL random() para ordenar aleatoriamente
-      final finalQuery = query.order('priority', ascending: false).limit(limit);
-      
-      final response = await finalQuery;
-      debugPrint('🎬 Obtenidos ${response.length} videos aleatorios');
-      
       // Convertir la respuesta a una lista de AdModel
-      final videos = (response as List).map((json) => AdModel.fromJson(json)).toList();
-      
-      // Mezclar la lista para mayor aleatoriedad (doble aleatorización)
-      videos.shuffle();
-      
+      final videos = (response as List)
+          .map((json) => AdModel.fromJson(json))
+          .toList();
+
       return videos;
     }, functionName: 'getRandomVideos');
   }
