@@ -53,7 +53,7 @@ class VideoCompletionHandler {
     int? customPoints,
   }) async {
     AppLogger.videoInfo(
-      '🚨 DIAGNÓSTICO: Iniciando handleVideoCompletion para video "${video.title}" (ID: ${video.id})',
+      '🚨 DIAGNÓSTICO: Iniciando handleVideoCompletion para video "${video.title}" (ID: ${video.id} - Duración en segundos: ${video.metadata?.durationSeconds})',
     );
 
     // Registrar la visualización del video en la base de datos
