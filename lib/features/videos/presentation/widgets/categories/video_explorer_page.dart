@@ -63,18 +63,22 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
         // Aumentar el delay para asegurar que las categorías se hayan cargado completamente
         Future.delayed(const Duration(milliseconds: 800), () {
           if (mounted) {
-            AppLogger.videoInfo('🚀 Iniciando carga automática de todos los videos');
-            
+            AppLogger.videoInfo(
+              '🚀 Iniciando carga automática de todos los videos',
+            );
+
             // Ocultar el teclado si está abierto
             FocusScope.of(context).unfocus();
-            
+
             // Enviar evento para cargar todos los videos (categoría "All")
             context.read<VideoExplorerBloc>().add(
               const FilterByCategory(categoryName: 'All', clearCache: true),
             );
-            
+
             // Log adicional para depuración
-            AppLogger.videoInfo('🔍 Evento FilterByCategory enviado con categoryName: All');
+            AppLogger.videoInfo(
+              '🔍 Evento FilterByCategory enviado con categoryName: All',
+            );
           }
         });
       }
@@ -102,18 +106,20 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
     AppLogger.videoInfo(
       '🎬 Video seleccionado desde explorador: ${video.title} (ID: ${video.id})',
     );
-    
+
     // Buscar el índice correcto del video en la lista filtrada actual
     final currentState = context.read<VideoExplorerBloc>().state;
     if (currentState is VideoExplorerLoaded) {
       // Encontrar el índice exacto del video por ID en la lista filtrada
-      final correctIndex = currentState.filteredVideos.indexWhere((v) => v.id == video.id);
+      final correctIndex = currentState.filteredVideos.indexWhere(
+        (v) => v.id == video.id,
+      );
       final useIndex = correctIndex >= 0 ? correctIndex : index;
-      
+
       AppLogger.videoInfo(
         '📊 Índice en grid: $index, Índice correcto en lista: $useIndex',
       );
-      
+
       context.read<VideoExplorerBloc>().add(
         SelectVideoEvent(videoId: video.id, startIndex: useIndex),
       );
@@ -239,7 +245,7 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Explore Videos',
+                      'Explore',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 28,
@@ -320,7 +326,9 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
         if (state is VideoExplorerLoaded) {
           // Actualizar la referencia local
           _currentSelectedCategory = state.selectedCategory;
-          AppLogger.videoInfo('📢 LISTENER - Actualizado _currentSelectedCategory a: ${_currentSelectedCategory?.name ?? "null"}');
+          AppLogger.videoInfo(
+            '📢 LISTENER - Actualizado _currentSelectedCategory a: ${_currentSelectedCategory?.name ?? "null"}',
+          );
         }
       },
       buildWhen: (previous, current) {
@@ -332,41 +340,56 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
           // Ordenar las categorías alfabéticamente por nombre
           final sortedCategories = List<GenreWithVideos>.from(state.categories)
             ..sort((a, b) => a.name.compareTo(b.name));
-            
+
           // Registrar en log para depuración
-          AppLogger.videoInfo('Categorías ordenadas alfabéticamente: ${sortedCategories.map((c) => c.name).join(', ')}');
-          
+          AppLogger.videoInfo(
+            'Categorías ordenadas alfabéticamente: ${sortedCategories.map((c) => c.name).join(', ')}',
+          );
+
           // Log del estado actual
-          AppLogger.videoInfo('📢 WIDGET - Estado actual: selectedCategory: ${state.selectedCategory?.name ?? "null"}');
-          AppLogger.videoInfo('📢 WIDGET - Referencia local: _currentSelectedCategory: ${_currentSelectedCategory?.name ?? "null"}');
-            
+          AppLogger.videoInfo(
+            '📢 WIDGET - Estado actual: selectedCategory: ${state.selectedCategory?.name ?? "null"}',
+          );
+          AppLogger.videoInfo(
+            '📢 WIDGET - Referencia local: _currentSelectedCategory: ${_currentSelectedCategory?.name ?? "null"}',
+          );
+
           // Usar la referencia local para el estado seleccionado
           // Esto asegura que el widget siempre tenga el estado más actualizado
           return CategoryFilterWidget(
             categories: sortedCategories, // Usar la lista ordenada
-            selectedCategory: _currentSelectedCategory, // Usar la referencia local en lugar de state.selectedCategory
+            selectedCategory:
+                _currentSelectedCategory, // Usar la referencia local en lugar de state.selectedCategory
             onCategorySelected: (category) {
               // Ocultar el teclado si está abierto
               FocusScope.of(context).unfocus();
-              
+
               // Log detallado antes de enviar el evento
-              AppLogger.videoInfo('📍 Iniciando selección de categoría: ${category?.name ?? "All"}');
-              
+              AppLogger.videoInfo(
+                '📍 Iniciando selección de categoría: ${category?.name ?? "All"}',
+              );
+
               // Actualizar inmediatamente la referencia local para una respuesta visual inmediata
               setState(() {
                 _currentSelectedCategory = category;
-                AppLogger.videoInfo('🔄 Actualizando _currentSelectedCategory inmediatamente a: ${_currentSelectedCategory?.name ?? "null"}');
+                AppLogger.videoInfo(
+                  '🔄 Actualizando _currentSelectedCategory inmediatamente a: ${_currentSelectedCategory?.name ?? "null"}',
+                );
               });
-              
+
               if (category == null) {
                 // Show all videos
-                AppLogger.videoInfo('📡 Enviando evento FilterByCategory con categoryName: "All"');
+                AppLogger.videoInfo(
+                  '📡 Enviando evento FilterByCategory con categoryName: "All"',
+                );
                 context.read<VideoExplorerBloc>().add(
                   const FilterByCategory(categoryName: 'All'),
                 );
               } else {
                 // Filter by specific category
-                AppLogger.videoInfo('📡 Enviando evento FilterByCategory con categoryId: ${category.id}, categoryName: "${category.name}"');
+                AppLogger.videoInfo(
+                  '📡 Enviando evento FilterByCategory con categoryId: ${category.id}, categoryName: "${category.name}"',
+                );
                 context.read<VideoExplorerBloc>().add(
                   FilterByCategory(
                     categoryId: category.id,
@@ -374,10 +397,12 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
                   ),
                 );
               }
-              
+
               // Registrar acción completa para depuración
-              AppLogger.videoInfo('✅ Categoría seleccionada: ${category?.name ?? "All"}, teclado ocultado, evento enviado al bloc');
-              
+              AppLogger.videoInfo(
+                '✅ Categoría seleccionada: ${category?.name ?? "All"}, teclado ocultado, evento enviado al bloc',
+              );
+
               // Vibrar para dar feedback táctil al usuario
               HapticFeedback.selectionClick();
             },
@@ -462,8 +487,10 @@ class _VideoExplorerPageState extends State<VideoExplorerPage>
 
         if (state is VideoExplorerLoaded) {
           // Log para verificar la cantidad de videos cargados
-          AppLogger.videoInfo('📊 Mostrando ${state.filteredVideos.length} videos en UI');
-          
+          AppLogger.videoInfo(
+            '📊 Mostrando ${state.filteredVideos.length} videos en UI',
+          );
+
           if (state.filteredVideos.isEmpty) {
             return Center(
               child: Column(
