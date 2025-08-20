@@ -380,7 +380,17 @@ class VideosBloc extends Bloc<VideosEvent, VideosState> {
     result.fold(
       (failure) => emit(VideosError(message: _mapFailureToMessage(failure))),
       (videos) {
-        AppLogger.videoInfo('🎲 Obtenidos ${videos.length} videos aleatorios');
+        AppLogger.videoInfo('🎲 Obtenidos ${videos.length} videos aleatorios');  
+        
+        // Mostrar detalles de los primeros videos para verificar aleatoriedad
+        if (videos.isNotEmpty) {
+          AppLogger.videoInfo('🔍 Verificando orden aleatorio de los primeros videos:');
+          final maxVideosToLog = videos.length > 5 ? 5 : videos.length;
+          for (int i = 0; i < maxVideosToLog; i++) {
+            final video = videos[i];
+            AppLogger.videoInfo('  Video #$i: ${video.id} - ${video.title} (prioridad: ${video.priority})');
+          }
+        }
         
         // Emitir estado con videos aleatorios
         emit(

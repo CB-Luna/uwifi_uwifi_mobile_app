@@ -65,6 +65,9 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
   // Animación para el cambio de categoría
   bool _isAnimatingCategoryChange = false;
 
+  // Modo aleatorio activado por defecto
+  final bool _isRandomMode = true;
+
   @override
   void initState() {
     super.initState();
@@ -78,11 +81,32 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
     // Load initial videos and wallet data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_manualSelectionActive) {
-        context.read<VideosBloc>().add(
-          const LoadVideosPaginatedEvent(
-            categoryId: 0, // Categoría 0 = Todos
-          ),
+        AppLogger.videoInfo(
+          '🎲 Iniciando carga de videos - Modo aleatorio: ${_isRandomMode ? "ACTIVADO" : "DESACTIVADO"}',
         );
+
+        if (_isRandomMode) {
+          // Cargar videos en modo aleatorio
+          AppLogger.videoInfo(
+            '🎲 Cargando videos aleatorios (categoryId: 0, limit: 20)',
+          );
+          context.read<VideosBloc>().add(
+            const LoadRandomVideosEvent(
+              categoryId: 0, // Categoría 0 = Todos
+              limit: 20,
+            ),
+          );
+        } else {
+          // Cargar videos ordenados por fecha (modo normal)
+          AppLogger.videoInfo(
+            '📅 Cargando videos ordenados por fecha (categoryId: 0)',
+          );
+          context.read<VideosBloc>().add(
+            const LoadVideosPaginatedEvent(
+              categoryId: 0, // Categoría 0 = Todos
+            ),
+          );
+        }
 
         // Get customer ID and load wallet data
         final authState = context.read<AuthBloc>().state;
@@ -971,10 +995,28 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
       newIndex > _currentCategoryIndex ? 'right' : 'left',
     );
 
-    // Cargar videos de la categoría seleccionada
-    context.read<VideosBloc>().add(
-      LoadVideosPaginatedEvent(categoryId: categoryId),
+    // Cargar videos de la categoría seleccionada según el modo activo
+    AppLogger.videoInfo(
+      '🔄 Cambiando categoría en modo: ${_isRandomMode ? "ALEATORIO" : "NORMAL"} (ID: $categoryId)',
     );
+
+    if (_isRandomMode) {
+      // Cargar videos aleatorios de la categoría seleccionada
+      AppLogger.videoInfo(
+        '🎲 Cargando videos aleatorios para categoría $categoryId',
+      );
+      context.read<VideosBloc>().add(
+        LoadRandomVideosEvent(categoryId: categoryId, limit: 20),
+      );
+    } else {
+      // Cargar videos ordenados por fecha de la categoría seleccionada
+      AppLogger.videoInfo(
+        '📅 Cargando videos ordenados por fecha para categoría $categoryId',
+      );
+      context.read<VideosBloc>().add(
+        LoadVideosPaginatedEvent(categoryId: categoryId),
+      );
+    }
 
     // Esperar a que se carguen los videos y luego navegar al primer video
     Future.delayed(const Duration(milliseconds: 600), () {
