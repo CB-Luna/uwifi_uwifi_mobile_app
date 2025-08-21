@@ -47,9 +47,34 @@ class CartItem {
   }
 
   factory CartItem.fromMap(Map<String, dynamic> map) {
+    // Manejo de diferentes tipos de precio (string o número)
+    dynamic rawPrice = map['price'] ?? 0;
+    double finalPrice;
+    
+    if (rawPrice is String) {
+      // Si es un rango como "25 - 200", tomamos el valor mínimo
+      if (rawPrice.contains('-')) {
+        try {
+          finalPrice = double.parse(rawPrice.split('-')[0].trim());
+        } catch (e) {
+          finalPrice = 0.0; // Valor por defecto si hay error
+        }
+      } else {
+        // Intentar convertir directamente
+        try {
+          finalPrice = double.parse(rawPrice);
+        } catch (e) {
+          finalPrice = 0.0; // Valor por defecto si hay error
+        }
+      }
+    } else {
+      // Si ya es un número
+      finalPrice = (rawPrice is num) ? rawPrice.toDouble() : 0.0;
+    }
+    
     return CartItem(
       name: map['name'] ?? '',
-      price: (map['price'] ?? 0).toDouble(),
+      price: finalPrice,
       image: map['image'] ?? '',
       model: map['model'],
       category: map['category'] ?? 0,

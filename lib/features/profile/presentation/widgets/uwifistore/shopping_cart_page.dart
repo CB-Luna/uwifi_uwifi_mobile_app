@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'cart_provider.dart';
 
 class ShoppingCartPage extends StatelessWidget {
@@ -91,7 +92,7 @@ class ShoppingCartPage extends StatelessWidget {
                             item.image,
                             width: 60,
                             height: 60,
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           ),
                         ),
                         const SizedBox(width: 14),
