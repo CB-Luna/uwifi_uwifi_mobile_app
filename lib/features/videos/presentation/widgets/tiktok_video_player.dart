@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+
 import '../../../../core/utils/app_logger.dart';
 
 /// Reproductor de video estilo TikTok con contador circular animado
@@ -14,7 +15,9 @@ class TikTokVideoPlayer extends StatefulWidget {
   onControllerChanged; // ✅ NUEVO: Callback para exponer el controlador
 
   const TikTokVideoPlayer({
-    required this.videoUrl, required this.isCurrentVideo, super.key,
+    required this.videoUrl,
+    required this.isCurrentVideo,
+    super.key,
     this.onVideoFinished, // ✅ NUEVO: Callback opcional
     this.onMoreInfoPressed, // ✅ NUEVO: Callback opcional
     this.onControllerChanged, // ✅ NUEVO: Callback para el controlador
@@ -86,7 +89,9 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
     final currentController = _controller;
     if (currentController != null) {
       try {
-        AppLogger.videoInfo('🚮 Liberando controlador de video anterior: ${widget.videoUrl}');
+        AppLogger.videoInfo(
+          '🚮 Liberando controlador de video anterior: ${widget.videoUrl}',
+        );
 
         // Primero, remover el listener para evitar callbacks después de dispose
         try {
@@ -99,7 +104,7 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
 
         // Pausar si está reproduciendo y está inicializado
         try {
-          if (currentController.value.isInitialized && 
+          if (currentController.value.isInitialized &&
               currentController.value.isPlaying) {
             AppLogger.videoInfo('⏸️ Pausando video antes de liberar');
             await currentController.pause();
@@ -115,7 +120,9 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
           await currentController.dispose();
           AppLogger.videoInfo('✅ Controlador liberado correctamente');
         } catch (e) {
-          AppLogger.videoError('❌ Error crítico al hacer dispose del controlador: $e');
+          AppLogger.videoError(
+            '❌ Error crítico al hacer dispose del controlador: $e',
+          );
           // Continuar con la limpieza de referencias aunque falle el dispose
         }
       } catch (e) {
@@ -129,7 +136,9 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
         try {
           widget.onControllerChanged?.call(null);
         } catch (e) {
-          AppLogger.videoError('⚠️ Error al notificar cambio de controlador: $e');
+          AppLogger.videoError(
+            '⚠️ Error al notificar cambio de controlador: $e',
+          );
         }
 
         // Actualizar estado si el widget aún está montado
@@ -149,13 +158,15 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
   Future<void> _initializeVideo() async {
     // Verificar si el widget todavía está montado antes de inicializar
     if (!mounted) {
-      AppLogger.videoWarning('⚠️ Intento de inicializar video en widget desmontado');
+      AppLogger.videoWarning(
+        '⚠️ Intento de inicializar video en widget desmontado',
+      );
       return;
     }
-    
+
     // Asegurar que cualquier controlador anterior se haya liberado
     await _disposeController();
-    
+
     try {
       AppLogger.videoInfo('🎬 Inicializando video: ${widget.videoUrl}');
 
@@ -264,7 +275,8 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
           final isNearEnd = progress >= 0.90;
           final hasEnded =
               currentController.value.position >=
-              currentController.value.duration - const Duration(milliseconds: 500);
+              currentController.value.duration -
+                  const Duration(milliseconds: 500);
           final hasReachedEnd = position.inSeconds >= (duration.inSeconds - 1);
 
           if ((isNearEnd || hasEnded || hasReachedEnd) &&
@@ -354,28 +366,8 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
         return VideoPlayer(currentController);
       }
 
-      // Determinar si el video es vertical (aspect ratio menor a 1) o horizontal
-      final isVerticalVideo = aspectRatio < 1.0;
-
-      if (isVerticalVideo) {
-        // Video vertical - estilo TikTok (pantalla completa)
-        return FittedBox(
-          fit: BoxFit.cover,
-          child: SizedBox(
-            width: videoSize.width,
-            height: videoSize.height,
-            child: VideoPlayer(currentController),
-          ),
-        );
-      } else {
-        // Video horizontal - centrado en la pantalla
-        return Center(
-          child: AspectRatio(
-            aspectRatio: aspectRatio,
-            child: VideoPlayer(currentController),
-          ),
-        );
-      }
+      // Video completo
+      return VideoPlayer(currentController);
     } catch (e) {
       AppLogger.videoError('❌ Error building video player widget: $e');
       return const Center(
@@ -404,13 +396,17 @@ class _TikTokVideoPlayerState extends State<TikTokVideoPlayer>
       // Evitar que se ejecuten callbacks durante el proceso de dispose
       AppLogger.videoInfo('🔒 Bloqueando callbacks durante dispose');
       _hasError = true; // Evitar que se ejecuten callbacks de progreso
-      
+
       // Usar el método seguro para liberar el controlador
-      _disposeController().then((_) {
-        AppLogger.videoInfo('✅ Controlador liberado desde dispose');
-      }).catchError((error) {
-        AppLogger.videoError('❌ Error al liberar controlador desde dispose: $error');
-      });
+      _disposeController()
+          .then((_) {
+            AppLogger.videoInfo('✅ Controlador liberado desde dispose');
+          })
+          .catchError((error) {
+            AppLogger.videoError(
+              '❌ Error al liberar controlador desde dispose: $error',
+            );
+          });
     } catch (e) {
       AppLogger.videoError('❌ Error general en dispose del controlador: $e');
     }

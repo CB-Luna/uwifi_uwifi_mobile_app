@@ -66,7 +66,7 @@ class _TikTokVideoFeedPageState extends State<TikTokVideoFeedPage> {
   bool _isAnimatingCategoryChange = false;
 
   // Modo aleatorio activado por defecto
-  final bool _isRandomMode = true;
+  final bool _isRandomMode = false;
 
   @override
   void initState() {
