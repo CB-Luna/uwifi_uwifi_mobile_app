@@ -36,14 +36,14 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         appName = info.appName;
         appVersion = info.version;
-        appBuild = '27';
+        appBuild = '29';
       });
     } catch (e) {
       // En caso de error, usar valores predeterminados
       setState(() {
         appName = 'U-wifi';
         appVersion = '1.0.0';
-        appBuild = '27';
+        appBuild = '29';
       });
     }
   }
